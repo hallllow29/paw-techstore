@@ -17,7 +17,7 @@ jobs:
     name: Secrets (Gitleaks + TruffleHog)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0 # histórico completo para varrer commits antigos
 
@@ -40,7 +40,7 @@ jobs:
     container:
       image: semgrep/semgrep
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Semgrep scan
         run: semgrep scan --config auto --sarif --output semgrep.sarif
         continue-on-error: true
@@ -60,7 +60,7 @@ jobs:
     name: SCA (Trivy + Dependency-Check)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Trivy (filesystem)
         uses: aquasecurity/trivy-action@master
@@ -95,7 +95,7 @@ jobs:
     name: SBOM (Syft)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Gerar SBOM
         uses: anchore/sbom-action@v0
         with:
@@ -113,7 +113,7 @@ jobs:
     name: DAST (OWASP ZAP)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Subir a stack (mongo + api + client)
         run: docker compose up -d --build
       - name: Aguardar a API
