@@ -17,8 +17,10 @@ param(
   [switch]$IncludeDependencyCheck  # lento (descarrega base NVD na 1ª vez)
 )
 
-$ErrorActionPreference = 'Stop'
-$root    = (Resolve-Path "$PSScriptRoot\..").Path
+# 'Continue' (nao 'Stop'): ferramentas em Docker escrevem no stderr e isso nao
+# deve abortar o script — o sucesso/falha e avaliado por exit code / HTTP code.
+$ErrorActionPreference = 'Continue'
+$root = (Resolve-Path "$PSScriptRoot\..").Path
 $reports = Join-Path $PSScriptRoot 'reports'
 New-Item -ItemType Directory -Force -Path $reports | Out-Null
 
@@ -99,11 +101,16 @@ if (-not $SkipSonar -and $cfg.SONAR_TOKEN) {
   Step 'SonarQube — análise'
   # host.docker.internal → o SonarQube a correr na máquina host
   $sonarHost = ($cfg.SONAR_URL -replace 'localhost', 'host.docker.internal')
-  try {
-    docker run --rm -v "${root}:/usr/src" sonarsource/sonar-scanner-cli `
-      -Dsonar.host.url=$sonarHost -Dsonar.token=$($cfg.SONAR_TOKEN)
+  # Passar via env vars (a imagem suporta-as) evita problemas de parsing dos args -D no PowerShell
+  docker run --rm `
+    -e SONAR_HOST_URL=$sonarHost `
+    -e SONAR_TOKEN=$($cfg.SONAR_TOKEN) `
+    -v "${root}:/usr/src" sonarsource/sonar-scanner-cli
+  if ($LASTEXITCODE -eq 0) {
     Write-Host "[SonarQube] análise enviada → $($cfg.SONAR_URL)" -ForegroundColor Green
-  } catch { Write-Warning "[SonarQube] falhou: $($_.Exception.Message)" }
+  } else {
+    Write-Warning "[SonarQube] falhou (exit $LASTEXITCODE)"
+  }
 } elseif (-not $SkipSonar) {
   Write-Warning 'SonarQube saltado (SONAR_TOKEN em falta no devsecops/.env).'
 }
@@ -119,7 +126,7 @@ function Import-ToDojo($scanType, $file) {
     -H "Authorization: Token $($cfg.DEFECTDOJO_TOKEN)" `
     -F "scan_type=$scanType" -F "file=@$path" `
     -F "product_name=paw-techstore" -F "engagement_name=DevSecOps" `
-    -F "auto_create_context=true" `
+    -F "product_type_name=Research and Development" -F "auto_create_context=true" `
     -F "active=true" -F "verified=false"
   if ($resp -eq '201') { Write-Host "  [$scanType] importado" -ForegroundColor Green }
   else { Write-Warning "  [$scanType] HTTP $resp" }
