@@ -33,7 +33,9 @@ if (Test-Path $envFile) {
     $cfg[$k.Trim()] = $v.Trim()
   }
 } else {
-  Write-Warning "Sem devsecops/.env — copia o .env.example. SonarQube/DefectDojo serão saltados."
+  # Normal no self-hosted runner: não há .env (gitignored). Usa-se as variáveis
+  # de ambiente injetadas pelos GitHub Secrets (carregadas a seguir).
+  Write-Host '[config] Sem devsecops/.env — a usar variaveis de ambiente (GitHub Secrets).' -ForegroundColor DarkGray
 }
 
 # Variaveis de ambiente (ex: GitHub Secrets no self-hosted runner) tem prioridade sobre o .env
