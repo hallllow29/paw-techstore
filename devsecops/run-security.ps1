@@ -40,6 +40,11 @@ foreach ($k in 'SONAR_URL', 'SONAR_TOKEN', 'DEFECTDOJO_URL', 'DEFECTDOJO_TOKEN',
   if ($ev) { $cfg[$k] = $ev }
 }
 
+# Defaults dos URLs (localhost) — assim o .env so precisa dos tokens + engagement
+if (-not $cfg.SONAR_URL) { $cfg.SONAR_URL = 'http://localhost:9000' }
+if (-not $cfg.DEFECTDOJO_URL) { $cfg.DEFECTDOJO_URL = 'http://localhost:8080' }
+if (-not $cfg.DEFECTDOJO_ENGAGEMENT_ID) { $cfg.DEFECTDOJO_ENGAGEMENT_ID = '1' }
+
 function Step($msg) { Write-Host "`n=== $msg ===" -ForegroundColor Cyan }
 
 # Corre um scanner em Docker; falha de um scanner não aborta os restantes.
@@ -109,10 +114,12 @@ if (-not $SkipSonar -and $cfg.SONAR_TOKEN) {
 function Import-ToDojo($scanType, $file) {
   $path = Join-Path $reports $file
   if (-not (Test-Path $path)) { Write-Host "  (sem $file, salta)" -ForegroundColor DarkGray; return }
+  # auto_create_context: o DefectDojo cria Product + Engagement se nao existirem
   $resp = curl.exe -s -o NUL -w "%{http_code}" -X POST "$($cfg.DEFECTDOJO_URL)/api/v2/import-scan/" `
     -H "Authorization: Token $($cfg.DEFECTDOJO_TOKEN)" `
     -F "scan_type=$scanType" -F "file=@$path" `
-    -F "engagement=$($cfg.DEFECTDOJO_ENGAGEMENT_ID)" `
+    -F "product_name=paw-techstore" -F "engagement_name=DevSecOps" `
+    -F "auto_create_context=true" `
     -F "active=true" -F "verified=false"
   if ($resp -eq '201') { Write-Host "  [$scanType] importado" -ForegroundColor Green }
   else { Write-Warning "  [$scanType] HTTP $resp" }
