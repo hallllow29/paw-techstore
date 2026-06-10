@@ -1,5 +1,8 @@
 # paw-techstore
 
+[![CI](https://github.com/hallllow29/paw-techstore/actions/workflows/ci.yml/badge.svg)](https://github.com/hallllow29/paw-techstore/actions/workflows/ci.yml)
+[![Security](https://github.com/hallllow29/paw-techstore/actions/workflows/security.yml/badge.svg)](https://github.com/hallllow29/paw-techstore/actions/workflows/security.yml)
+
 Plataforma de e-commerce para uma loja de **material informático**.
 Trabalho prático de **Programação em Ambiente Web (PAW)** — Avaliação de Recurso.
 

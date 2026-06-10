@@ -11,6 +11,10 @@ permissions:
   contents: read
   security-events: write # para upload de SARIF (GitHub Security tab)
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # ── 1. Secrets scanning: Gitleaks + TruffleHog ──
   secrets:
