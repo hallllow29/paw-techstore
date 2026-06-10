@@ -1,71 +1,84 @@
 # DevSecOps — paw-techstore
 
-Postura de segurança do projeto. Hosting **híbrido leve**: os _scans_ correm no
-CI (GitHub Actions) e geram relatórios; os servidores de agregação (SonarQube e
-DefectDojo) sobem **localmente** quando se quer consolidar/visualizar.
+Arquitetura em duas camadas (ver [ADR 0001](../docs/adr/0001-devsecops-architecture.md)):
 
-## Ferramentas e categorias cobertas
+- ☁️ **Gate (GitHub Actions)** — build, testes, lint e scanners a cada push/PR.
+  Bloqueia PRs maus e prova portabilidade. (`.github/workflows/`)
+- 🖥️ **Cockpit (local)** — os scanners correm na tua máquina (via Docker) e
+  alimentam **SonarQube + DefectDojo em `localhost`**. Sem túneis.
 
-| Categoria          | Ferramenta(s)                 | Onde corre        |
-| ------------------ | ----------------------------- | ----------------- |
-| Secrets scanning   | Gitleaks, TruffleHog          | pre-commit + CI   |
-| SAST               | Semgrep, SonarQube            | CI + local        |
-| SCA (dependências) | Trivy, OWASP Dependency-Check | CI                |
-| DAST               | OWASP ZAP (baseline)          | CI (app a correr) |
-| SBOM               | Syft (CycloneDX)              | CI                |
-| Agregação          | DefectDojo                    | local (demo)      |
+## Ferramentas e categorias
 
-## 1. SonarQube (local)
+| Categoria        | Ferramenta(s)                 | Cloud (gate) | Local (cockpit) |
+| ---------------- | ----------------------------- | :----------: | :-------------: |
+| Secrets          | Gitleaks, TruffleHog          |      ✅      |       ✅        |
+| SAST             | Semgrep                       |      ✅      |       ✅        |
+| SAST + Qualidade | SonarQube                     |      —       |       ✅        |
+| SCA              | Trivy, OWASP Dependency-Check |      ✅      |       ✅        |
+| DAST             | OWASP ZAP                     |      ✅      |        —        |
+| SBOM             | Syft (CycloneDX)              |      ✅      |       ✅        |
+| Agregação        | DefectDojo                    |      —       |       ✅        |
+
+---
+
+## Cockpit local — setup (uma vez)
+
+### 1. Subir o SonarQube
 
 ```bash
 docker compose -f devsecops/docker-compose.yml up -d
 # http://localhost:9000  (1º login: admin/admin → muda a password)
 ```
 
-Gera um token em _My Account → Security_ e corre o scanner a partir da raiz:
+Gera um token em **My Account → Security**.
 
-```bash
-# precisa de Java + sonar-scanner OU usa a imagem oficial:
-docker run --rm --network host \
-  -e SONAR_HOST_URL=http://localhost:9000 \
-  -e SONAR_TOKEN=<o-teu-token> \
-  -v "$(pwd):/usr/src" sonarsource/sonar-scanner-cli
-```
-
-## 2. DefectDojo (local, agregador central)
+### 2. Subir o DefectDojo
 
 DefectDojo tem o seu próprio compose oficial:
 
 ```bash
 git clone https://github.com/DefectDojo/django-DefectDojo
-cd django-DefectDojo
-docker compose up -d
-# http://localhost:8080  (a password de admin é mostrada nos logs do initializer)
+cd django-DefectDojo && docker compose up -d
+# password de admin:
+docker compose logs initializer | Select-String "Admin password"
+# http://localhost:8080
 ```
 
-## 3. Importar relatórios para o DefectDojo
+No DefectDojo: cria um **Product** + **Engagement** (anota o ID) e gera a tua
+**API v2 Key** no perfil.
 
-Os relatórios produzidos pelo CI (artifacts) são importados via API. O DefectDojo
-tem _parsers_ nativos para todos os nossos formatos:
-
-| Relatório                      | Parser DefectDojo     |
-| ------------------------------ | --------------------- |
-| `gitleaks.json`                | Gitleaks Scan         |
-| `trufflehog.json`              | Trufflehog Scan       |
-| `semgrep.sarif`                | Semgrep JSON Report   |
-| `trivy.json`                   | Trivy Scan            |
-| `dependency-check-report.json` | Dependency Check Scan |
-| `zap.json`                     | ZAP Scan              |
-
-Exemplo de import (endpoint `import-scan`):
+### 3. Configurar credenciais
 
 ```bash
-curl -X POST "http://localhost:8080/api/v2/import-scan/" \
-  -H "Authorization: Token <API_TOKEN>" \
-  -F "scan_type=Trivy Scan" \
-  -F "file=@devsecops/reports/trivy.json" \
-  -F "engagement=<ID>"
+cp devsecops/.env.example devsecops/.env
+# preenche SONAR_TOKEN, DEFECTDOJO_TOKEN e DEFECTDOJO_ENGAGEMENT_ID
 ```
 
-> Para a defesa: subir SonarQube + DefectDojo, importar os relatórios do último
-> CI e mostrar o dashboard consolidado de vulnerabilidades.
+---
+
+## Correr a análise (sempre que quiseres)
+
+```powershell
+# tudo: scanners → SonarQube → DefectDojo
+npm run security:local
+
+# variantes
+./devsecops/run-security.ps1 -SkipSonar              # só scanners + DefectDojo
+./devsecops/run-security.ps1 -IncludeDependencyCheck # inclui Dependency-Check (lento)
+```
+
+O script (`run-security.ps1`):
+
+1. Corre Semgrep, Trivy, Gitleaks, TruffleHog, Syft em contentores Docker →
+   relatórios em `devsecops/reports/`.
+2. Corre o `sonar-scanner` → envia para o SonarQube local.
+3. Importa cada relatório no DefectDojo via API (`import-scan`).
+
+> **Pré-requisitos:** Docker (já tens). Não precisas de instalar os scanners nem
+> o sonar-scanner — correm todos via Docker.
+
+## Para a defesa
+
+Sobe SonarQube + DefectDojo, corre `npm run security:local`, e mostra os dois
+dashboards: **SonarQube** (qualidade + quality gate) e **DefectDojo** (todas as
+vulnerabilidades consolidadas por severidade).

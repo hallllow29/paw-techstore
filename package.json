@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "prepare": "husky",
+    "security:local": "powershell -ExecutionPolicy Bypass -File devsecops/run-security.ps1",
     "format": "prettier --write \"**/*.{js,ts,html,scss,json,md,yml,yaml}\"",
     "format:check": "prettier --check \"**/*.{js,ts,html,scss,json,md,yml,yaml}\""
   },
