@@ -1,20 +1,80 @@
-<header class="navbar">
-  <a routerLink="/" class="brand">paw-techstore</a>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+  <div class="container">
+    <a class="navbar-brand" routerLink="/">
+      <i class="bi bi-pc-display-horizontal text-brand"></i> paw-techstore
+    </a>
 
-  <nav>
-    @if (auth.isAuthenticated()) {
-      <span class="user">{{ auth.user()?.nome }} ({{ auth.role() }})</span>
-      @if (auth.hasRole('admin')) {
-        <a routerLink="/admin/estafetas">Estafetas</a>
-      }
-      <button type="button" (click)="logout()">Sair</button>
-    } @else {
-      <a routerLink="/login">Entrar</a>
-      <a routerLink="/registo">Registar</a>
-    }
-  </nav>
-</header>
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#mainNav"
+      aria-controls="mainNav"
+      aria-expanded="false"
+      aria-label="Alternar navegação"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-<main class="content">
+    <div class="collapse navbar-collapse" id="mainNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a
+            class="nav-link"
+            routerLink="/"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }"
+          >
+            Início
+          </a>
+        </li>
+        @if (auth.hasRole('admin')) {
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/admin/estafetas" routerLinkActive="active">
+              Estafetas
+            </a>
+          </li>
+        }
+      </ul>
+
+      <ul class="navbar-nav">
+        @if (auth.isAuthenticated()) {
+          <li class="nav-item dropdown">
+            <button
+              class="nav-link dropdown-toggle bg-transparent border-0"
+              type="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              <i class="bi bi-person-circle"></i> {{ auth.user()?.nome }}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li>
+                <span class="dropdown-item-text text-muted small text-uppercase">{{
+                  auth.role()
+                }}</span>
+              </li>
+              <li><hr class="dropdown-divider" /></li>
+              <li>
+                <button class="dropdown-item" type="button" (click)="logout()">
+                  <i class="bi bi-box-arrow-right"></i> Sair
+                </button>
+              </li>
+            </ul>
+          </li>
+        } @else {
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/login" routerLinkActive="active">Entrar</a>
+          </li>
+          <li class="nav-item">
+            <a class="btn btn-brand btn-sm ms-lg-2" routerLink="/registo">Criar conta</a>
+          </li>
+        }
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<main>
   <router-outlet />
 </main>

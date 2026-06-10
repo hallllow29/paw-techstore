@@ -1,23 +1,60 @@
-<section class="hero">
-  <h1>paw-techstore</h1>
-  <p>Plataforma de e-commerce de material informático.</p>
+<section class="py-5 bg-white border-bottom">
+  <div class="container text-center">
+    <h1 class="display-5 fw-bold"><span class="text-brand">paw</span>-techstore</h1>
+    <p class="lead text-muted">A tua loja de material informático online.</p>
 
-  @if (auth.isAuthenticated()) {
-    <div class="welcome">
-      <p>
-        Bem-vindo, <strong>{{ auth.user()?.nome }}</strong
-        >!
-      </p>
-      <p>
-        Perfil: <strong>{{ auth.role() }}</strong>
-        @if (auth.user()?.status === 'pendente') {
-          <span class="badge-pending">conta pendente de aprovação</span>
-        }
-      </p>
-    </div>
-  } @else {
-    <p>
-      <a routerLink="/login">Entra</a> ou <a routerLink="/registo">cria uma conta</a> para começar.
-    </p>
-  }
+    @if (!auth.isAuthenticated()) {
+      <div class="mt-4">
+        <a routerLink="/registo" class="btn btn-brand btn-lg me-2">Criar conta</a>
+        <a routerLink="/login" class="btn btn-outline-secondary btn-lg">Entrar</a>
+      </div>
+    }
+  </div>
 </section>
+
+<div class="container py-4">
+  @if (auth.isAuthenticated()) {
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-body">
+        <h2 class="h5">Olá, {{ auth.user()?.nome }} 👋</h2>
+        <p class="mb-1 text-muted">
+          Perfil:
+          <span class="badge text-bg-secondary text-uppercase">{{ auth.role() }}</span>
+          @if (auth.user()?.status === 'pendente') {
+            <span class="badge text-bg-warning ms-1">conta pendente de aprovação</span>
+          }
+        </p>
+      </div>
+    </div>
+  }
+
+  <div class="row g-4">
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm border-0">
+        <div class="card-body">
+          <i class="bi bi-search fs-3 text-brand"></i>
+          <h3 class="h6 mt-2">Pesquisar produtos</h3>
+          <p class="small text-muted mb-0">Procura por nome ou EAN e compara características.</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm border-0">
+        <div class="card-body">
+          <i class="bi bi-cart3 fs-3 text-brand"></i>
+          <h3 class="h6 mt-2">Encomendar online</h3>
+          <p class="small text-muted mb-0">Adiciona ao carrinho e escolhe o método de entrega.</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm border-0">
+        <div class="card-body">
+          <i class="bi bi-truck fs-3 text-brand"></i>
+          <h3 class="h6 mt-2">Entregas</h3>
+          <p class="small text-muted mb-0">Loja, estafeta ou transportadora — tu escolhes.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,37 +1,4 @@
-.navbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.8rem 1.5rem;
-  background: #fff;
-  border-bottom: 1px solid var(--border);
-}
-
-.navbar .brand {
-  font-weight: 700;
-  font-size: 1.1rem;
-  color: var(--primary);
-}
-
-.navbar nav {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.navbar .user {
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-
-.hero {
-  text-align: center;
-  padding: 2rem 0;
-}
-.hero h1 {
-  color: var(--primary);
-  margin-bottom: 0.25rem;
-}
-.welcome {
-  margin-top: 1.5rem;
+/* O shell usa componentes do Bootstrap; sem estilos próprios necessários. */
+:host {
+  display: block;
 }

@@ -1,33 +1,48 @@
-<section>
-  <h1>Estafetas pendentes</h1>
+<div class="container py-4">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h1 class="h4 mb-0">Estafetas pendentes</h1>
+    <span class="badge text-bg-secondary">{{ pendentes().length }} a aguardar</span>
+  </div>
 
   @if (loading()) {
-    <p>A carregar…</p>
+    <div class="text-center py-5">
+      <span class="spinner-border text-secondary"></span>
+    </div>
   } @else if (pendentes().length === 0) {
-    <p class="muted">Não há estafetas a aguardar aprovação.</p>
+    <div class="alert alert-info">
+      <i class="bi bi-check-circle me-1"></i> Não há estafetas a aguardar aprovação.
+    </div>
   } @else {
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Nome</th>
-          <th>Email</th>
-          <th>Telefone</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (e of pendentes(); track e._id) {
-          <tr>
-            <td>{{ e.nome }}</td>
-            <td>{{ e.email }}</td>
-            <td>{{ e.telefone }}</td>
-            <td>
-              <button type="button" class="ok" (click)="aprovar(e._id)">Aprovar</button>
-              <button type="button" class="danger" (click)="rejeitar(e._id)">Rejeitar</button>
-            </td>
-          </tr>
-        }
-      </tbody>
-    </table>
+    <div class="card shadow-sm border-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Nome</th>
+              <th>Email</th>
+              <th>Telefone</th>
+              <th class="text-end">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (e of pendentes(); track e._id) {
+              <tr>
+                <td>{{ e.nome }}</td>
+                <td>{{ e.email }}</td>
+                <td>{{ e.telefone }}</td>
+                <td class="text-end">
+                  <button class="btn btn-success btn-sm me-1" (click)="aprovar(e._id)">
+                    <i class="bi bi-check-lg"></i> Aprovar
+                  </button>
+                  <button class="btn btn-outline-danger btn-sm" (click)="rejeitar(e._id)">
+                    <i class="bi bi-x-lg"></i> Rejeitar
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
   }
-</section>
+</div>
