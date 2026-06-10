@@ -1,0 +1,32 @@
+name: Security (local cockpit)
+
+# Corre num SELF-HOSTED RUNNER (a tua máquina) → alcança o SonarQube e o
+# DefectDojo em localhost diretamente, sem túnel. Alimenta os dashboards
+# automaticamente a cada push (e de 6 em 6 horas).
+
+on:
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+  schedule:
+    - cron: "0 */6 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  cockpit:
+    name: Alimentar SonarQube + DefectDojo (local)
+    runs-on: [self-hosted]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Orquestração local (scanners → SonarQube → DefectDojo)
+        shell: powershell
+        env:
+          SONAR_URL: http://localhost:9000
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          DEFECTDOJO_URL: http://localhost:8080
+          DEFECTDOJO_TOKEN: ${{ secrets.DEFECTDOJO_TOKEN }}
+          DEFECTDOJO_ENGAGEMENT_ID: ${{ secrets.DEFECTDOJO_ENGAGEMENT_ID }}
+        run: ./devsecops/run-security.ps1

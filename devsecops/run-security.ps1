@@ -34,6 +34,12 @@ if (Test-Path $envFile) {
   Write-Warning "Sem devsecops/.env — copia o .env.example. SonarQube/DefectDojo serão saltados."
 }
 
+# Variaveis de ambiente (ex: GitHub Secrets no self-hosted runner) tem prioridade sobre o .env
+foreach ($k in 'SONAR_URL', 'SONAR_TOKEN', 'DEFECTDOJO_URL', 'DEFECTDOJO_TOKEN', 'DEFECTDOJO_ENGAGEMENT_ID') {
+  $ev = [Environment]::GetEnvironmentVariable($k)
+  if ($ev) { $cfg[$k] = $ev }
+}
+
 function Step($msg) { Write-Host "`n=== $msg ===" -ForegroundColor Cyan }
 
 # Corre um scanner em Docker; falha de um scanner não aborta os restantes.
