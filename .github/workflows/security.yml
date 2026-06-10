@@ -22,7 +22,7 @@ jobs:
           fetch-depth: 0 # histórico completo para varrer commits antigos
 
       - name: Gitleaks
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         continue-on-error: true
         env:
           GITLEAKS_ENABLE_UPLOAD_ARTIFACT: true
