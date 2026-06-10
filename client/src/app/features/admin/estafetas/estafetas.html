@@ -1,0 +1,33 @@
+<section>
+  <h1>Estafetas pendentes</h1>
+
+  @if (loading()) {
+    <p>A carregar…</p>
+  } @else if (pendentes().length === 0) {
+    <p class="muted">Não há estafetas a aguardar aprovação.</p>
+  } @else {
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Email</th>
+          <th>Telefone</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (e of pendentes(); track e._id) {
+          <tr>
+            <td>{{ e.nome }}</td>
+            <td>{{ e.email }}</td>
+            <td>{{ e.telefone }}</td>
+            <td>
+              <button type="button" class="ok" (click)="aprovar(e._id)">Aprovar</button>
+              <button type="button" class="danger" (click)="rejeitar(e._id)">Rejeitar</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

@@ -1,0 +1,23 @@
+<section class="hero">
+  <h1>paw-techstore</h1>
+  <p>Plataforma de e-commerce de material informático.</p>
+
+  @if (auth.isAuthenticated()) {
+    <div class="welcome">
+      <p>
+        Bem-vindo, <strong>{{ auth.user()?.nome }}</strong
+        >!
+      </p>
+      <p>
+        Perfil: <strong>{{ auth.role() }}</strong>
+        @if (auth.user()?.status === 'pendente') {
+          <span class="badge-pending">conta pendente de aprovação</span>
+        }
+      </p>
+    </div>
+  } @else {
+    <p>
+      <a routerLink="/login">Entra</a> ou <a routerLink="/registo">cria uma conta</a> para começar.
+    </p>
+  }
+</section>
