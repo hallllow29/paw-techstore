@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  # ── API: lint + testes + cobertura ──
+  api:
+    name: API (lint + test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+      - run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Format check
+        run: npm run format:check
+      - name: Testes + cobertura
+        run: npm run test:coverage
+      - name: Upload cobertura API
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-coverage
+          path: api/coverage/lcov.info
+          if-no-files-found: warn
+
+  # ── Cliente Angular: build + testes ──
+  client:
+    name: Client (build + test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Testes (Vitest, jsdom)
+        run: npm test -- --watch=false

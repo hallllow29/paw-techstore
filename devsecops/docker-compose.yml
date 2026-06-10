@@ -1,0 +1,38 @@
+# ─────────────────────────────────────────────────────────────
+#  Servidores DevSecOps (hosting híbrido leve — só na demo/análise)
+#  SonarQube + Postgres.  DefectDojo sobe à parte (ver README.md).
+#  Uso:  docker compose -f devsecops/docker-compose.yml up -d
+#  SonarQube → http://localhost:9000  (admin/admin no 1º login)
+# ─────────────────────────────────────────────────────────────
+services:
+  sonarqube:
+    image: sonarqube:community
+    container_name: paw-sonarqube
+    depends_on:
+      - sonar-db
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://sonar-db:5432/sonar
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonar
+    ports:
+      - "9000:9000"
+    volumes:
+      - sonar-data:/opt/sonarqube/data
+      - sonar-extensions:/opt/sonarqube/extensions
+      - sonar-logs:/opt/sonarqube/logs
+
+  sonar-db:
+    image: postgres:15-alpine
+    container_name: paw-sonar-db
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: sonar
+      POSTGRES_DB: sonar
+    volumes:
+      - sonar-pg:/var/lib/postgresql/data
+
+volumes:
+  sonar-data:
+  sonar-extensions:
+  sonar-logs:
+  sonar-pg:

@@ -1,0 +1,5 @@
+# Regras do ZAP baseline — afinação de alertas (ID<TAB>ação<TAB>nota)
+# Ações: IGNORE | WARN | FAIL
+# Em dev, alertas informativos ficam como WARN para não bloquear o pipeline.
+# Exemplo (descomentar para ignorar o alerta de cabeçalho X-Content-Type-Options):
+# 10021	WARN	(X-Content-Type-Options Header Missing)

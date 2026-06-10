@@ -1,0 +1,28 @@
+{
+  "name": "paw-techstore",
+  "version": "0.1.0",
+  "description": "Monorepo paw-techstore — plataforma e-commerce (PAW, Avaliação de Recurso)",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "prepare": "husky",
+    "format": "prettier --write \"**/*.{js,ts,html,scss,json,md,yml,yaml}\"",
+    "format:check": "prettier --check \"**/*.{js,ts,html,scss,json,md,yml,yaml}\""
+  },
+  "lint-staged": {
+    "api/**/*.js": [
+      "prettier --write"
+    ],
+    "client/**/*.{ts,html,scss}": [
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "devDependencies": {
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10",
+    "prettier": "^3.3.3"
+  }
+}

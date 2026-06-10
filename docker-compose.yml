@@ -1,0 +1,47 @@
+# ─────────────────────────────────────────────────────────────
+#  Stack de desenvolvimento / defesa offline
+#  Sobe:  MongoDB + API + Cliente Angular (nginx)
+#  Uso:   docker compose up --build
+# ─────────────────────────────────────────────────────────────
+services:
+  mongo:
+    image: mongo:7
+    container_name: paw-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: ./api
+    container_name: paw-api
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      MONGODB_URI: mongodb://mongo:27017/paw-techstore
+      JWT_SECRET: dev-secret-change-me
+      CLIENT_URL: http://localhost:8080
+    ports:
+      - "3000:3000"
+
+  client:
+    build: ./client
+    container_name: paw-client
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "8080:80"
+
+volumes:
+  mongo-data:

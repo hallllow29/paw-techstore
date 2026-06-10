@@ -1,0 +1,47 @@
+# ── Dependencies (OBRIGATÓRIO omitir na entrega — enunciado) ──
+node_modules/
+**/node_modules/
+
+# ── Environment / secrets ──
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ── Build outputs ──
+dist/
+build/
+**/dist/
+.angular/
+*.tsbuildinfo
+
+# ── Uploads (conteúdo de runtime; mantém a pasta com .gitkeep) ──
+api/uploads/*
+!api/uploads/.gitkeep
+
+# ── Logs ──
+logs/
+*.log
+npm-debug.log*
+
+# ── Testes / cobertura ──
+coverage/
+.nyc_output/
+
+# ── Relatórios de segurança (gerados em CI) ──
+devsecops/reports/*
+!devsecops/reports/.gitkeep
+*.sarif
+
+# ── IDE / OS ──
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# ── Ferramentas locais / outros ──
+ruvector.db
+*.zip

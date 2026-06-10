@@ -1,0 +1,10 @@
+# Secrets scanning local (se o gitleaks estiver instalado; senão corre na CI)
+if command -v gitleaks >/dev/null 2>&1; then
+  echo "[husky] gitleaks: a verificar segredos nos ficheiros staged..."
+  gitleaks protect --staged --no-banner --redact || exit 1
+else
+  echo "[husky] gitleaks não instalado — scan de secrets corre na CI."
+fi
+
+# Formatação automática dos ficheiros staged
+npx lint-staged
