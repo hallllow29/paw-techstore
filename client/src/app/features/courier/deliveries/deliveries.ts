@@ -71,6 +71,9 @@ export class Deliveries implements OnInit {
           if (i >= passos) {
             clearInterval(timer);
             this.partilhando.set(null);
+            // Chegou ao destino → conclui a entrega (apenas na simulação)
+            this.toast.success('Estafeta chegou ao destino');
+            this.entregar(o);
           }
         }, 800);
       });
