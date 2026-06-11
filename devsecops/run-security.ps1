@@ -149,3 +149,7 @@ Step 'Concluído'
 Write-Host "Relatórios em: $reports" -ForegroundColor Cyan
 Write-Host "SonarQube:  $($cfg.SONAR_URL)" -ForegroundColor Cyan
 Write-Host "DefectDojo: $($cfg.DEFECTDOJO_URL)" -ForegroundColor Cyan
+
+# O cockpit é best-effort (informativo) — falhas de scanner/import individuais
+# ficam como avisos e não derrubam o workflow. Os gates reais são ci.yml/security.yml.
+exit 0
