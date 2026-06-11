@@ -4,6 +4,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { OrderService } from '../../../core/services/order.service';
 import { ReviewService } from '../../../core/services/review.service';
+import { PaymentService } from '../../../core/services/payment.service';
 import { AuthService } from '../../../core/services/auth.service';
 import {
   METHOD_LABELS,
@@ -22,7 +23,11 @@ export class OrderDetail implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly orders = inject(OrderService);
   private readonly reviews = inject(ReviewService);
+  private readonly payments = inject(PaymentService);
   protected readonly auth = inject(AuthService);
+
+  readonly stripeAtivo = signal(false);
+  readonly pagando = signal(false);
 
   readonly order = signal<Order | null>(null);
   readonly loading = signal(true);
@@ -52,8 +57,43 @@ export class OrderDetail implements OnInit {
     return o && this.auth.hasRole('cliente') && o.estado === 'entregue' && !this.review();
   });
 
+  readonly podePagar = computed(() => {
+    const o = this.order();
+    return (
+      o &&
+      this.stripeAtivo() &&
+      this.auth.hasRole('cliente') &&
+      !o.pago &&
+      o.estado !== 'cancelada' &&
+      o.estado !== 'entregue'
+    );
+  });
+
   ngOnInit(): void {
-    this.load();
+    this.payments.config().subscribe((c) => this.stripeAtivo.set(c.enabled));
+    const sessionId = this.route.snapshot.queryParamMap.get('session_id');
+    if (sessionId) {
+      this.payments.confirm(sessionId).subscribe({
+        next: () => this.load(),
+        error: () => this.load(),
+      });
+    } else {
+      this.load();
+    }
+  }
+
+  pagar(): void {
+    const o = this.order();
+    if (!o) return;
+    this.pagando.set(true);
+    this.error.set(null);
+    this.payments.checkout(o._id).subscribe({
+      next: (res) => (globalThis.location.href = res.url),
+      error: (err) => {
+        this.pagando.set(false);
+        this.error.set(err?.error?.message ?? 'Não foi possível iniciar o pagamento');
+      },
+    });
   }
 
   private load(): void {

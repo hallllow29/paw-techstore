@@ -60,6 +60,8 @@ const orderSchema = new mongoose.Schema(
       index: true,
     },
     confirmadaEm: { type: Date, default: null }, // marca o início da janela de cancelamento
+    pago: { type: Boolean, default: false }, // pagamento Stripe confirmado
+    stripeSessionId: { type: String, default: '' },
     historico: { type: [historicoSchema], default: () => [{ estado: 'pendente' }] },
   },
   { timestamps: true }

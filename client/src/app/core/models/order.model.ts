@@ -52,6 +52,7 @@ export interface Order {
   estado: OrderState;
   estafeta?: string | User | null;
   confirmadaEm?: string | null;
+  pago?: boolean;
   historico: { estado: OrderState; em: string }[];
   createdAt: string;
 }

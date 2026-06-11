@@ -40,6 +40,11 @@ export const env = {
   smtpUser: process.env.SMTP_USER ?? '',
   smtpPass: process.env.SMTP_PASS ?? '',
   mailFrom: process.env.MAIL_FROM ?? 'paw-techstore <no-reply@paw-techstore.pt>',
+
+  // Pagamentos Stripe (opcional). Sem chave, o pagamento online fica desativado.
+  stripeSecretKey: process.env.STRIPE_SECRET_KEY ?? '',
 };
+
+export const stripeEnabled = Boolean(env.stripeSecretKey);
 
 export const isProd = env.nodeEnv === 'production';

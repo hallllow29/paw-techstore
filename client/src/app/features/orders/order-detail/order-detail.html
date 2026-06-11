@@ -8,7 +8,14 @@
 
     <div class="d-flex align-items-center justify-content-between mb-3">
       <h1 class="h4 mb-0">Encomenda</h1>
-      <span class="badge text-bg-{{ colors[o.estado] }} fs-6">{{ labels[o.estado] }}</span>
+      <div>
+        <span class="badge text-bg-{{ colors[o.estado] }} fs-6">{{ labels[o.estado] }}</span>
+        @if (o.pago) {
+          <span class="badge text-bg-success fs-6 ms-1"
+            ><i class="bi bi-check-circle"></i> Pago</span
+          >
+        }
+      </div>
     </div>
 
     <div class="card shadow-sm border-0 mb-3">
@@ -174,6 +181,17 @@
 
     @if (error()) {
       <div class="alert alert-danger py-2 small">{{ error() }}</div>
+    }
+
+    @if (podePagar()) {
+      <div class="mb-3">
+        <button class="btn btn-brand" [disabled]="pagando()" (click)="pagar()">
+          @if (pagando()) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+          }
+          <i class="bi bi-credit-card"></i> Pagar com Stripe
+        </button>
+      </div>
     }
 
     @if (podeCancelar()) {

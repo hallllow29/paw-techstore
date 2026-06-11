@@ -1,0 +1,21 @@
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { API_URL } from '../config';
+
+@Injectable({ providedIn: 'root' })
+export class PaymentService {
+  private readonly http = inject(HttpClient);
+
+  config(): Observable<{ enabled: boolean }> {
+    return this.http.get<{ enabled: boolean }>(`${API_URL}/payments/config`);
+  }
+
+  checkout(orderId: string): Observable<{ url: string }> {
+    return this.http.post<{ url: string }>(`${API_URL}/payments/checkout/${orderId}`, {});
+  }
+
+  confirm(sessionId: string): Observable<{ pago: boolean }> {
+    return this.http.post<{ pago: boolean }>(`${API_URL}/payments/confirm`, { sessionId });
+  }
+}
