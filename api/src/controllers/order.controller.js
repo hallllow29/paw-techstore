@@ -4,6 +4,7 @@ import { StoreSettings } from '../models/storeSettings.model.js';
 import { Coupon } from '../models/coupon.model.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { CANCEL_WINDOW_MIN } from '../utils/constants.js';
+import { notifyOrderStatus } from '../services/notifications.js';
 
 const round2 = (n) => Math.round(n * 100) / 100;
 
@@ -39,7 +40,7 @@ export const createOrder = asyncHandler(async (req, res) => {
   for (const item of itens) {
     const product = await Product.findById(item.produto);
     const qtd = Number(item.quantidade);
-    if (!product || !product.ativo) {
+    if (!product?.ativo) {
       res.status(404);
       throw new Error('Produto inexistente');
     }
@@ -100,6 +101,7 @@ export const createOrder = asyncHandler(async (req, res) => {
     morada: req.user.morada,
   });
 
+  notifyOrderStatus(order); // email ao cliente (best-effort)
   res.status(201).json({ success: true, order });
 });
 
@@ -137,6 +139,7 @@ export const cancelOrder = asyncHandler(async (req, res) => {
   }
   setEstado(order, 'cancelada');
   await order.save();
+  notifyOrderStatus(order);
   res.json({ success: true, order });
 });
 
@@ -172,6 +175,7 @@ export const updateStatus = asyncHandler(async (req, res) => {
   }
   setEstado(order, estado);
   await order.save();
+  notifyOrderStatus(order);
   res.json({ success: true, order });
 });
 
@@ -212,6 +216,7 @@ export const acceptDelivery = asyncHandler(async (req, res) => {
   order.estafeta = req.user._id;
   setEstado(order, 'em_entrega');
   await order.save();
+  notifyOrderStatus(order);
   res.json({ success: true, order });
 });
 
@@ -228,6 +233,7 @@ export const markDelivered = asyncHandler(async (req, res) => {
   }
   setEstado(order, 'entregue');
   await order.save();
+  notifyOrderStatus(order);
   res.json({ success: true, order });
 });
 
