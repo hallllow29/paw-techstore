@@ -19,8 +19,12 @@ export class OrderService {
   private readonly http = inject(HttpClient);
 
   // Cliente
-  create(itens: { produto: string; quantidade: number }[], metodoEntrega: DeliveryMethod) {
-    return this.http.post<OrderResponse>(`${API_URL}/orders`, { itens, metodoEntrega });
+  create(
+    itens: { produto: string; quantidade: number }[],
+    metodoEntrega: DeliveryMethod,
+    cupao?: string,
+  ) {
+    return this.http.post<OrderResponse>(`${API_URL}/orders`, { itens, metodoEntrega, cupao });
   }
   mine(): Observable<OrderListResponse> {
     return this.http.get<OrderListResponse>(`${API_URL}/orders/me`);

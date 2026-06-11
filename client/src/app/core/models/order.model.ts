@@ -17,11 +17,25 @@ export interface OrderItem {
   quantidade: number;
 }
 
+export interface Coupon {
+  _id: string;
+  codigo: string;
+  tipo: 'percentagem' | 'valor';
+  valor: number;
+  minSubtotal: number;
+  validoAte?: string | null;
+  usosMax?: number | null;
+  usos: number;
+  ativo: boolean;
+}
+
 export interface Order {
   _id: string;
   cliente: string | User;
   itens: OrderItem[];
   subtotal: number;
+  cupao?: string;
+  desconto?: number;
   custoEntrega: number;
   total: number;
   metodoEntrega: DeliveryMethod;

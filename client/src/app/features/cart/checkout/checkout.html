@@ -34,9 +34,45 @@
 
   <div class="card shadow-sm border-0 mb-3">
     <div class="card-body">
+      <h2 class="h6 mb-2">Cupão de desconto</h2>
+      @if (cupaoAplicado()) {
+        <div
+          class="alert alert-success py-2 d-flex justify-content-between align-items-center mb-0"
+        >
+          <span><i class="bi bi-tag"></i> {{ cupaoAplicado() }} aplicado</span>
+          <button class="btn btn-sm btn-link text-danger p-0" (click)="removerCupao()">
+            Remover
+          </button>
+        </div>
+      } @else {
+        <div class="input-group">
+          <input
+            type="text"
+            class="form-control text-uppercase"
+            placeholder="Código"
+            [(ngModel)]="codigoCupao"
+          />
+          <button class="btn btn-outline-secondary" type="button" (click)="aplicarCupao()">
+            Aplicar
+          </button>
+        </div>
+        @if (cupaoError()) {
+          <div class="text-danger small mt-1">{{ cupaoError() }}</div>
+        }
+      }
+    </div>
+  </div>
+
+  <div class="card shadow-sm border-0 mb-3">
+    <div class="card-body">
       <div class="d-flex justify-content-between">
         <span>Subtotal</span><span>{{ cart.subtotal() | number: '1.2-2' }} €</span>
       </div>
+      @if (desconto() > 0) {
+        <div class="d-flex justify-content-between text-success">
+          <span>Desconto</span><span>−{{ desconto() | number: '1.2-2' }} €</span>
+        </div>
+      }
       <div class="d-flex justify-content-between">
         <span>Entrega</span><span>{{ custoEntrega() | number: '1.2-2' }} €</span>
       </div>

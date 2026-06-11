@@ -14,6 +14,13 @@
     <div class="card shadow-sm border-0 mb-3">
       <div class="table-responsive">
         <table class="table align-middle mb-0">
+          <thead class="visually-hidden">
+            <tr>
+              <th>Produto</th>
+              <th>Quantidade e preço</th>
+              <th>Subtotal</th>
+            </tr>
+          </thead>
           <tbody>
             @for (item of o.itens; track item.produto) {
               <tr>
@@ -32,6 +39,12 @@
               <td colspan="2">Subtotal</td>
               <td class="text-end">{{ o.subtotal | number: '1.2-2' }} €</td>
             </tr>
+            @if (o.desconto && o.desconto > 0) {
+              <tr class="text-success">
+                <td colspan="2">Desconto ({{ o.cupao }})</td>
+                <td class="text-end">−{{ o.desconto | number: '1.2-2' }} €</td>
+              </tr>
+            }
             <tr>
               <td colspan="2">Entrega ({{ metodos[o.metodoEntrega] }})</td>
               <td class="text-end">{{ o.custoEntrega | number: '1.2-2' }} €</td>

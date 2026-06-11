@@ -46,6 +46,8 @@ const orderSchema = new mongoose.Schema(
     },
     itens: { type: [orderItemSchema], required: true, validate: (v) => v.length > 0 },
     subtotal: { type: Number, required: true, min: 0 },
+    cupao: { type: String, default: '' }, // código do cupão aplicado
+    desconto: { type: Number, default: 0, min: 0 },
     custoEntrega: { type: Number, required: true, min: 0, default: 0 },
     total: { type: Number, required: true, min: 0 },
     metodoEntrega: { type: String, enum: DELIVERY_METHODS, required: true },

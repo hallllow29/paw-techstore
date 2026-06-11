@@ -1,6 +1,7 @@
 import { Order } from '../models/order.model.js';
 import { Product } from '../models/product.model.js';
 import { StoreSettings } from '../models/storeSettings.model.js';
+import { Coupon } from '../models/coupon.model.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { CANCEL_WINDOW_MIN } from '../utils/constants.js';
 
@@ -17,7 +18,7 @@ function setEstado(order, estado) {
 
 /** POST /api/orders — cria encomenda a partir do carrinho (cliente). */
 export const createOrder = asyncHandler(async (req, res) => {
-  const { itens, metodoEntrega } = req.body;
+  const { itens, metodoEntrega, cupao: codigoCupao } = req.body;
   if (!Array.isArray(itens) || itens.length === 0) {
     res.status(400);
     throw new Error('O carrinho está vazio');
@@ -59,6 +60,28 @@ export const createOrder = asyncHandler(async (req, res) => {
     });
   }
 
+  // Cupão de desconto (opcional) — validado antes de mexer no stock
+  let desconto = 0;
+  let codigoAplicado = '';
+  if (codigoCupao) {
+    const coupon = await Coupon.findOne({
+      codigo: String(codigoCupao).toUpperCase().trim(),
+    });
+    if (!coupon) {
+      res.status(404);
+      throw new Error('Cupão inexistente');
+    }
+    const motivo = coupon.motivoInvalido(subtotal);
+    if (motivo) {
+      res.status(422);
+      throw new Error(motivo);
+    }
+    desconto = coupon.desconto(subtotal);
+    codigoAplicado = coupon.codigo;
+    coupon.usos += 1;
+    await coupon.save();
+  }
+
   // Descontar o stock
   for (const item of orderItens) {
     await Product.updateOne({ _id: item.produto }, { $inc: { stock: -item.quantidade } });
@@ -69,8 +92,10 @@ export const createOrder = asyncHandler(async (req, res) => {
     cliente: req.user._id,
     itens: orderItens,
     subtotal: round2(subtotal),
+    cupao: codigoAplicado,
+    desconto: round2(desconto),
     custoEntrega,
-    total: round2(subtotal + custoEntrega),
+    total: round2(subtotal - desconto + custoEntrega),
     metodoEntrega,
     morada: req.user.morada,
   });

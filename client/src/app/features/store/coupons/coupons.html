@@ -1,0 +1,123 @@
+<div class="container py-4">
+  <h1 class="h4 mb-3">Cupões de desconto</h1>
+
+  <div class="row g-4">
+    <!-- Criar -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <h2 class="h6 mb-3">Novo cupão</h2>
+          <form [formGroup]="form" (ngSubmit)="criar()">
+            <div class="mb-2">
+              <label class="form-label small" for="codigo">Código</label>
+              <input id="codigo" class="form-control text-uppercase" formControlName="codigo" />
+            </div>
+            <div class="row g-2">
+              <div class="col-6 mb-2">
+                <label class="form-label small" for="tipo">Tipo</label>
+                <select id="tipo" class="form-select" formControlName="tipo">
+                  <option value="percentagem">Percentagem (%)</option>
+                  <option value="valor">Valor (€)</option>
+                </select>
+              </div>
+              <div class="col-6 mb-2">
+                <label class="form-label small" for="valor">Valor</label>
+                <input
+                  id="valor"
+                  type="number"
+                  step="0.01"
+                  class="form-control"
+                  formControlName="valor"
+                />
+              </div>
+            </div>
+            <div class="mb-2">
+              <label class="form-label small" for="min">Subtotal mínimo (€)</label>
+              <input
+                id="min"
+                type="number"
+                step="0.01"
+                class="form-control"
+                formControlName="minSubtotal"
+              />
+            </div>
+            <div class="row g-2">
+              <div class="col-6 mb-2">
+                <label class="form-label small" for="ate">Válido até</label>
+                <input id="ate" type="date" class="form-control" formControlName="validoAte" />
+              </div>
+              <div class="col-6 mb-2">
+                <label class="form-label small" for="usos">Usos máx.</label>
+                <input
+                  id="usos"
+                  type="number"
+                  class="form-control"
+                  formControlName="usosMax"
+                  placeholder="∞"
+                />
+              </div>
+            </div>
+
+            @if (error()) {
+              <div class="alert alert-danger py-2 small">{{ error() }}</div>
+            }
+            <button class="btn btn-brand w-100" [disabled]="form.invalid">Criar cupão</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista -->
+    <div class="col-lg-8">
+      @if (loading()) {
+        <div class="text-center py-5"><span class="spinner-border text-secondary"></span></div>
+      } @else if (items().length === 0) {
+        <div class="alert alert-info">Ainda não há cupões.</div>
+      } @else {
+        <div class="card shadow-sm border-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Código</th>
+                  <th>Desconto</th>
+                  <th>Mín.</th>
+                  <th>Usos</th>
+                  <th>Validade</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (c of items(); track c._id) {
+                  <tr [class.text-muted]="!c.ativo">
+                    <td class="fw-semibold">{{ c.codigo }}</td>
+                    <td>
+                      {{
+                        c.tipo === 'percentagem'
+                          ? c.valor + '%'
+                          : (c.valor | number: '1.2-2') + ' €'
+                      }}
+                    </td>
+                    <td>{{ c.minSubtotal | number: '1.2-2' }} €</td>
+                    <td>{{ c.usos }}{{ c.usosMax ? '/' + c.usosMax : '' }}</td>
+                    <td class="small">
+                      {{ c.validoAte ? (c.validoAte | date: 'dd/MM/yy') : '—' }}
+                    </td>
+                    <td class="text-end text-nowrap">
+                      <button class="btn btn-sm btn-outline-secondary" (click)="toggle(c)">
+                        {{ c.ativo ? 'Desativar' : 'Ativar' }}
+                      </button>
+                      <button class="btn btn-sm btn-outline-danger" (click)="remover(c)">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>

@@ -95,6 +95,11 @@ export const routes: Routes = [
       import('./features/store/store-settings/store-settings').then((m) => m.StoreSettingsPage),
   },
   {
+    path: 'loja/cupoes',
+    canActivate: [authGuard, roleGuard(['loja', 'admin'])],
+    loadComponent: () => import('./features/store/coupons/coupons').then((m) => m.Coupons),
+  },
+  {
     path: 'estafeta/entregas',
     canActivate: [authGuard, roleGuard(['estafeta'])],
     loadComponent: () =>

@@ -200,3 +200,32 @@ test('dashboard da loja devolve número de encomendas', async () => {
   assert.equal(res.body.role, 'loja');
   assert.ok(res.body.data.numEncomendas >= 1);
 });
+
+test('loja cria cupão e cliente aplica-o no checkout', async () => {
+  const criar = await request(app)
+    .post('/api/coupons')
+    .set(auth(tokens.loja))
+    .send({ codigo: 'paw10', tipo: 'percentagem', valor: 10 });
+  assert.equal(criar.status, 201);
+  assert.equal(criar.body.coupon.codigo, 'PAW10'); // uppercase automático
+
+  const validar = await request(app)
+    .post('/api/coupons/validate')
+    .set(auth(tokens.cliente))
+    .send({ codigo: 'PAW10', subtotal: 100 });
+  assert.equal(validar.status, 200);
+  assert.equal(validar.body.desconto, 10);
+
+  // produto custa 100; qtd 1; levantamento em loja (custo 0)
+  const order = await request(app)
+    .post('/api/orders')
+    .set(auth(tokens.cliente))
+    .send({
+      metodoEntrega: 'levantamento_loja',
+      itens: [{ produto: produto._id, quantidade: 1 }],
+      cupao: 'PAW10',
+    });
+  assert.equal(order.status, 201);
+  assert.equal(order.body.order.desconto, 10);
+  assert.equal(order.body.order.total, 90); // 100 - 10 + 0
+});
