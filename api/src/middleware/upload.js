@@ -33,5 +33,8 @@ export const uploadProductImages = upload.fields([
   { name: 'imagens', maxCount: 4 },
 ]);
 
+/** Upload do logótipo da loja (1 ficheiro no campo "logotipo"). */
+export const uploadLogo = upload.single('logotipo');
+
 /** Converte um ficheiro multer no caminho público servido pela API. */
 export const toPublicPath = (file) => `/uploads/${file.filename}`;

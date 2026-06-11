@@ -1,0 +1,202 @@
+import { test, before, after } from 'node:test';
+import assert from 'node:assert/strict';
+import mongoose from 'mongoose';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import request from 'supertest';
+import { createApp } from '../src/app.js';
+import { User } from '../src/models/user.model.js';
+import { Category } from '../src/models/category.model.js';
+import { Product } from '../src/models/product.model.js';
+import { Order } from '../src/models/order.model.js';
+
+const app = createApp();
+let mongo;
+const tokens = {};
+let produto;
+
+async function novoUser(role) {
+  const email = `${role}@t.pt`;
+  await User.create({
+    nome: role,
+    email,
+    password: 'pass1234',
+    morada: 'Rua 1',
+    telefone: '9',
+    role,
+  });
+  const res = await request(app)
+    .post('/api/auth/login')
+    .send({ email, password: 'pass1234' });
+  return res.body.token;
+}
+
+before(async () => {
+  mongo = await MongoMemoryServer.create();
+  await mongoose.connect(mongo.getUri());
+
+  const cat = await Category.create({ nome: 'Portáteis' });
+  produto = await Product.create({
+    ean: '1',
+    nome: 'Portátil',
+    categoria: cat._id,
+    preco: 100,
+    stock: 1000,
+  });
+
+  tokens.cliente = await novoUser('cliente');
+  tokens.loja = await novoUser('loja');
+  tokens.estafeta = await novoUser('estafeta');
+});
+
+after(async () => {
+  await mongoose.disconnect();
+  await mongo.stop();
+});
+
+const auth = (t) => ({ Authorization: `Bearer ${t}` });
+
+test('cliente cria encomenda e o stock é descontado', async () => {
+  const antes = (await Product.findById(produto._id)).stock;
+  const res = await request(app)
+    .post('/api/orders')
+    .set(auth(tokens.cliente))
+    .send({
+      metodoEntrega: 'estafeta',
+      itens: [{ produto: produto._id, quantidade: 2 }],
+    });
+
+  assert.equal(res.status, 201);
+  assert.equal(res.body.order.subtotal, 200);
+  assert.equal(res.body.order.custoEntrega, 4.99); // default do seed de settings
+  assert.equal(res.body.order.total, 204.99);
+
+  assert.equal((await Product.findById(produto._id)).stock, antes - 2);
+});
+
+test('encomenda sem stock suficiente é recusada (409)', async () => {
+  const res = await request(app)
+    .post('/api/orders')
+    .set(auth(tokens.cliente))
+    .send({
+      metodoEntrega: 'levantamento_loja',
+      itens: [{ produto: produto._id, quantidade: 100000 }],
+    });
+  assert.equal(res.status, 409);
+});
+
+test('fluxo loja→estafeta: confirmar, preparar, aceitar e entregar', async () => {
+  const order = await Order.findOne({ metodoEntrega: 'estafeta' });
+
+  const conf = await request(app)
+    .patch(`/api/orders/${order._id}/estado`)
+    .set(auth(tokens.loja))
+    .send({ estado: 'confirmada' });
+  assert.equal(conf.body.order.estado, 'confirmada');
+  assert.ok(conf.body.order.confirmadaEm);
+
+  await request(app)
+    .patch(`/api/orders/${order._id}/estado`)
+    .set(auth(tokens.loja))
+    .send({ estado: 'em_preparacao' });
+
+  const disp = await request(app)
+    .get('/api/orders/entregas/disponiveis')
+    .set(auth(tokens.estafeta));
+  assert.ok(disp.body.orders.length >= 1);
+
+  const aceitar = await request(app)
+    .patch(`/api/orders/${order._id}/aceitar`)
+    .set(auth(tokens.estafeta));
+  assert.equal(aceitar.body.order.estado, 'em_entrega');
+
+  const entregar = await request(app)
+    .patch(`/api/orders/${order._id}/entregue`)
+    .set(auth(tokens.estafeta));
+  assert.equal(entregar.body.order.estado, 'entregue');
+});
+
+test('estafeta só pode ter uma entrega em curso', async () => {
+  // Cria 2 encomendas estafeta e prepara-as
+  const mk = async () => {
+    const r = await request(app)
+      .post('/api/orders')
+      .set(auth(tokens.cliente))
+      .send({
+        metodoEntrega: 'estafeta',
+        itens: [{ produto: produto._id, quantidade: 1 }],
+      });
+    const id = r.body.order._id;
+    await request(app)
+      .patch(`/api/orders/${id}/estado`)
+      .set(auth(tokens.loja))
+      .send({ estado: 'confirmada' });
+    await request(app)
+      .patch(`/api/orders/${id}/estado`)
+      .set(auth(tokens.loja))
+      .send({ estado: 'em_preparacao' });
+    return id;
+  };
+  const a = await mk();
+  const b = await mk();
+
+  const aceitarA = await request(app)
+    .patch(`/api/orders/${a}/aceitar`)
+    .set(auth(tokens.estafeta));
+  assert.equal(aceitarA.status, 200);
+
+  const aceitarB = await request(app)
+    .patch(`/api/orders/${b}/aceitar`)
+    .set(auth(tokens.estafeta));
+  assert.equal(aceitarB.status, 409); // já tem uma em curso
+});
+
+test('cancelar fora da janela de 10 min é recusado', async () => {
+  const r = await request(app)
+    .post('/api/orders')
+    .set(auth(tokens.cliente))
+    .send({
+      metodoEntrega: 'levantamento_loja',
+      itens: [{ produto: produto._id, quantidade: 1 }],
+    });
+  const id = r.body.order._id;
+  await request(app)
+    .patch(`/api/orders/${id}/estado`)
+    .set(auth(tokens.loja))
+    .send({ estado: 'confirmada' });
+
+  // Forçar confirmadaEm para há 20 minutos
+  await Order.updateOne(
+    { _id: id },
+    { confirmadaEm: new Date(Date.now() - 20 * 60 * 1000) }
+  );
+
+  const cancel = await request(app)
+    .patch(`/api/orders/${id}/cancelar`)
+    .set(auth(tokens.cliente));
+  assert.equal(cancel.status, 403);
+});
+
+test('cancelar encomenda pendente repõe o stock', async () => {
+  const antes = (await Product.findById(produto._id)).stock;
+  const r = await request(app)
+    .post('/api/orders')
+    .set(auth(tokens.cliente))
+    .send({
+      metodoEntrega: 'levantamento_loja',
+      itens: [{ produto: produto._id, quantidade: 1 }],
+    });
+  assert.equal((await Product.findById(produto._id)).stock, antes - 1);
+
+  const cancel = await request(app)
+    .patch(`/api/orders/${r.body.order._id}/cancelar`)
+    .set(auth(tokens.cliente));
+  assert.equal(cancel.status, 200);
+  assert.equal((await Product.findById(produto._id)).stock, antes); // reposto
+});
+
+test('dashboard da loja devolve número de encomendas', async () => {
+  const res = await request(app).get('/api/dashboard').set(auth(tokens.loja));
+  assert.equal(res.status, 200);
+  assert.equal(res.body.role, 'loja');
+  assert.ok(res.body.data.numEncomendas >= 1);
+});
