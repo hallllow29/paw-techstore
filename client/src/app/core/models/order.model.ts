@@ -53,6 +53,7 @@ export interface Order {
   estafeta?: string | User | null;
   confirmadaEm?: string | null;
   pago?: boolean;
+  ultimaPosicao?: { lat: number | null; lng: number | null; em: string | null };
   historico: { estado: OrderState; em: string }[];
   createdAt: string;
 }

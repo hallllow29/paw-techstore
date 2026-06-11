@@ -62,6 +62,12 @@ const orderSchema = new mongoose.Schema(
     confirmadaEm: { type: Date, default: null }, // marca o início da janela de cancelamento
     pago: { type: Boolean, default: false }, // pagamento Stripe confirmado
     stripeSessionId: { type: String, default: '' },
+    // Última posição do estafeta (rastreio em tempo real durante a entrega)
+    ultimaPosicao: {
+      lat: { type: Number, default: null },
+      lng: { type: Number, default: null },
+      em: { type: Date, default: null },
+    },
     historico: { type: [historicoSchema], default: () => [{ estado: 'pendente' }] },
   },
   { timestamps: true }

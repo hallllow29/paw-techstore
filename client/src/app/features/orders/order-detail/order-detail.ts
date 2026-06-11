@@ -2,6 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { LiveMap } from '../../../shared/live-map/live-map';
 import { OrderService } from '../../../core/services/order.service';
 import { ReviewService } from '../../../core/services/review.service';
 import { PaymentService } from '../../../core/services/payment.service';
@@ -17,7 +18,7 @@ import {
 
 @Component({
   selector: 'app-order-detail',
-  imports: [RouterLink, DatePipe, DecimalPipe, FormsModule],
+  imports: [RouterLink, DatePipe, DecimalPipe, FormsModule, LiveMap],
   templateUrl: './order-detail.html',
 })
 export class OrderDetail implements OnInit {
@@ -117,6 +118,11 @@ export class OrderDetail implements OnInit {
 
   temEstafeta(): boolean {
     return !!this.order()?.estafeta;
+  }
+
+  posicaoInicial(o: Order): { lat: number; lng: number } | null {
+    const p = o.ultimaPosicao;
+    return p?.lat != null && p.lng != null ? { lat: p.lat, lng: p.lng } : null;
   }
 
   avaliar(): void {
