@@ -52,5 +52,48 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard(['admin'])],
     loadComponent: () => import('./features/admin/estafetas/estafetas').then((m) => m.Estafetas),
   },
+  {
+    path: 'carrinho',
+    loadComponent: () => import('./features/cart/cart/cart').then((m) => m.Cart),
+  },
+  {
+    path: 'checkout',
+    canActivate: [authGuard, roleGuard(['cliente'])],
+    loadComponent: () => import('./features/cart/checkout/checkout').then((m) => m.Checkout),
+  },
+  {
+    path: 'encomendas',
+    canActivate: [authGuard, roleGuard(['cliente'])],
+    loadComponent: () => import('./features/orders/order-list/order-list').then((m) => m.OrderList),
+  },
+  {
+    path: 'encomendas/:id',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/orders/order-detail/order-detail').then((m) => m.OrderDetail),
+  },
+  {
+    path: 'dashboard',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
+  },
+  {
+    path: 'loja/encomendas',
+    canActivate: [authGuard, roleGuard(['loja', 'admin'])],
+    loadComponent: () =>
+      import('./features/store/store-orders/store-orders').then((m) => m.StoreOrders),
+  },
+  {
+    path: 'loja/config',
+    canActivate: [authGuard, roleGuard(['loja', 'admin'])],
+    loadComponent: () =>
+      import('./features/store/store-settings/store-settings').then((m) => m.StoreSettingsPage),
+  },
+  {
+    path: 'estafeta/entregas',
+    canActivate: [authGuard, roleGuard(['estafeta'])],
+    loadComponent: () =>
+      import('./features/courier/deliveries/deliveries').then((m) => m.Deliveries),
+  },
   { path: '**', redirectTo: '' },
 ];

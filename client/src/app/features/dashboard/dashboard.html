@@ -1,0 +1,105 @@
+<div class="container py-4">
+  <h1 class="h4 mb-3">Painel</h1>
+
+  @if (loading()) {
+    <div class="text-center py-5"><span class="spinner-border text-secondary"></span></div>
+  } @else {
+    <div class="row g-3 mb-4">
+      @if (role() === 'cliente') {
+        <div class="col-6 col-md-3">
+          <div class="card border-0 shadow-sm text-center p-3">
+            <div class="fs-3 fw-bold text-brand">{{ num('numEncomendas') }}</div>
+            <div class="small text-muted">Encomendas</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card border-0 shadow-sm text-center p-3">
+            <div class="fs-3 fw-bold text-brand">{{ num('totalGasto') | number: '1.2-2' }} €</div>
+            <div class="small text-muted">Total gasto</div>
+          </div>
+        </div>
+      } @else if (role() === 'loja') {
+        <div class="col-6 col-md-3">
+          <div class="card border-0 shadow-sm text-center p-3">
+            <div class="fs-3 fw-bold text-brand">{{ num('numEncomendas') }}</div>
+            <div class="small text-muted">Encomendas</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card border-0 shadow-sm text-center p-3">
+            <div class="fs-3 fw-bold text-brand">{{ num('receita') | number: '1.2-2' }} €</div>
+            <div class="small text-muted">Receita</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card border-0 shadow-sm text-center p-3">
+            <div class="fs-3 fw-bold text-brand">{{ num('numProdutos') }}</div>
+            <div class="small text-muted">Produtos</div>
+          </div>
+        </div>
+      } @else if (role() === 'estafeta') {
+        <div class="col-6 col-md-3">
+          <div class="card border-0 shadow-sm text-center p-3">
+            <div class="fs-3 fw-bold text-brand">{{ num('numEntregas') }}</div>
+            <div class="small text-muted">Entregas feitas</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card border-0 shadow-sm text-center p-3">
+            <div class="fs-3 fw-bold text-brand">
+              {{ num('valorAReceber') | number: '1.2-2' }} €
+            </div>
+            <div class="small text-muted">A receber</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card border-0 shadow-sm text-center p-3">
+            <div class="fs-3 fw-bold text-brand">{{ num('entregasEmCurso') }}</div>
+            <div class="small text-muted">Em curso</div>
+          </div>
+        </div>
+      } @else if (role() === 'admin') {
+        <div class="col-6 col-md-3">
+          <div class="card border-0 shadow-sm text-center p-3">
+            <div class="fs-3 fw-bold text-brand">{{ num('numUtilizadores') }}</div>
+            <div class="small text-muted">Utilizadores</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card border-0 shadow-sm text-center p-3">
+            <div class="fs-3 fw-bold text-brand">{{ num('totalEncomendas') }}</div>
+            <div class="small text-muted">Encomendas</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card border-0 shadow-sm text-center p-3">
+            <div class="fs-3 fw-bold text-brand">{{ num('estafetasPendentes') }}</div>
+            <div class="small text-muted">Estafetas pendentes</div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Top produtos (cliente/loja) -->
+    @if (top('produtosMaisComprados').length || top('produtosMaisVendidos').length) {
+      <div class="card border-0 shadow-sm" style="max-width: 480px">
+        <div class="card-body">
+          <h2 class="h6">
+            {{ role() === 'loja' ? 'Produtos mais vendidos' : 'Produtos mais comprados' }}
+          </h2>
+          <ul class="list-group list-group-flush">
+            @for (
+              t of top(role() === 'loja' ? 'produtosMaisVendidos' : 'produtosMaisComprados');
+              track t._id
+            ) {
+              <li class="list-group-item d-flex justify-content-between px-0">
+                <span>{{ t._id }}</span>
+                <span class="badge text-bg-secondary">{{ t.quantidade }}</span>
+              </li>
+            }
+          </ul>
+        </div>
+      </div>
+    }
+  }
+</div>

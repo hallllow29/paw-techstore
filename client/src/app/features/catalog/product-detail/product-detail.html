@@ -31,23 +31,33 @@
 
         @if (p.imagens.length > 0) {
           <div class="d-flex gap-2 mt-2 flex-wrap">
-            <img
-              [src]="img(p.imagemDestaque)"
-              class="border rounded p-1"
-              role="button"
-              style="width: 60px; height: 60px; object-fit: contain"
+            <button
+              type="button"
+              class="btn p-0 border rounded"
               (click)="activeImage.set(p.imagemDestaque)"
-              alt="destaque"
-            />
-            @for (im of p.imagens; track im) {
+              aria-label="Ver imagem de destaque"
+            >
               <img
-                [src]="img(im)"
-                class="border rounded p-1"
-                role="button"
+                [src]="img(p.imagemDestaque)"
+                class="p-1"
                 style="width: 60px; height: 60px; object-fit: contain"
-                (click)="activeImage.set(im)"
-                alt="imagem"
+                alt=""
               />
+            </button>
+            @for (im of p.imagens; track im) {
+              <button
+                type="button"
+                class="btn p-0 border rounded"
+                (click)="activeImage.set(im)"
+                aria-label="Ver foto do produto"
+              >
+                <img
+                  [src]="img(im)"
+                  class="p-1"
+                  style="width: 60px; height: 60px; object-fit: contain"
+                  alt=""
+                />
+              </button>
             }
           </div>
         }
@@ -78,8 +88,9 @@
         <p>{{ p.descricao }}</p>
 
         <div class="d-flex gap-2 mb-4">
-          <button class="btn btn-brand" [disabled]="p.stock === 0">
-            <i class="bi bi-cart-plus"></i> Adicionar ao carrinho
+          <button class="btn btn-brand" [disabled]="p.stock === 0" (click)="addToCart(p)">
+            <i class="bi" [class.bi-cart-plus]="!added()" [class.bi-check-lg]="added()"></i>
+            {{ added() ? 'Adicionado!' : 'Adicionar ao carrinho' }}
           </button>
           <button
             class="btn btn-outline-secondary"

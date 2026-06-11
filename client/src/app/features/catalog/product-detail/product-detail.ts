@@ -3,6 +3,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import { ProductService } from '../../../core/services/product.service';
 import { CompareService } from '../../../core/services/compare.service';
+import { CartService } from '../../../core/services/cart.service';
 import { Product } from '../../../core/models/catalog.model';
 import { imageUrl } from '../../../core/config';
 
@@ -15,10 +16,19 @@ export class ProductDetail implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly products = inject(ProductService);
   protected readonly compare = inject(CompareService);
+  protected readonly cart = inject(CartService);
 
   readonly product = signal<Product | null>(null);
   readonly loading = signal(true);
   readonly activeImage = signal('');
+  readonly added = signal(false);
+
+  addToCart(p: Product): void {
+    if (this.cart.add(p)) {
+      this.added.set(true);
+      setTimeout(() => this.added.set(false), 2000);
+    }
+  }
 
   ngOnInit(): void {
     const slug = this.route.snapshot.paramMap.get('slug') ?? '';

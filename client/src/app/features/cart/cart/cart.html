@@ -1,0 +1,81 @@
+<div class="container py-4">
+  <h1 class="h4 mb-3">Carrinho</h1>
+
+  @if (cart.items().length === 0) {
+    <div class="alert alert-info">
+      O carrinho está vazio. <a routerLink="/produtos" class="alert-link">Ver produtos</a>.
+    </div>
+  } @else {
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+          <div class="table-responsive">
+            <table class="table align-middle mb-0">
+              <tbody>
+                @for (item of cart.items(); track item.produto._id) {
+                  <tr>
+                    <td style="width: 64px">
+                      @if (item.produto.imagemDestaque) {
+                        <img
+                          [src]="img(item.produto.imagemDestaque)"
+                          alt=""
+                          style="width: 48px; height: 48px; object-fit: contain"
+                        />
+                      } @else {
+                        <i class="bi bi-pc-display fs-3 text-secondary"></i>
+                      }
+                    </td>
+                    <td>
+                      <div class="fw-semibold">{{ item.produto.nome }}</div>
+                      <div class="small text-muted">
+                        {{ item.produto.preco | number: '1.2-2' }} € / un
+                      </div>
+                    </td>
+                    <td style="width: 110px">
+                      <input
+                        type="number"
+                        min="1"
+                        [max]="item.produto.stock"
+                        class="form-control form-control-sm"
+                        [value]="item.quantidade"
+                        (change)="setQty(item.produto._id, $any($event.target).value)"
+                      />
+                    </td>
+                    <td class="text-end fw-semibold" style="width: 100px">
+                      {{ item.produto.preco * item.quantidade | number: '1.2-2' }} €
+                    </td>
+                    <td class="text-end" style="width: 48px">
+                      <button
+                        class="btn btn-sm btn-outline-danger"
+                        (click)="cart.remove(item.produto._id)"
+                      >
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <button class="btn btn-link text-muted mt-2 p-0" (click)="cart.clear()">
+          Esvaziar carrinho
+        </button>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="card shadow-sm border-0">
+          <div class="card-body">
+            <h2 class="h6">Resumo</h2>
+            <div class="d-flex justify-content-between">
+              <span>Subtotal</span>
+              <strong>{{ cart.subtotal() | number: '1.2-2' }} €</strong>
+            </div>
+            <p class="small text-muted mt-1">A entrega é calculada no checkout.</p>
+            <a routerLink="/checkout" class="btn btn-brand w-100">Finalizar compra</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

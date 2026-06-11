@@ -31,23 +31,53 @@
         <li class="nav-item">
           <a class="nav-link" routerLink="/produtos" routerLinkActive="active">Produtos</a>
         </li>
+        @if (auth.hasRole('cliente')) {
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/encomendas" routerLinkActive="active">Encomendas</a>
+          </li>
+        }
         @if (auth.hasRole('loja')) {
           <li class="nav-item">
-            <a class="nav-link" routerLink="/loja/produtos" routerLinkActive="active">
-              Gerir loja
-            </a>
+            <a class="nav-link" routerLink="/loja/produtos" routerLinkActive="active">Produtos</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/loja/encomendas" routerLinkActive="active"
+              >Encomendas</a
+            >
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/loja/config" routerLinkActive="active">Loja</a>
+          </li>
+        }
+        @if (auth.hasRole('estafeta')) {
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/estafeta/entregas" routerLinkActive="active"
+              >Entregas</a
+            >
           </li>
         }
         @if (auth.hasRole('admin')) {
           <li class="nav-item">
-            <a class="nav-link" routerLink="/admin/estafetas" routerLinkActive="active">
-              Estafetas
-            </a>
+            <a class="nav-link" routerLink="/admin/estafetas" routerLinkActive="active"
+              >Estafetas</a
+            >
           </li>
         }
       </ul>
 
       <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link position-relative" routerLink="/carrinho" routerLinkActive="active">
+            <i class="bi bi-cart3"></i><span class="visually-hidden">Carrinho</span>
+            @if (cart.count() > 0) {
+              <span
+                class="position-absolute top-0 badge rounded-pill text-bg-danger"
+                style="left: 1.3rem; font-size: 0.6rem"
+                >{{ cart.count() }}</span
+              >
+            }
+          </a>
+        </li>
         @if (auth.isAuthenticated()) {
           <li class="nav-item dropdown">
             <button
@@ -65,6 +95,11 @@
                 }}</span>
               </li>
               <li><hr class="dropdown-divider" /></li>
+              <li>
+                <a class="dropdown-item" routerLink="/dashboard"
+                  ><i class="bi bi-speedometer2"></i> Painel</a
+                >
+              </li>
               <li>
                 <button class="dropdown-item" type="button" (click)="logout()">
                   <i class="bi bi-box-arrow-right"></i> Sair

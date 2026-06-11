@@ -1,0 +1,71 @@
+<div class="container py-4">
+  <h1 class="h4 mb-3">Encomendas recebidas</h1>
+
+  <div class="mb-3 d-flex gap-2 flex-wrap">
+    <button
+      class="btn btn-sm"
+      [class.btn-dark]="filtro() === ''"
+      [class.btn-outline-dark]="filtro() !== ''"
+      (click)="filtrar('')"
+    >
+      Todas
+    </button>
+    @for (e of estados; track e) {
+      <button
+        class="btn btn-sm btn-outline-secondary"
+        [class.active]="filtro() === e"
+        (click)="filtrar(e)"
+      >
+        {{ labels[e] }}
+      </button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="text-center py-5"><span class="spinner-border text-secondary"></span></div>
+  } @else if (items().length === 0) {
+    <div class="alert alert-info">Sem encomendas neste filtro.</div>
+  } @else {
+    <div class="card shadow-sm border-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Data</th>
+              <th>Cliente</th>
+              <th>Entrega</th>
+              <th>Estado</th>
+              <th class="text-end">Total</th>
+              <th class="text-end">Ação</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (o of items(); track o._id) {
+              <tr>
+                <td class="small">{{ o.createdAt | date: 'dd/MM HH:mm' }}</td>
+                <td>{{ clienteNome(o) }}</td>
+                <td class="small">{{ metodos[o.metodoEntrega] }}</td>
+                <td>
+                  <span class="badge text-bg-{{ colors[o.estado] }}">{{ labels[o.estado] }}</span>
+                </td>
+                <td class="text-end fw-semibold">{{ o.total | number: '1.2-2' }} €</td>
+                <td class="text-end text-nowrap">
+                  <a [routerLink]="['/encomendas', o._id]" class="btn btn-sm btn-outline-secondary"
+                    >Ver</a
+                  >
+                  @if (proximo(o); as prox) {
+                    <button class="btn btn-sm btn-brand" (click)="avancar(o)">
+                      → {{ labels[prox] }}
+                    </button>
+                  } @else if (o.estado === 'em_preparacao' && o.metodoEntrega === 'estafeta') {
+                    <span class="small text-muted">aguarda estafeta</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,79 @@
+<div class="container py-4" style="max-width: 760px">
+  @if (loading()) {
+    <div class="text-center py-5"><span class="spinner-border text-secondary"></span></div>
+  } @else if (order(); as o) {
+    <nav class="small mb-3">
+      <a routerLink="/encomendas" class="text-decoration-none">← As minhas encomendas</a>
+    </nav>
+
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h1 class="h4 mb-0">Encomenda</h1>
+      <span class="badge text-bg-{{ colors[o.estado] }} fs-6">{{ labels[o.estado] }}</span>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-3">
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <tbody>
+            @for (item of o.itens; track item.produto) {
+              <tr>
+                <td>{{ item.nome }}</td>
+                <td class="text-muted">
+                  {{ item.quantidade }} × {{ item.preco | number: '1.2-2' }} €
+                </td>
+                <td class="text-end fw-semibold">
+                  {{ item.preco * item.quantidade | number: '1.2-2' }} €
+                </td>
+              </tr>
+            }
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2">Subtotal</td>
+              <td class="text-end">{{ o.subtotal | number: '1.2-2' }} €</td>
+            </tr>
+            <tr>
+              <td colspan="2">Entrega ({{ metodos[o.metodoEntrega] }})</td>
+              <td class="text-end">{{ o.custoEntrega | number: '1.2-2' }} €</td>
+            </tr>
+            <tr class="fw-bold">
+              <td colspan="2">Total</td>
+              <td class="text-end">{{ o.total | number: '1.2-2' }} €</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-3">
+      <div class="card-body">
+        <h2 class="h6">Histórico</h2>
+        <ul class="list-unstyled mb-0">
+          @for (h of o.historico; track h.em) {
+            <li class="d-flex justify-content-between small py-1 border-bottom">
+              <span
+                ><span class="badge text-bg-{{ colors[h.estado] }} me-2">{{
+                  labels[h.estado]
+                }}</span></span
+              >
+              <span class="text-muted">{{ h.em | date: 'dd/MM/yy HH:mm' }}</span>
+            </li>
+          }
+        </ul>
+      </div>
+    </div>
+
+    @if (error()) {
+      <div class="alert alert-danger py-2 small">{{ error() }}</div>
+    }
+
+    @if (podeCancelar()) {
+      <button class="btn btn-outline-danger" (click)="cancelar()">
+        <i class="bi bi-x-circle"></i> Cancelar encomenda
+      </button>
+      <p class="small text-muted mt-1">Podes cancelar até 10 minutos após a confirmação.</p>
+    }
+  } @else {
+    <div class="alert alert-warning">Encomenda não encontrada.</div>
+  }
+</div>
