@@ -6,6 +6,7 @@ import { OrderService } from '../../../core/services/order.service';
 import { ReviewService } from '../../../core/services/review.service';
 import { PaymentService } from '../../../core/services/payment.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { ToastService } from '../../../core/services/toast.service';
 import {
   METHOD_LABELS,
   Order,
@@ -24,6 +25,7 @@ export class OrderDetail implements OnInit {
   private readonly orders = inject(OrderService);
   private readonly reviews = inject(ReviewService);
   private readonly payments = inject(PaymentService);
+  private readonly toast = inject(ToastService);
   protected readonly auth = inject(AuthService);
 
   readonly stripeAtivo = signal(false);
@@ -74,7 +76,10 @@ export class OrderDetail implements OnInit {
     const sessionId = this.route.snapshot.queryParamMap.get('session_id');
     if (sessionId) {
       this.payments.confirm(sessionId).subscribe({
-        next: () => this.load(),
+        next: (res) => {
+          if (res.pago) this.toast.success('Pagamento confirmado!');
+          this.load();
+        },
         error: () => this.load(),
       });
     } else {
@@ -126,7 +131,10 @@ export class OrderDetail implements OnInit {
         comentario: this.comentario,
       })
       .subscribe({
-        next: (res) => this.review.set(res.review),
+        next: (res) => {
+          this.review.set(res.review);
+          this.toast.success('Obrigado pela tua avaliação!');
+        },
         error: (err) => this.reviewError.set(err?.error?.message ?? 'Não foi possível avaliar'),
       });
   }
@@ -136,7 +144,10 @@ export class OrderDetail implements OnInit {
     if (!o) return;
     this.error.set(null);
     this.orders.cancel(o._id).subscribe({
-      next: (res) => this.order.set(res.order),
+      next: (res) => {
+        this.order.set(res.order);
+        this.toast.info('Encomenda cancelada');
+      },
       error: (err) => this.error.set(err?.error?.message ?? 'Não foi possível cancelar'),
     });
   }

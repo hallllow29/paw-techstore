@@ -7,6 +7,7 @@ import { OrderService } from '../../../core/services/order.service';
 import { StoreService } from '../../../core/services/store.service';
 import { CouponService } from '../../../core/services/coupon.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { ToastService } from '../../../core/services/toast.service';
 import {
   DeliveryMethod,
   DeliveryMethodConfig,
@@ -24,6 +25,7 @@ export class Checkout implements OnInit {
   private readonly orders = inject(OrderService);
   private readonly store = inject(StoreService);
   private readonly coupons = inject(CouponService);
+  private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
 
   readonly metodos = signal<DeliveryMethodConfig[]>([]);
@@ -66,6 +68,7 @@ export class Checkout implements OnInit {
       next: (res) => {
         this.desconto.set(res.desconto);
         this.cupaoAplicado.set(res.codigo);
+        this.toast.success(`Cupão ${res.codigo} aplicado`);
       },
       error: (err) => {
         this.desconto.set(0);
@@ -93,6 +96,7 @@ export class Checkout implements OnInit {
       .subscribe({
         next: (res) => {
           this.cart.clear();
+          this.toast.success('Encomenda criada com sucesso!');
           this.router.navigate(['/encomendas', res.order._id]);
         },
         error: (err) => {

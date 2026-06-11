@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { OrderService } from '../../../core/services/order.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { Order, STATE_COLORS, STATE_LABELS } from '../../../core/models/order.model';
 import { DeliveryMap } from '../../../shared/delivery-map/delivery-map';
 
@@ -11,6 +12,7 @@ import { DeliveryMap } from '../../../shared/delivery-map/delivery-map';
 })
 export class Deliveries implements OnInit {
   private readonly orders = inject(OrderService);
+  private readonly toast = inject(ToastService);
 
   readonly disponiveis = signal<Order[]>([]);
   readonly minhas = signal<Order[]>([]);
@@ -45,13 +47,23 @@ export class Deliveries implements OnInit {
   aceitar(o: Order): void {
     this.error.set(null);
     this.orders.accept(o._id).subscribe({
-      next: () => this.load(),
-      error: (err) => this.error.set(err?.error?.message ?? 'Não foi possível aceitar'),
+      next: () => {
+        this.toast.success('Entrega aceite');
+        this.load();
+      },
+      error: (err) => {
+        const msg = err?.error?.message ?? 'Não foi possível aceitar';
+        this.error.set(msg);
+        this.toast.error(msg);
+      },
     });
   }
 
   entregar(o: Order): void {
-    this.orders.deliver(o._id).subscribe(() => this.load());
+    this.orders.deliver(o._id).subscribe(() => {
+      this.toast.success('Entrega concluída!');
+      this.load();
+    });
   }
 
   morada(o: Order): string {

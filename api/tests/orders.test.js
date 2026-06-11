@@ -259,3 +259,22 @@ test('cliente avalia uma encomenda entregue (e não duplica)', async () => {
     .send({ orderId: id, ratingEncomenda: 3 });
   assert.equal(dup.status, 409);
 });
+
+test('estafeta pendente não pode operar entregas', async () => {
+  await User.create({
+    nome: 'Pendente',
+    email: 'pend@t.pt',
+    password: 'pass1234',
+    morada: 'x',
+    telefone: '9',
+    role: 'estafeta',
+    status: 'pendente',
+  });
+  const login = await request(app)
+    .post('/api/auth/login')
+    .send({ email: 'pend@t.pt', password: 'pass1234' });
+  const res = await request(app)
+    .get('/api/orders/entregas/disponiveis')
+    .set(auth(login.body.token));
+  assert.equal(res.status, 403);
+});

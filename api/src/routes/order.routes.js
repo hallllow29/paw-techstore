@@ -12,6 +12,7 @@ import {
   getOrder,
 } from '../controllers/order.controller.js';
 import { auth, authorize } from '../middleware/auth.js';
+import { requireActive } from '../middleware/requireActive.js';
 
 const router = Router();
 router.use(auth); // todas as rotas de encomendas exigem login
@@ -52,7 +53,12 @@ router.get('/', authorize('loja', 'admin'), listOrders);
 
 // Rotas específicas (antes de /:id)
 router.get('/me', authorize('cliente'), myOrders);
-router.get('/entregas/disponiveis', authorize('estafeta'), availableDeliveries);
+router.get(
+  '/entregas/disponiveis',
+  authorize('estafeta'),
+  requireActive,
+  availableDeliveries
+);
 router.get('/entregas/minhas', authorize('estafeta'), myDeliveries);
 
 /**
@@ -69,8 +75,8 @@ router.get('/entregas/minhas', authorize('estafeta'), myDeliveries);
  */
 router.patch('/:id/cancelar', authorize('cliente'), cancelOrder);
 router.patch('/:id/estado', authorize('loja', 'admin'), updateStatus);
-router.patch('/:id/aceitar', authorize('estafeta'), acceptDelivery);
-router.patch('/:id/entregue', authorize('estafeta'), markDelivered);
+router.patch('/:id/aceitar', authorize('estafeta'), requireActive, acceptDelivery);
+router.patch('/:id/entregue', authorize('estafeta'), requireActive, markDelivered);
 
 /**
  * @openapi
