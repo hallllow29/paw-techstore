@@ -1,11 +1,18 @@
 import { Router } from 'express';
-import { register, login, me, changePassword } from '../controllers/auth.controller.js';
+import {
+  register,
+  login,
+  me,
+  changePassword,
+  updateProfile,
+} from '../controllers/auth.controller.js';
 import { auth } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import {
   registerRules,
   loginRules,
   changePasswordRules,
+  profileRules,
 } from '../validators/auth.validator.js';
 
 const router = Router();
@@ -71,6 +78,27 @@ router.post('/login', loginRules, validate, login);
  *       401: { description: Não autenticado }
  */
 router.get('/me', auth, me);
+
+/**
+ * @openapi
+ * /api/auth/me:
+ *   patch:
+ *     tags: [Auth]
+ *     summary: Atualiza os próprios dados (nome, morada, telefone)
+ *     security: [{ bearerAuth: [] }]
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nome: { type: string }
+ *               morada: { type: string }
+ *               telefone: { type: string }
+ *     responses:
+ *       200: { description: Perfil atualizado }
+ */
+router.patch('/me', auth, profileRules, validate, updateProfile);
 
 /**
  * @openapi

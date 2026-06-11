@@ -120,3 +120,16 @@ test('rota de admin recusa um cliente (403)', async () => {
     .set('Authorization', `Bearer ${login.body.token}`);
   assert.equal(res.status, 403);
 });
+
+test('cliente atualiza o próprio perfil', async () => {
+  const login = await request(app)
+    .post('/api/auth/login')
+    .send({ email: cliente.email, password: cliente.password });
+  const res = await request(app)
+    .patch('/api/auth/me')
+    .set('Authorization', `Bearer ${login.body.token}`)
+    .send({ nome: 'Ana Atualizada', telefone: '911111111' });
+  assert.equal(res.status, 200);
+  assert.equal(res.body.user.nome, 'Ana Atualizada');
+  assert.equal(res.body.user.telefone, '911111111');
+});

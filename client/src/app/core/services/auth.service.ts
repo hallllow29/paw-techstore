@@ -6,7 +6,7 @@ import { AuthResponse, RegisterData, Role, User } from '../models/user.model';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
   // Estado reativo (signals) do utilizador autenticado
   private readonly _user = signal<User | null>(null);
@@ -45,6 +45,16 @@ export class AuthService {
 
   changePassword(currentPassword: string, newPassword: string): Observable<unknown> {
     return this.http.patch(`${API_URL}/auth/password`, { currentPassword, newPassword });
+  }
+
+  updateProfile(data: {
+    nome?: string;
+    morada?: string;
+    telefone?: string;
+  }): Observable<{ user: User }> {
+    return this.http
+      .patch<{ user: User }>(`${API_URL}/auth/me`, data)
+      .pipe(tap((res) => this._user.set(res.user)));
   }
 
   logout(): void {

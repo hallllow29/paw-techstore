@@ -78,6 +78,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
   },
   {
+    path: 'perfil',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/profile/profile').then((m) => m.Profile),
+  },
+  {
     path: 'loja/encomendas',
     canActivate: [authGuard, roleGuard(['loja', 'admin'])],
     loadComponent: () =>

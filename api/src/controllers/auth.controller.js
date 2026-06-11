@@ -69,3 +69,14 @@ export const changePassword = asyncHandler(async (req, res) => {
 
   res.json({ success: true, message: 'Password alterada com sucesso' });
 });
+
+/** PATCH /api/auth/me — atualiza os próprios dados (nome, morada, telefone). */
+export const updateProfile = asyncHandler(async (req, res) => {
+  const { nome, morada, telefone } = req.body;
+  const user = await User.findById(req.user._id);
+  if (nome !== undefined) user.nome = nome;
+  if (morada !== undefined) user.morada = morada;
+  if (telefone !== undefined) user.telefone = telefone;
+  await user.save();
+  res.json({ success: true, user });
+});

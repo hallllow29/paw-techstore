@@ -1,0 +1,95 @@
+<div class="container py-4" style="max-width: 560px">
+  <h1 class="h4 mb-3">O meu perfil</h1>
+
+  <!-- Dados pessoais -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+      <h2 class="h6 mb-3">Dados pessoais</h2>
+
+      <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input class="form-control" [value]="auth.user()?.email" disabled />
+        <div class="form-text">O email não pode ser alterado.</div>
+      </div>
+
+      <form [formGroup]="perfilForm" (ngSubmit)="guardarPerfil()">
+        <div class="mb-3">
+          <label class="form-label" for="nome">Nome</label>
+          <input id="nome" class="form-control" formControlName="nome" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="morada">Morada</label>
+          <input id="morada" class="form-control" formControlName="morada" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="telefone">Telefone</label>
+          <input id="telefone" class="form-control" formControlName="telefone" />
+        </div>
+
+        <div class="d-flex align-items-center gap-3">
+          <button class="btn btn-brand" [disabled]="perfilForm.invalid || savingPerfil()">
+            Guardar
+          </button>
+          @if (perfilMsg()) {
+            <span class="text-success small">{{ perfilMsg() }}</span>
+          }
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Alterar password -->
+  <div class="card shadow-sm border-0">
+    <div class="card-body">
+      <h2 class="h6 mb-3">Alterar password</h2>
+      <form [formGroup]="passwordForm" (ngSubmit)="alterarPassword()">
+        <div class="mb-3">
+          <label class="form-label" for="atual">Password atual</label>
+          <input
+            id="atual"
+            type="password"
+            class="form-control"
+            formControlName="currentPassword"
+            autocomplete="current-password"
+          />
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="nova">Nova password</label>
+          <input
+            id="nova"
+            type="password"
+            class="form-control"
+            formControlName="newPassword"
+            autocomplete="new-password"
+          />
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="confirmar">Confirmar nova password</label>
+          <input
+            id="confirmar"
+            type="password"
+            class="form-control"
+            formControlName="confirmar"
+            autocomplete="new-password"
+          />
+        </div>
+
+        @if (pwdError()) {
+          <div class="alert alert-danger py-2 small">{{ pwdError() }}</div>
+        }
+
+        <div class="d-flex align-items-center gap-3">
+          <button
+            class="btn btn-outline-secondary"
+            [disabled]="passwordForm.invalid || savingPwd()"
+          >
+            Alterar password
+          </button>
+          @if (pwdMsg()) {
+            <span class="text-success small">{{ pwdMsg() }}</span>
+          }
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

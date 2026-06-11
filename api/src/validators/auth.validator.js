@@ -26,3 +26,13 @@ export const changePasswordRules = [
     .isLength({ min: 6 })
     .withMessage('Nova password deve ter pelo menos 6 caracteres'),
 ];
+
+export const profileRules = [
+  body('nome').optional().trim().notEmpty().withMessage('Nome não pode ficar vazio'),
+  body('morada').optional().trim().notEmpty().withMessage('Morada não pode ficar vazia'),
+  body('telefone')
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage('Telefone não pode ficar vazio'),
+];
