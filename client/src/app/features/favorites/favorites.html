@@ -1,0 +1,54 @@
+<div class="container py-4">
+  <h1 class="h4 mb-3"><i class="bi bi-heart-fill text-danger"></i> Favoritos</h1>
+
+  @if (loading()) {
+    <div class="text-center py-5"><span class="spinner-border text-secondary"></span></div>
+  } @else if (items().length === 0) {
+    <div class="alert alert-info">
+      Ainda não tens favoritos.
+      <a routerLink="/produtos" class="alert-link">Explora os produtos</a>.
+    </div>
+  } @else {
+    <div class="row g-3">
+      @for (p of items(); track p._id) {
+        <div class="col-6 col-lg-3">
+          <div class="card h-100 shadow-sm border-0 position-relative">
+            <button
+              type="button"
+              class="position-absolute top-0 end-0 m-1 p-1 border-0 bg-transparent"
+              aria-label="Remover dos favoritos"
+              (click)="remover(p)"
+            >
+              <i class="bi bi-heart-fill fs-5" style="color: #dc2626"></i>
+            </button>
+
+            <a [routerLink]="['/produtos', p.slug]" class="text-center pt-3">
+              @if (p.imagemDestaque) {
+                <img
+                  [src]="img(p.imagemDestaque)"
+                  [alt]="p.nome"
+                  class="img-fluid"
+                  style="height: 110px; object-fit: contain"
+                />
+              } @else {
+                <div
+                  class="d-flex align-items-center justify-content-center text-secondary"
+                  style="height: 110px"
+                >
+                  <i class="bi bi-pc-display fs-1"></i>
+                </div>
+              }
+            </a>
+            <div class="card-body">
+              <div class="small text-muted">{{ p.marca }}</div>
+              <a [routerLink]="['/produtos', p.slug]" class="text-decoration-none text-dark">
+                <h2 class="h6 mb-1">{{ p.nome }}</h2>
+              </a>
+              <span class="fw-bold">{{ p.preco | number: '1.2-2' }} €</span>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

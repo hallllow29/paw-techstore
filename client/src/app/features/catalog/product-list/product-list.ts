@@ -6,6 +6,8 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ProductService } from '../../../core/services/product.service';
 import { CategoryService } from '../../../core/services/category.service';
 import { CompareService } from '../../../core/services/compare.service';
+import { FavoriteService } from '../../../core/services/favorite.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { Category, Pagination, Product, ProductQuery } from '../../../core/models/catalog.model';
 import { imageUrl } from '../../../core/config';
 
@@ -18,6 +20,8 @@ export class ProductList implements OnInit {
   private readonly products = inject(ProductService);
   private readonly categoriesSvc = inject(CategoryService);
   protected readonly compare = inject(CompareService);
+  protected readonly favorites = inject(FavoriteService);
+  protected readonly auth = inject(AuthService);
 
   readonly search = new FormControl('', { nonNullable: true });
   readonly items = signal<Product[]>([]);
@@ -31,6 +35,7 @@ export class ProductList implements OnInit {
   private page = 1;
 
   ngOnInit(): void {
+    if (this.auth.token) this.favorites.load();
     this.categoriesSvc.list().subscribe((res) => this.categories.set(res.categories));
 
     this.search.valueChanges.pipe(debounceTime(350), distinctUntilChanged()).subscribe(() => {

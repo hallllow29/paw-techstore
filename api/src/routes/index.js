@@ -19,6 +19,7 @@ import dashboardRoutes from './dashboard.routes.js';
 import couponRoutes from './coupon.routes.js';
 import reviewRoutes from './review.routes.js';
 import paymentRoutes from './payment.routes.js';
+import favoriteRoutes from './favorite.routes.js';
 
 const router = Router();
 
@@ -33,5 +34,6 @@ router.use('/dashboard', dashboardRoutes);
 router.use('/coupons', couponRoutes);
 router.use('/reviews', reviewRoutes);
 router.use('/payments', paymentRoutes);
+router.use('/favorites', favoriteRoutes);
 
 export default router;

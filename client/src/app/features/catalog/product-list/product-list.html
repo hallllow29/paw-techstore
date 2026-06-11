@@ -51,6 +51,23 @@
             @if (desconto(p); as d) {
               <span class="badge text-bg-danger position-absolute top-0 end-0 m-2">-{{ d }}%</span>
             }
+            @if (auth.isAuthenticated()) {
+              <button
+                type="button"
+                class="position-absolute top-0 start-0 m-1 p-1 border-0 bg-transparent"
+                [attr.aria-label]="
+                  favorites.isFavorite(p._id) ? 'Remover dos favoritos' : 'Adicionar aos favoritos'
+                "
+                (click)="favorites.toggle(p._id)"
+              >
+                <i
+                  class="bi fs-5"
+                  [class.bi-heart-fill]="favorites.isFavorite(p._id)"
+                  [class.bi-heart]="!favorites.isFavorite(p._id)"
+                  style="color: #dc2626"
+                ></i>
+              </button>
+            }
 
             <a [routerLink]="['/produtos', p.slug]" class="text-center pt-3">
               @if (p.imagemDestaque) {

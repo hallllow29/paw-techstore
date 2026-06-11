@@ -83,6 +83,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/profile/profile').then((m) => m.Profile),
   },
   {
+    path: 'favoritos',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/favorites/favorites').then((m) => m.Favorites),
+  },
+  {
     path: 'loja/encomendas',
     canActivate: [authGuard, roleGuard(['loja', 'admin'])],
     loadComponent: () =>
