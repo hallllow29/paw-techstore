@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { Order } from '../models/order.model.js';
 import { User } from '../models/user.model.js';
 import { Product } from '../models/product.model.js';
+import { Review } from '../models/review.model.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
 const topItens = (match, limit = 5) =>
@@ -62,6 +63,9 @@ export const getDashboard = asyncHandler(async (req, res) => {
           { $group: { _id: null, total: { $sum: '$custoEntrega' } } },
         ])
       )[0]?.total ?? 0;
+    const avaliacao = await Review.mediaEstafeta(u._id);
+    data.avaliacaoMedia = avaliacao.media;
+    data.numAvaliacoes = avaliacao.total;
   } else if (u.role === 'admin') {
     data.numUtilizadores = await User.countDocuments();
     data.totalEncomendas = await Order.countDocuments();

@@ -229,3 +229,33 @@ test('loja cria cupão e cliente aplica-o no checkout', async () => {
   assert.equal(order.body.order.desconto, 10);
   assert.equal(order.body.order.total, 90); // 100 - 10 + 0
 });
+
+test('cliente avalia uma encomenda entregue (e não duplica)', async () => {
+  const r = await request(app)
+    .post('/api/orders')
+    .set(auth(tokens.cliente))
+    .send({
+      metodoEntrega: 'levantamento_loja',
+      itens: [{ produto: produto._id, quantidade: 1 }],
+    });
+  const id = r.body.order._id;
+  for (const estado of ['confirmada', 'em_preparacao', 'em_entrega', 'entregue']) {
+    await request(app)
+      .patch(`/api/orders/${id}/estado`)
+      .set(auth(tokens.loja))
+      .send({ estado });
+  }
+
+  const av = await request(app)
+    .post('/api/reviews')
+    .set(auth(tokens.cliente))
+    .send({ orderId: id, ratingEncomenda: 5, comentario: 'Excelente' });
+  assert.equal(av.status, 201);
+  assert.equal(av.body.review.ratingEncomenda, 5);
+
+  const dup = await request(app)
+    .post('/api/reviews')
+    .set(auth(tokens.cliente))
+    .send({ orderId: id, ratingEncomenda: 3 });
+  assert.equal(dup.status, 409);
+});

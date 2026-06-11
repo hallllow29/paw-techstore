@@ -58,6 +58,15 @@
             <div class="small text-muted">Em curso</div>
           </div>
         </div>
+        <div class="col-6 col-md-3">
+          <div class="card border-0 shadow-sm text-center p-3">
+            <div class="fs-3 fw-bold text-brand">
+              {{ num('numAvaliacoes') > 0 ? (num('avaliacaoMedia') | number: '1.1-1') : '—' }}
+              <i class="bi bi-star-fill" style="font-size: 1rem; color: #f59e0b"></i>
+            </div>
+            <div class="small text-muted">Avaliação ({{ num('numAvaliacoes') }})</div>
+          </div>
+        </div>
       } @else if (role() === 'admin') {
         <div class="col-6 col-md-3">
           <div class="card border-0 shadow-sm text-center p-3">

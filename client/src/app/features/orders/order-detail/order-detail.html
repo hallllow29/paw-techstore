@@ -76,6 +76,102 @@
       </div>
     </div>
 
+    <!-- Avaliação -->
+    @if (review(); as r) {
+      <div class="card shadow-sm border-0 mb-3">
+        <div class="card-body">
+          <h2 class="h6">A tua avaliação</h2>
+          <div class="mb-1 small">
+            Encomenda:
+            @for (s of estrelas; track s) {
+              <i
+                class="bi"
+                [class.bi-star-fill]="s <= r.ratingEncomenda"
+                [class.bi-star]="s > r.ratingEncomenda"
+                style="color: #f59e0b"
+              ></i>
+            }
+          </div>
+          @if (r.ratingEstafeta) {
+            <div class="mb-1 small">
+              Estafeta:
+              @for (s of estrelas; track s) {
+                <i
+                  class="bi"
+                  [class.bi-star-fill]="s <= r.ratingEstafeta"
+                  [class.bi-star]="s > r.ratingEstafeta"
+                  style="color: #f59e0b"
+                ></i>
+              }
+            </div>
+          }
+          @if (r.comentario) {
+            <p class="mb-0 text-muted fst-italic">"{{ r.comentario }}"</p>
+          }
+        </div>
+      </div>
+    } @else if (podeAvaliar()) {
+      <div class="card shadow-sm border-0 mb-3">
+        <div class="card-body">
+          <h2 class="h6">Avaliar encomenda</h2>
+          <div class="mb-2">
+            <div class="small fw-semibold mb-1">Encomenda</div>
+            @for (s of estrelas; track s) {
+              <button
+                type="button"
+                class="btn btn-link p-0 fs-4"
+                style="color: #f59e0b"
+                [attr.aria-label]="'Dar ' + s + ' estrelas à encomenda'"
+                (click)="ratingEncomenda.set(s)"
+              >
+                <i
+                  class="bi"
+                  [class.bi-star-fill]="s <= ratingEncomenda()"
+                  [class.bi-star]="s > ratingEncomenda()"
+                ></i>
+              </button>
+            }
+          </div>
+          @if (temEstafeta()) {
+            <div class="mb-2">
+              <div class="small fw-semibold mb-1">Estafeta</div>
+              @for (s of estrelas; track s) {
+                <button
+                  type="button"
+                  class="btn btn-link p-0 fs-4"
+                  style="color: #f59e0b"
+                  [attr.aria-label]="'Dar ' + s + ' estrelas ao estafeta'"
+                  (click)="ratingEstafeta.set(s)"
+                >
+                  <i
+                    class="bi"
+                    [class.bi-star-fill]="s <= ratingEstafeta()"
+                    [class.bi-star]="s > ratingEstafeta()"
+                  ></i>
+                </button>
+              }
+            </div>
+          }
+          <textarea
+            class="form-control mb-2"
+            rows="2"
+            placeholder="Comentário (opcional)"
+            [(ngModel)]="comentario"
+          ></textarea>
+          @if (reviewError()) {
+            <div class="text-danger small mb-2">{{ reviewError() }}</div>
+          }
+          <button
+            class="btn btn-brand btn-sm"
+            [disabled]="ratingEncomenda() === 0"
+            (click)="avaliar()"
+          >
+            Enviar avaliação
+          </button>
+        </div>
+      </div>
+    }
+
     @if (error()) {
       <div class="alert alert-danger py-2 small">{{ error() }}</div>
     }

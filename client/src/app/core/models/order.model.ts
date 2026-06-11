@@ -17,6 +17,15 @@ export interface OrderItem {
   quantidade: number;
 }
 
+export interface Review {
+  _id: string;
+  order: string;
+  ratingEncomenda: number;
+  ratingEstafeta?: number | null;
+  comentario: string;
+  createdAt: string;
+}
+
 export interface Coupon {
   _id: string;
   codigo: string;

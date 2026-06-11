@@ -17,6 +17,7 @@ import storeRoutes from './store.routes.js';
 import orderRoutes from './order.routes.js';
 import dashboardRoutes from './dashboard.routes.js';
 import couponRoutes from './coupon.routes.js';
+import reviewRoutes from './review.routes.js';
 
 const router = Router();
 
@@ -29,5 +30,6 @@ router.use('/store', storeRoutes);
 router.use('/orders', orderRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/coupons', couponRoutes);
+router.use('/reviews', reviewRoutes);
 
 export default router;
