@@ -23,6 +23,26 @@
               (change)="selecionado.set(m.metodo)"
             />
             <label class="form-check-label" [for]="m.metodo">{{ labels[m.metodo] }}</label>
+            @if (m.metodo === 'estafeta' && estafetas(); as e) {
+              <small class="d-block ms-4">
+                @if (e.livres > 0) {
+                  <span class="text-success"
+                    ><i class="bi bi-person-check"></i> {{ e.livres }} estafeta(s)
+                    disponível(is)</span
+                  >
+                } @else if (e.total > 0) {
+                  <span class="text-warning"
+                    ><i class="bi bi-hourglass"></i> estafetas ocupados de momento — a entrega pode
+                    demorar</span
+                  >
+                } @else {
+                  <span class="text-danger"
+                    ><i class="bi bi-exclamation-triangle"></i> sem estafetas disponíveis de
+                    momento</span
+                  >
+                }
+              </small>
+            }
           </span>
           <span class="text-muted">
             {{ m.custo === 0 ? 'Grátis' : (m.custo | number: '1.2-2') + ' €' }}

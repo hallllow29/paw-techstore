@@ -32,6 +32,7 @@ export class Checkout implements OnInit {
   readonly selecionado = signal<DeliveryMethod | null>(null);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+  readonly estafetas = signal<{ total: number; livres: number } | null>(null);
   readonly labels = METHOD_LABELS;
 
   // Cupão
@@ -58,6 +59,7 @@ export class Checkout implements OnInit {
       this.metodos.set(ativos);
       if (ativos.length) this.selecionado.set(ativos[0].metodo);
     });
+    this.store.couriers().subscribe((c) => this.estafetas.set(c));
   }
 
   aplicarCupao(): void {

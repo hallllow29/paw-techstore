@@ -1,9 +1,24 @@
 import { Router } from 'express';
-import { getSettings, updateSettings } from '../controllers/store.controller.js';
+import {
+  getSettings,
+  updateSettings,
+  getCouriers,
+} from '../controllers/store.controller.js';
 import { auth, authorize } from '../middleware/auth.js';
 import { uploadLogo } from '../middleware/upload.js';
 
 const router = Router();
+
+/**
+ * @openapi
+ * /api/store/estafetas:
+ *   get:
+ *     tags: [Loja]
+ *     summary: Disponibilidade de estafetas (total e livres)
+ *     responses:
+ *       200: { description: "{ total, livres }" }
+ */
+router.get('/estafetas', getCouriers);
 
 /**
  * @openapi

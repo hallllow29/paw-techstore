@@ -17,6 +17,10 @@ export class StoreService {
     return this.http.get<StoreResponse>(`${API_URL}/store`);
   }
 
+  couriers(): Observable<{ total: number; livres: number }> {
+    return this.http.get<{ total: number; livres: number }>(`${API_URL}/store/estafetas`);
+  }
+
   update(form: FormData): Observable<StoreResponse> {
     return this.http.put<StoreResponse>(`${API_URL}/store`, form);
   }
