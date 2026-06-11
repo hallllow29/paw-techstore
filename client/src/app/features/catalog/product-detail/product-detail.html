@@ -1,0 +1,120 @@
+<div class="container py-4">
+  @if (loading()) {
+    <div class="text-center py-5"><span class="spinner-border text-secondary"></span></div>
+  } @else if (product(); as p) {
+    <nav class="small mb-3">
+      <a routerLink="/produtos" class="text-decoration-none">← Voltar aos produtos</a>
+    </nav>
+
+    <div class="row g-4">
+      <!-- Galeria -->
+      <div class="col-md-5">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body text-center" style="min-height: 260px">
+            @if (activeImage()) {
+              <img
+                [src]="img(activeImage())"
+                [alt]="p.nome"
+                class="img-fluid"
+                style="max-height: 240px; object-fit: contain"
+              />
+            } @else {
+              <div
+                class="d-flex align-items-center justify-content-center text-secondary"
+                style="height: 240px"
+              >
+                <i class="bi bi-pc-display" style="font-size: 5rem"></i>
+              </div>
+            }
+          </div>
+        </div>
+
+        @if (p.imagens.length > 0) {
+          <div class="d-flex gap-2 mt-2 flex-wrap">
+            <img
+              [src]="img(p.imagemDestaque)"
+              class="border rounded p-1"
+              role="button"
+              style="width: 60px; height: 60px; object-fit: contain"
+              (click)="activeImage.set(p.imagemDestaque)"
+              alt="destaque"
+            />
+            @for (im of p.imagens; track im) {
+              <img
+                [src]="img(im)"
+                class="border rounded p-1"
+                role="button"
+                style="width: 60px; height: 60px; object-fit: contain"
+                (click)="activeImage.set(im)"
+                alt="imagem"
+              />
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Info -->
+      <div class="col-md-7">
+        <div class="text-muted">{{ p.marca }}</div>
+        <h1 class="h3">{{ p.nome }}</h1>
+
+        <div class="d-flex align-items-baseline gap-2 my-3">
+          <span class="fw-bold fs-2 text-brand">{{ p.preco | number: '1.2-2' }} €</span>
+          @if (p.precoAntigo && p.precoAntigo > p.preco) {
+            <span class="text-muted text-decoration-line-through"
+              >{{ p.precoAntigo | number: '1.2-2' }} €</span
+            >
+          }
+        </div>
+
+        @if (p.stock > 0) {
+          <span class="badge text-bg-success mb-3"
+            ><i class="bi bi-check-circle"></i> {{ p.stock }} em stock</span
+          >
+        } @else {
+          <span class="badge text-bg-danger mb-3">Esgotado</span>
+        }
+
+        <p>{{ p.descricao }}</p>
+
+        <div class="d-flex gap-2 mb-4">
+          <button class="btn btn-brand" [disabled]="p.stock === 0">
+            <i class="bi bi-cart-plus"></i> Adicionar ao carrinho
+          </button>
+          <button
+            class="btn btn-outline-secondary"
+            [disabled]="!compare.isSelected(p._id) && !compare.canAdd(p)"
+            (click)="compare.toggle(p)"
+          >
+            <i class="bi bi-bar-chart"></i>
+            {{ compare.isSelected(p._id) ? 'A comparar' : 'Comparar' }}
+          </button>
+        </div>
+
+        <!-- Especificações -->
+        @if (atributos(p).length > 0) {
+          <h2 class="h6">Especificações</h2>
+          <table class="table table-sm">
+            <tbody>
+              @for (a of atributos(p); track a.chave) {
+                <tr>
+                  <th class="text-muted fw-normal" style="width: 40%">{{ a.chave }}</th>
+                  <td>{{ a.valor }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+
+        <div class="small text-muted mt-3">
+          EAN: {{ p.ean }}
+          @if (p.categoria && $any(p.categoria).nome) {
+            · Categoria: {{ $any(p.categoria).nome }}
+          }
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="alert alert-warning">Produto não encontrado.</div>
+  }
+</div>

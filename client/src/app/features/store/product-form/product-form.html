@@ -1,0 +1,140 @@
+<div class="container py-4" style="max-width: 760px">
+  <nav class="small mb-3">
+    <a routerLink="/loja/produtos" class="text-decoration-none">← Voltar à gestão</a>
+  </nav>
+
+  <h1 class="h4 mb-4">{{ editId() ? 'Editar produto' : 'Novo produto' }}</h1>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="row g-3">
+      <div class="col-md-8">
+        <label class="form-label" for="nome">Nome</label>
+        <input id="nome" class="form-control" formControlName="nome" />
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="ean">EAN</label>
+        <input id="ean" class="form-control" formControlName="ean" />
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label" for="categoria">Categoria</label>
+        <select id="categoria" class="form-select" formControlName="categoria">
+          <option value="">Escolher…</option>
+          @for (c of categories(); track c._id) {
+            <option [value]="c._id">{{ c.nome }}</option>
+          }
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label" for="marca">Marca</label>
+        <input id="marca" class="form-control" formControlName="marca" />
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label" for="preco">Preço (€)</label>
+        <input id="preco" type="number" step="0.01" class="form-control" formControlName="preco" />
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="precoAntigo">Preço antigo (€)</label>
+        <input
+          id="precoAntigo"
+          type="number"
+          step="0.01"
+          class="form-control"
+          formControlName="precoAntigo"
+        />
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="stock">Stock</label>
+        <input id="stock" type="number" class="form-control" formControlName="stock" />
+      </div>
+
+      <div class="col-12">
+        <label class="form-label" for="descricao">Descrição</label>
+        <textarea
+          id="descricao"
+          rows="3"
+          class="form-control"
+          formControlName="descricao"
+        ></textarea>
+      </div>
+
+      <!-- Imagens -->
+      <div class="col-md-6">
+        <label class="form-label" for="destaque">Imagem de destaque</label>
+        <input
+          id="destaque"
+          type="file"
+          accept="image/*"
+          class="form-control"
+          (change)="onDestaque($event)"
+        />
+      </div>
+      <div class="col-md-6">
+        <label class="form-label" for="galeria">Galeria (até 4)</label>
+        <input
+          id="galeria"
+          type="file"
+          accept="image/*"
+          multiple
+          class="form-control"
+          (change)="onImagens($event)"
+        />
+      </div>
+
+      <!-- Especificações dinâmicas -->
+      <div class="col-12">
+        <label class="form-label d-flex justify-content-between align-items-center">
+          <span>Especificações</span>
+          <button type="button" class="btn btn-sm btn-outline-secondary" (click)="addAtributo()">
+            <i class="bi bi-plus"></i> Adicionar
+          </button>
+        </label>
+
+        <div formArrayName="atributos">
+          @for (a of atributos.controls; track $index) {
+            <div class="row g-2 mb-2" [formGroupName]="$index">
+              <div class="col-5">
+                <input
+                  class="form-control form-control-sm"
+                  placeholder="Ex: RAM"
+                  formControlName="chave"
+                />
+              </div>
+              <div class="col-6">
+                <input
+                  class="form-control form-control-sm"
+                  placeholder="Ex: 16 GB"
+                  formControlName="valor"
+                />
+              </div>
+              <div class="col-1">
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-danger"
+                  (click)="removeAtributo($index)"
+                >
+                  <i class="bi bi-x"></i>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    @if (error()) {
+      <div class="alert alert-danger py-2 small mt-3">{{ error() }}</div>
+    }
+
+    <div class="mt-4 d-flex gap-2">
+      <button type="submit" class="btn btn-brand" [disabled]="form.invalid || loading()">
+        @if (loading()) {
+          <span class="spinner-border spinner-border-sm me-1"></span>
+        }
+        Guardar
+      </button>
+      <a routerLink="/loja/produtos" class="btn btn-outline-secondary">Cancelar</a>
+    </div>
+  </form>
+</div>

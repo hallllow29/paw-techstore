@@ -1,0 +1,73 @@
+<div class="container py-4">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h1 class="h4 mb-0">Gestão de produtos</h1>
+    <a routerLink="/loja/produtos/novo" class="btn btn-brand">
+      <i class="bi bi-plus-lg"></i> Novo produto
+    </a>
+  </div>
+
+  @if (loading()) {
+    <div class="text-center py-5"><span class="spinner-border text-secondary"></span></div>
+  } @else if (items().length === 0) {
+    <div class="alert alert-info">Ainda não há produtos. Cria o primeiro.</div>
+  } @else {
+    <div class="card shadow-sm border-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th></th>
+              <th>Nome</th>
+              <th>EAN</th>
+              <th>Categoria</th>
+              <th class="text-end">Preço</th>
+              <th class="text-end">Stock</th>
+              <th class="text-end">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of items(); track p._id) {
+              <tr>
+                <td style="width: 48px">
+                  @if (p.imagemDestaque) {
+                    <img
+                      [src]="img(p.imagemDestaque)"
+                      alt=""
+                      style="width: 40px; height: 40px; object-fit: contain"
+                    />
+                  } @else {
+                    <i class="bi bi-pc-display text-secondary fs-4"></i>
+                  }
+                </td>
+                <td>{{ p.nome }}</td>
+                <td class="small text-muted">{{ p.ean }}</td>
+                <td>{{ categoriaNome(p) }}</td>
+                <td class="text-end">{{ p.preco | number: '1.2-2' }} €</td>
+                <td class="text-end">
+                  <span
+                    class="badge"
+                    [class.text-bg-success]="p.stock > 0"
+                    [class.text-bg-danger]="p.stock === 0"
+                  >
+                    {{ p.stock }}
+                  </span>
+                </td>
+                <td class="text-end text-nowrap">
+                  <a
+                    [routerLink]="['/loja/produtos', p._id, 'editar']"
+                    class="btn btn-sm btn-outline-secondary"
+                  >
+                    <i class="bi bi-pencil"></i>
+                  </a>
+                  <button class="btn btn-sm btn-outline-danger" (click)="remover(p)">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</div>

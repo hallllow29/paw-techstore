@@ -28,6 +28,16 @@
             Início
           </a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/produtos" routerLinkActive="active">Produtos</a>
+        </li>
+        @if (auth.hasRole('loja')) {
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/loja/produtos" routerLinkActive="active">
+              Gerir loja
+            </a>
+          </li>
+        }
         @if (auth.hasRole('admin')) {
           <li class="nav-item">
             <a class="nav-link" routerLink="/admin/estafetas" routerLinkActive="active">
