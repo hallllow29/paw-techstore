@@ -2,10 +2,11 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { OrderService } from '../../../core/services/order.service';
 import { Order, STATE_COLORS, STATE_LABELS } from '../../../core/models/order.model';
+import { DeliveryMap } from '../../../shared/delivery-map/delivery-map';
 
 @Component({
   selector: 'app-deliveries',
-  imports: [DatePipe, DecimalPipe],
+  imports: [DatePipe, DecimalPipe, DeliveryMap],
   templateUrl: './deliveries.html',
 })
 export class Deliveries implements OnInit {
@@ -15,8 +16,13 @@ export class Deliveries implements OnInit {
   readonly minhas = signal<Order[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
+  readonly mapaAberto = signal<string | null>(null);
   readonly labels = STATE_LABELS;
   readonly colors = STATE_COLORS;
+
+  toggleMapa(id: string): void {
+    this.mapaAberto.set(this.mapaAberto() === id ? null : id);
+  }
 
   readonly emCurso = computed(() => this.minhas().some((o) => o.estado === 'em_entrega'));
 

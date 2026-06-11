@@ -21,15 +21,26 @@
       } @else {
         @for (o of disponiveis(); track o._id) {
           <div class="card shadow-sm border-0 mb-2">
-            <div class="card-body py-2 d-flex justify-content-between align-items-center">
-              <div>
-                <div class="fw-semibold">{{ clienteNome(o) }}</div>
-                <div class="small text-muted"><i class="bi bi-geo-alt"></i> {{ morada(o) }}</div>
-                <div class="small">Recebe {{ o.custoEntrega | number: '1.2-2' }} €</div>
+            <div class="card-body py-2">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <div class="fw-semibold">{{ clienteNome(o) }}</div>
+                  <div class="small text-muted"><i class="bi bi-geo-alt"></i> {{ morada(o) }}</div>
+                  <div class="small">Recebe {{ o.custoEntrega | number: '1.2-2' }} €</div>
+                </div>
+                <div class="text-end">
+                  <button class="btn btn-sm btn-outline-secondary mb-1" (click)="toggleMapa(o._id)">
+                    <i class="bi bi-map"></i> {{ mapaAberto() === o._id ? 'Ocultar' : 'Mapa' }}
+                  </button>
+                  <br />
+                  <button class="btn btn-sm btn-brand" [disabled]="emCurso()" (click)="aceitar(o)">
+                    Aceitar
+                  </button>
+                </div>
               </div>
-              <button class="btn btn-sm btn-brand" [disabled]="emCurso()" (click)="aceitar(o)">
-                Aceitar
-              </button>
+              @if (mapaAberto() === o._id) {
+                <app-delivery-map class="d-block mt-2" [morada]="morada(o)" />
+              }
             </div>
           </div>
         }
