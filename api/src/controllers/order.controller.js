@@ -183,9 +183,10 @@ export const updateStatus = asyncHandler(async (req, res) => {
 
 /** GET /api/orders/entregas/disponiveis — entregas por estafeta prontas (estafeta). */
 export const availableDeliveries = asyncHandler(async (_req, res) => {
+  // Disponível assim que a loja confirma (ou põe em preparação) e ainda sem estafeta
   const orders = await Order.find({
     metodoEntrega: 'estafeta',
-    estado: 'em_preparacao',
+    estado: { $in: ['confirmada', 'em_preparacao'] },
     estafeta: null,
   })
     .populate('cliente', 'nome morada')
@@ -203,12 +204,8 @@ export const acceptDelivery = asyncHandler(async (req, res) => {
   }
 
   const order = await Order.findById(req.params.id);
-  if (
-    !order ||
-    order.metodoEntrega !== 'estafeta' ||
-    order.estado !== 'em_preparacao' ||
-    order.estafeta
-  ) {
+  const aceitavel = ['confirmada', 'em_preparacao'].includes(order?.estado);
+  if (!order || order.metodoEntrega !== 'estafeta' || !aceitavel || order.estafeta) {
     res.status(409);
     throw new Error('Entrega indisponível');
   }
@@ -224,9 +221,8 @@ export const acceptDelivery = asyncHandler(async (req, res) => {
 export const markDelivered = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id);
   if (
-    !order ||
-    String(order.estafeta) !== String(req.user._id) ||
-    order.estado !== 'em_entrega'
+    String(order?.estafeta) !== String(req.user._id) ||
+    order?.estado !== 'em_entrega'
   ) {
     res.status(409);
     throw new Error('Não tens esta entrega em curso');

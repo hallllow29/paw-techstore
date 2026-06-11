@@ -1,76 +1,93 @@
 <div class="container py-4">
   <h1 class="h4 mb-3">Entregas</h1>
 
-  @if (error()) {
-    <div class="alert alert-danger py-2 small">{{ error() }}</div>
-  }
-  @if (emCurso()) {
-    <div class="alert alert-warning py-2 small">
-      <i class="bi bi-info-circle"></i> Tens uma entrega em curso. Conclui-a antes de aceitar outra.
+  @if (contaPendente()) {
+    <div class="alert alert-warning">
+      <i class="bi bi-hourglass-split"></i> A tua conta de estafeta ainda não foi aprovada pelo
+      administrador. Poderás ver e aceitar entregas assim que for ativada.
     </div>
-  }
+  } @else {
+    @if (error()) {
+      <div class="alert alert-danger py-2 small">{{ error() }}</div>
+    }
+    @if (emCurso()) {
+      <div class="alert alert-warning py-2 small">
+        <i class="bi bi-info-circle"></i> Tens uma entrega em curso. Conclui-a antes de aceitar
+        outra.
+      </div>
+    }
 
-  <div class="row g-4">
-    <!-- Disponíveis -->
-    <div class="col-lg-6">
-      <h2 class="h6">Disponíveis</h2>
-      @if (loading()) {
-        <div class="text-center py-4"><span class="spinner-border text-secondary"></span></div>
-      } @else if (disponiveis().length === 0) {
-        <div class="alert alert-light border">Não há entregas disponíveis de momento.</div>
-      } @else {
-        @for (o of disponiveis(); track o._id) {
-          <div class="card shadow-sm border-0 mb-2">
-            <div class="card-body py-2">
-              <div class="d-flex justify-content-between align-items-start">
+    <div class="row g-4">
+      <!-- Disponíveis -->
+      <div class="col-lg-6">
+        <h2 class="h6">Disponíveis</h2>
+        @if (loading()) {
+          <div class="text-center py-4"><span class="spinner-border text-secondary"></span></div>
+        } @else if (disponiveis().length === 0) {
+          <div class="alert alert-light border">Não há entregas disponíveis de momento.</div>
+        } @else {
+          @for (o of disponiveis(); track o._id) {
+            <div class="card shadow-sm border-0 mb-2">
+              <div class="card-body py-2">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <div class="fw-semibold">{{ clienteNome(o) }}</div>
+                    <div class="small text-muted">
+                      <i class="bi bi-geo-alt"></i> {{ morada(o) }}
+                    </div>
+                    <div class="small">Recebe {{ o.custoEntrega | number: '1.2-2' }} €</div>
+                  </div>
+                  <div class="text-end">
+                    <button
+                      class="btn btn-sm btn-outline-secondary mb-1"
+                      (click)="toggleMapa(o._id)"
+                    >
+                      <i class="bi bi-map"></i> {{ mapaAberto() === o._id ? 'Ocultar' : 'Mapa' }}
+                    </button>
+                    <br />
+                    <button
+                      class="btn btn-sm btn-brand"
+                      [disabled]="emCurso()"
+                      (click)="aceitar(o)"
+                    >
+                      Aceitar
+                    </button>
+                  </div>
+                </div>
+                @if (mapaAberto() === o._id) {
+                  <app-delivery-map class="d-block mt-2" [morada]="morada(o)" />
+                }
+              </div>
+            </div>
+          }
+        }
+      </div>
+
+      <!-- As minhas -->
+      <div class="col-lg-6">
+        <h2 class="h6">As minhas entregas</h2>
+        @if (minhas().length === 0) {
+          <div class="alert alert-light border">Ainda não aceitaste entregas.</div>
+        } @else {
+          @for (o of minhas(); track o._id) {
+            <div class="card shadow-sm border-0 mb-2">
+              <div class="card-body py-2 d-flex justify-content-between align-items-center">
                 <div>
                   <div class="fw-semibold">{{ clienteNome(o) }}</div>
-                  <div class="small text-muted"><i class="bi bi-geo-alt"></i> {{ morada(o) }}</div>
-                  <div class="small">Recebe {{ o.custoEntrega | number: '1.2-2' }} €</div>
+                  <div class="small text-muted">{{ morada(o) }}</div>
+                  <span class="badge text-bg-{{ colors[o.estado] }}">{{ labels[o.estado] }}</span>
+                  <span class="small text-muted ms-1">{{ o.createdAt | date: 'dd/MM HH:mm' }}</span>
                 </div>
-                <div class="text-end">
-                  <button class="btn btn-sm btn-outline-secondary mb-1" (click)="toggleMapa(o._id)">
-                    <i class="bi bi-map"></i> {{ mapaAberto() === o._id ? 'Ocultar' : 'Mapa' }}
+                @if (o.estado === 'em_entrega') {
+                  <button class="btn btn-sm btn-success" (click)="entregar(o)">
+                    Marcar entregue
                   </button>
-                  <br />
-                  <button class="btn btn-sm btn-brand" [disabled]="emCurso()" (click)="aceitar(o)">
-                    Aceitar
-                  </button>
-                </div>
+                }
               </div>
-              @if (mapaAberto() === o._id) {
-                <app-delivery-map class="d-block mt-2" [morada]="morada(o)" />
-              }
             </div>
-          </div>
+          }
         }
-      }
+      </div>
     </div>
-
-    <!-- As minhas -->
-    <div class="col-lg-6">
-      <h2 class="h6">As minhas entregas</h2>
-      @if (minhas().length === 0) {
-        <div class="alert alert-light border">Ainda não aceitaste entregas.</div>
-      } @else {
-        @for (o of minhas(); track o._id) {
-          <div class="card shadow-sm border-0 mb-2">
-            <div class="card-body py-2 d-flex justify-content-between align-items-center">
-              <div>
-                <div class="fw-semibold">{{ clienteNome(o) }}</div>
-                <div class="small text-muted">{{ morada(o) }}</div>
-                <span class="badge text-bg-{{ colors[o.estado] }}">{{ labels[o.estado] }}</span>
-                <span class="small text-muted ms-1">{{ o.createdAt | date: 'dd/MM HH:mm' }}</span>
-              </div>
-              @if (o.estado === 'em_entrega') {
-                <button class="btn btn-sm btn-success" (click)="entregar(o)">
-                  Marcar entregue
-                </button>
-              }
-            </div>
-          </div>
-        }
-      }
-    </div>
-  </div>
+  }
 </div>

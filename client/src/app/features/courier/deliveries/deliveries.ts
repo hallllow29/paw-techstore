@@ -2,6 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { OrderService } from '../../../core/services/order.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { Order, STATE_COLORS, STATE_LABELS } from '../../../core/models/order.model';
 import { DeliveryMap } from '../../../shared/delivery-map/delivery-map';
 
@@ -13,6 +14,10 @@ import { DeliveryMap } from '../../../shared/delivery-map/delivery-map';
 export class Deliveries implements OnInit {
   private readonly orders = inject(OrderService);
   private readonly toast = inject(ToastService);
+  private readonly auth = inject(AuthService);
+
+  // Estafeta ainda não aprovado pelo admin
+  readonly contaPendente = computed(() => this.auth.user()?.status !== 'ativo');
 
   readonly disponiveis = signal<Order[]>([]);
   readonly minhas = signal<Order[]>([]);
@@ -29,7 +34,8 @@ export class Deliveries implements OnInit {
   readonly emCurso = computed(() => this.minhas().some((o) => o.estado === 'em_entrega'));
 
   ngOnInit(): void {
-    this.load();
+    if (this.contaPendente()) this.loading.set(false);
+    else this.load();
   }
 
   load(): void {
