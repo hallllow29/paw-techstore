@@ -150,20 +150,20 @@
   </div>
 
   <!-- Linha 2: categorias · navegação -->
-  <div class="bg-ink subnav">
-    <div class="container">
-      <ul class="navbar-nav flex-row flex-nowrap align-items-center gap-1 overflow-auto py-1">
-        <li class="nav-item flex-shrink-0 me-1">
-          <button
-            class="btn btn-accent btn-sm d-flex align-items-center gap-2 fw-semibold"
-            type="button"
-            data-bs-toggle="offcanvas"
-            data-bs-target="#catMenu"
-            aria-controls="catMenu"
-          >
-            <i class="bi bi-grid-3x3-gap-fill"></i> Categorias
-          </button>
-        </li>
+  <nav class="subnav bg-ink">
+    <div class="container d-flex align-items-stretch flex-nowrap">
+      <button
+        class="cat-trigger flex-shrink-0"
+        type="button"
+        data-bs-toggle="offcanvas"
+        data-bs-target="#catMenu"
+        aria-controls="catMenu"
+      >
+        <i class="bi bi-grid-3x3-gap-fill"></i>
+        <span>Categorias</span>
+        <i class="bi bi-chevron-down small ms-1"></i>
+      </button>
+      <ul class="navbar-nav flex-row flex-nowrap align-items-center overflow-auto">
         <li class="nav-item flex-shrink-0">
           <a
             class="nav-link"
@@ -215,7 +215,7 @@
         }
       </ul>
     </div>
-  </div>
+  </nav>
 </header>
 
 <!-- Mega-menu de categorias (abre ao clicar em "Categorias") -->

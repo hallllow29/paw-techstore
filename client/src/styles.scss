@@ -83,14 +83,35 @@ body {
 .subnav {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
+/* Lançador do mega-menu de categorias (bloco sólido, altura toda) */
+.cat-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 0;
+  color: #fff;
+  font-weight: 600;
+  padding: 0 1.15rem;
+  margin-right: 0.5rem;
+  background: var(--grad);
+  white-space: nowrap;
+  transition: filter 0.15s ease;
+}
+.cat-trigger:hover {
+  filter: brightness(1.08);
+}
 .subnav .nav-link {
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.82);
   font-weight: 500;
   white-space: nowrap;
-  padding: 0.5rem 0.75rem;
+  padding: 0.7rem 1rem;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
 }
 .subnav .nav-link:hover {
   color: #fff;
+  background: rgba(255, 255, 255, 0.06);
 }
 .subnav .nav-link.active {
   color: #fff;
