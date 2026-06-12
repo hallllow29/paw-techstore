@@ -35,7 +35,15 @@ export function createApp() {
   );
 
   // ── Ficheiros estáticos (imagens de produtos, logótipo) ──
-  app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+  // CORP cross-origin: o cliente (noutra porta/origem) precisa de embeber as imagens.
+  app.use(
+    '/uploads',
+    (_req, res, next) => {
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+      next();
+    },
+    express.static(path.join(__dirname, '..', 'uploads'))
+  );
 
   // ── Documentação Swagger ──
   mountSwagger(app);
