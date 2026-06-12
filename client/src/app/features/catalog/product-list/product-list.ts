@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ProductService } from '../../../core/services/product.service';
@@ -19,6 +19,7 @@ import { imageUrl } from '../../../core/config';
 export class ProductList implements OnInit {
   private readonly products = inject(ProductService);
   private readonly categoriesSvc = inject(CategoryService);
+  private readonly route = inject(ActivatedRoute);
   protected readonly compare = inject(CompareService);
   protected readonly favorites = inject(FavoriteService);
   protected readonly auth = inject(AuthService);
@@ -43,7 +44,14 @@ export class ProductList implements OnInit {
       this.load();
     });
 
-    this.load();
+    // Aplica filtros vindos do URL (mega-menu / mosaico de categorias, pesquisa do header)
+    this.route.queryParamMap.subscribe((params) => {
+      this.categoria = params.get('categoria') ?? '';
+      const q = params.get('q') ?? '';
+      if (q !== this.search.value) this.search.setValue(q, { emitEvent: false });
+      this.page = 1;
+      this.load();
+    });
   }
 
   load(): void {

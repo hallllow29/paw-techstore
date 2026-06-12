@@ -47,7 +47,7 @@
     <div class="row g-3">
       @for (p of items(); track p._id) {
         <div class="col-6 col-lg-3">
-          <div class="card h-100 shadow-sm border-0 position-relative">
+          <div class="card product-card h-100 shadow-sm border-0 position-relative">
             @if (desconto(p); as d) {
               <span class="badge text-bg-danger position-absolute top-0 end-0 m-2">-{{ d }}%</span>
             }

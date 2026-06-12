@@ -1,60 +1,161 @@
-<section class="py-5 bg-white border-bottom">
-  <div class="container text-center">
-    <h1 class="display-5 fw-bold"><span class="text-brand">paw</span>-techstore</h1>
-    <p class="lead text-muted">A tua loja de material informático online.</p>
+<!-- Saudação para utilizadores autenticados -->
+@if (auth.isAuthenticated()) {
+  <div class="bg-white border-bottom">
+    <div
+      class="container py-2 small d-flex flex-wrap justify-content-between align-items-center gap-2"
+    >
+      <span>
+        Olá, <strong>{{ auth.user()?.nome }}</strong> 👋
+        <span class="badge text-bg-primary text-uppercase ms-1">{{ auth.role() }}</span>
+        @if (auth.user()?.status === 'pendente') {
+          <span class="badge text-bg-warning ms-1">conta pendente</span>
+        }
+      </span>
+      <a routerLink="/dashboard" class="text-decoration-none"
+        ><i class="bi bi-speedometer2"></i> Ir para o painel</a
+      >
+    </div>
+  </div>
+}
 
-    @if (!auth.isAuthenticated()) {
-      <div class="mt-4">
-        <a routerLink="/registo" class="btn btn-brand btn-lg me-2">Criar conta</a>
-        <a routerLink="/login" class="btn btn-outline-secondary btn-lg">Entrar</a>
+<!-- HERO -->
+<section class="hero py-5">
+  <div class="container py-lg-4 position-relative">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-7">
+        <span class="badge rounded-pill bg-white-10 text-info mb-3 px-3 py-2">
+          <i class="bi bi-lightning-charge-fill"></i> Tecnologia ao melhor preço
+        </span>
+        <h1 class="display-4 fw-bold mb-3">
+          O teu setup começa na <span class="text-gradient">paw</span
+          ><span class="text-info">-techstore</span>
+        </h1>
+        <p class="lead text-white-50 mb-4" style="max-width: 38rem">
+          Portáteis, componentes, periféricos e muito mais. Levantamento em loja, transportadora ou
+          entrega por estafeta com acompanhamento em tempo real — e pagas por MB WAY, Multibanco ou
+          cartão.
+        </p>
+        <div class="d-flex flex-wrap gap-2">
+          <a routerLink="/produtos" class="btn btn-accent btn-lg">
+            <i class="bi bi-bag"></i> Ver produtos
+          </a>
+          @if (!auth.isAuthenticated()) {
+            <a routerLink="/registo" class="btn btn-outline-light btn-lg">Criar conta</a>
+          }
+        </div>
       </div>
-    }
+      <div class="col-lg-5 d-none d-lg-flex justify-content-center">
+        <i class="bi bi-pc-display hero-art"></i>
+      </div>
+    </div>
   </div>
 </section>
 
-<div class="container py-4">
-  @if (auth.isAuthenticated()) {
-    <div class="card shadow-sm border-0 mb-4">
-      <div class="card-body">
-        <h2 class="h5">Olá, {{ auth.user()?.nome }} 👋</h2>
-        <p class="mb-1 text-muted">
-          Perfil:
-          <span class="badge text-bg-secondary text-uppercase">{{ auth.role() }}</span>
-          @if (auth.user()?.status === 'pendente') {
-            <span class="badge text-bg-warning ms-1">conta pendente de aprovação</span>
-          }
-        </p>
+<!-- FAIXA DE VANTAGENS -->
+<section class="bg-white border-bottom">
+  <div class="container">
+    <div class="row text-center align-items-stretch g-0">
+      <div class="col-6 col-lg-3 p-3 border-end">
+        <i class="bi bi-truck feature-ico"></i>
+        <div class="fw-semibold mt-1">Entregas grátis &gt; 35€</div>
+        <div class="small text-muted">Em pequenos formatos</div>
       </div>
-    </div>
-  }
-
-  <div class="row g-4">
-    <div class="col-md-4">
-      <div class="card h-100 shadow-sm border-0">
-        <div class="card-body">
-          <i class="bi bi-search fs-3 text-brand"></i>
-          <h3 class="h6 mt-2">Pesquisar produtos</h3>
-          <p class="small text-muted mb-0">Procura por nome ou EAN e compara características.</p>
-        </div>
+      <div class="col-6 col-lg-3 p-3 border-end">
+        <i class="bi bi-shield-lock feature-ico"></i>
+        <div class="fw-semibold mt-1">Pagamento seguro</div>
+        <div class="small text-muted">MB WAY · Multibanco · cartão</div>
       </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card h-100 shadow-sm border-0">
-        <div class="card-body">
-          <i class="bi bi-cart3 fs-3 text-brand"></i>
-          <h3 class="h6 mt-2">Encomendar online</h3>
-          <p class="small text-muted mb-0">Adiciona ao carrinho e escolhe o método de entrega.</p>
-        </div>
+      <div class="col-6 col-lg-3 p-3 border-end">
+        <i class="bi bi-geo-alt feature-ico"></i>
+        <div class="fw-semibold mt-1">Segue a tua encomenda</div>
+        <div class="small text-muted">Estafeta em tempo real</div>
       </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card h-100 shadow-sm border-0">
-        <div class="card-body">
-          <i class="bi bi-truck fs-3 text-brand"></i>
-          <h3 class="h6 mt-2">Entregas</h3>
-          <p class="small text-muted mb-0">Loja, estafeta ou transportadora — tu escolhes.</p>
-        </div>
+      <div class="col-6 col-lg-3 p-3">
+        <i class="bi bi-arrow-counterclockwise feature-ico"></i>
+        <div class="fw-semibold mt-1">Devoluções fáceis</div>
+        <div class="small text-muted">Grátis em loja</div>
       </div>
     </div>
   </div>
-</div>
+</section>
+
+<!-- CATEGORIAS -->
+<section class="container py-5">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h2 class="h4 mb-0">Explora por categoria</h2>
+    <a routerLink="/produtos" class="text-decoration-none small fw-semibold">
+      Ver tudo <i class="bi bi-arrow-right"></i>
+    </a>
+  </div>
+
+  @if (categorias().length > 0) {
+    <div class="row g-3 row-cols-2 row-cols-md-4">
+      @for (c of categorias(); track c._id) {
+        <div class="col">
+          <a class="cat-tile h-100" routerLink="/produtos" [queryParams]="{ categoria: c._id }">
+            <span class="cat-ico"><i class="bi {{ iconCategoria(c.nome) }}"></i></span>
+            <span class="fw-semibold text-center">{{ c.nome }}</span>
+          </a>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="text-muted small">A carregar categorias…</div>
+  }
+</section>
+
+<!-- DESTAQUES -->
+@if (destaques().length > 0) {
+  <section class="container pb-5">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h2 class="h4 mb-0">Em destaque</h2>
+      <a routerLink="/produtos" class="text-decoration-none small fw-semibold">
+        Ver mais <i class="bi bi-arrow-right"></i>
+      </a>
+    </div>
+
+    <div class="row g-3 row-cols-2 row-cols-lg-4">
+      @for (p of destaques(); track p._id) {
+        <div class="col">
+          <a
+            [routerLink]="['/produtos', p.slug]"
+            class="card product-card h-100 shadow-sm border-0 text-decoration-none text-dark position-relative"
+          >
+            @if (desconto(p); as d) {
+              <span class="badge text-bg-danger position-absolute top-0 end-0 m-2">-{{ d }}%</span>
+            }
+            <div class="text-center pt-3">
+              @if (p.imagemDestaque) {
+                <img
+                  [src]="img(p.imagemDestaque)"
+                  [alt]="p.nome"
+                  class="img-fluid"
+                  style="height: 130px; object-fit: contain"
+                />
+              } @else {
+                <div
+                  class="d-flex align-items-center justify-content-center text-secondary"
+                  style="height: 130px"
+                >
+                  <i class="bi bi-pc-display fs-1"></i>
+                </div>
+              }
+            </div>
+            <div class="card-body d-flex flex-column">
+              <div class="small text-muted">{{ p.marca }}</div>
+              <h3 class="h6 mb-2" style="min-height: 2.5rem">{{ p.nome }}</h3>
+              <div class="mt-auto d-flex align-items-baseline gap-2">
+                <span class="fw-bold fs-5">{{ p.preco | number: '1.2-2' }} €</span>
+                @if (desconto(p)) {
+                  <span class="text-muted text-decoration-line-through small">
+                    {{ p.precoAntigo | number: '1.2-2' }} €
+                  </span>
+                }
+              </div>
+            </div>
+          </a>
+        </div>
+      }
+    </div>
+  </section>
+}

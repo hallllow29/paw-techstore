@@ -1,104 +1,70 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
-  <div class="container">
-    <a class="navbar-brand" routerLink="/">
-      <i class="bi bi-pc-display-horizontal text-brand"></i> paw-techstore
-    </a>
+<header class="sticky-top shadow-sm">
+  <!-- Linha 1: marca · pesquisa · conta -->
+  <div class="navbar navbar-dark bg-ink py-2">
+    <div class="container flex-nowrap gap-2 gap-md-3">
+      <a class="navbar-brand mb-0 me-0 flex-shrink-0" routerLink="/">
+        <i class="bi bi-pc-display-horizontal text-info"></i>
+        <span class="text-gradient">paw</span
+        ><span class="text-white d-none d-sm-inline">-techstore</span>
+      </a>
 
-    <button
-      class="navbar-toggler"
-      type="button"
-      data-bs-toggle="collapse"
-      data-bs-target="#mainNav"
-      aria-controls="mainNav"
-      aria-expanded="false"
-      aria-label="Alternar navegação"
-    >
-      <span class="navbar-toggler-icon"></span>
-    </button>
+      <form
+        class="search-tech flex-grow-1 mx-auto"
+        style="max-width: 560px; min-width: 0"
+        (submit)="$event.preventDefault(); pesquisar(termo.value)"
+      >
+        <div class="input-group">
+          <input
+            #termo
+            type="search"
+            class="form-control"
+            placeholder="O que procuras hoje?"
+            aria-label="Pesquisar produtos"
+          />
+          <button class="btn btn-accent px-3" type="submit" aria-label="Pesquisar">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
+      </form>
 
-    <div class="collapse navbar-collapse" id="mainNav">
-      <ul class="navbar-nav me-auto">
-        <li class="nav-item">
+      <div class="d-flex align-items-center gap-1 flex-shrink-0">
+        @if (auth.isAuthenticated()) {
           <a
-            class="nav-link"
-            routerLink="/"
-            routerLinkActive="active"
-            [routerLinkActiveOptions]="{ exact: true }"
+            class="btn btn-link text-white-50 p-2"
+            routerLink="/favoritos"
+            routerLinkActive="text-white"
+            aria-label="Favoritos"
+            title="Favoritos"
           >
-            Início
+            <i class="bi bi-heart fs-5"></i>
           </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/produtos" routerLinkActive="active">Produtos</a>
-        </li>
-        @if (auth.hasRole('cliente')) {
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/encomendas" routerLinkActive="active">Encomendas</a>
-          </li>
         }
-        @if (auth.hasRole('loja')) {
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/loja/produtos" routerLinkActive="active"
-              >Gerir produtos</a
+        <a
+          class="btn btn-link text-white p-2 position-relative"
+          routerLink="/carrinho"
+          title="Carrinho"
+        >
+          <i class="bi bi-cart3 fs-5"></i>
+          <span class="visually-hidden">Carrinho</span>
+          @if (cart.count() > 0) {
+            <span
+              class="position-absolute top-0 start-100 translate-middle badge rounded-pill text-bg-danger"
+              style="font-size: 0.6rem"
+              >{{ cart.count() }}</span
             >
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/loja/encomendas" routerLinkActive="active"
-              >Encomendas</a
-            >
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/loja/cupoes" routerLinkActive="active">Cupões</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/loja/config" routerLinkActive="active">Loja</a>
-          </li>
-        }
-        @if (auth.hasRole('estafeta')) {
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/estafeta/entregas" routerLinkActive="active"
-              >Entregas</a
-            >
-          </li>
-        }
-        @if (auth.hasRole('admin')) {
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/admin/estafetas" routerLinkActive="active"
-              >Estafetas</a
-            >
-          </li>
-        }
-      </ul>
+          }
+        </a>
 
-      <ul class="navbar-nav">
         @if (auth.isAuthenticated()) {
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/favoritos" routerLinkActive="active">
-              <i class="bi bi-heart"></i><span class="visually-hidden">Favoritos</span>
-            </a>
-          </li>
-        }
-        <li class="nav-item">
-          <a class="nav-link position-relative" routerLink="/carrinho" routerLinkActive="active">
-            <i class="bi bi-cart3"></i><span class="visually-hidden">Carrinho</span>
-            @if (cart.count() > 0) {
-              <span
-                class="position-absolute top-0 badge rounded-pill text-bg-danger"
-                style="left: 1.3rem; font-size: 0.6rem"
-                >{{ cart.count() }}</span
-              >
-            }
-          </a>
-        </li>
-        @if (auth.isAuthenticated()) {
-          <li class="nav-item dropdown">
+          <div class="dropdown">
             <button
-              class="nav-link dropdown-toggle bg-transparent border-0"
+              class="btn btn-link text-white text-decoration-none dropdown-toggle p-2"
               type="button"
               data-bs-toggle="dropdown"
               aria-expanded="false"
             >
-              <i class="bi bi-person-circle"></i> {{ auth.user()?.nome }}
+              <i class="bi bi-person-circle fs-5"></i>
+              <span class="d-none d-md-inline ms-1">{{ auth.user()?.nome }}</span>
             </button>
             <ul class="dropdown-menu dropdown-menu-end">
               <li>
@@ -123,19 +89,130 @@
                 </button>
               </li>
             </ul>
-          </li>
+          </div>
         } @else {
-          <li class="nav-item">
-            <a class="nav-link" routerLink="/login" routerLinkActive="active">Entrar</a>
+          <a
+            class="btn btn-link text-white text-decoration-none p-2 d-flex align-items-center gap-1"
+            routerLink="/login"
+          >
+            <i class="bi bi-person fs-5"></i><span class="d-none d-sm-inline small">Entrar</span>
+          </a>
+          <a class="btn btn-accent btn-sm fw-semibold flex-shrink-0" routerLink="/registo"
+            >Criar conta</a
+          >
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Linha 2: categorias · navegação -->
+  <div class="bg-ink subnav">
+    <div class="container">
+      <ul class="navbar-nav flex-row flex-nowrap align-items-center gap-1 overflow-auto py-1">
+        <li class="nav-item flex-shrink-0 me-1">
+          <button
+            class="btn btn-accent btn-sm d-flex align-items-center gap-2 fw-semibold"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#catMenu"
+            aria-controls="catMenu"
+          >
+            <i class="bi bi-grid-3x3-gap-fill"></i> Categorias
+          </button>
+        </li>
+        <li class="nav-item flex-shrink-0">
+          <a
+            class="nav-link"
+            routerLink="/"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }"
+            >Início</a
+          >
+        </li>
+        <li class="nav-item flex-shrink-0">
+          <a class="nav-link" routerLink="/produtos" routerLinkActive="active">Produtos</a>
+        </li>
+        @if (auth.hasRole('cliente')) {
+          <li class="nav-item flex-shrink-0">
+            <a class="nav-link" routerLink="/encomendas" routerLinkActive="active">Encomendas</a>
           </li>
-          <li class="nav-item">
-            <a class="btn btn-brand btn-sm ms-lg-2" routerLink="/registo">Criar conta</a>
+        }
+        @if (auth.hasRole('loja')) {
+          <li class="nav-item flex-shrink-0">
+            <a class="nav-link" routerLink="/loja/produtos" routerLinkActive="active"
+              >Gerir produtos</a
+            >
+          </li>
+          <li class="nav-item flex-shrink-0">
+            <a class="nav-link" routerLink="/loja/encomendas" routerLinkActive="active"
+              >Encomendas</a
+            >
+          </li>
+          <li class="nav-item flex-shrink-0">
+            <a class="nav-link" routerLink="/loja/cupoes" routerLinkActive="active">Cupões</a>
+          </li>
+          <li class="nav-item flex-shrink-0">
+            <a class="nav-link" routerLink="/loja/config" routerLinkActive="active">Loja</a>
+          </li>
+        }
+        @if (auth.hasRole('estafeta')) {
+          <li class="nav-item flex-shrink-0">
+            <a class="nav-link" routerLink="/estafeta/entregas" routerLinkActive="active"
+              >Entregas</a
+            >
+          </li>
+        }
+        @if (auth.hasRole('admin')) {
+          <li class="nav-item flex-shrink-0">
+            <a class="nav-link" routerLink="/admin/estafetas" routerLinkActive="active"
+              >Estafetas</a
+            >
           </li>
         }
       </ul>
     </div>
   </div>
-</nav>
+</header>
+
+<!-- Mega-menu de categorias (abre ao clicar em "Categorias") -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="catMenu" aria-labelledby="catMenuLabel">
+  <div class="offcanvas-header bg-ink text-white">
+    <h5 class="offcanvas-title" id="catMenuLabel">
+      <i class="bi bi-grid-3x3-gap-fill text-info"></i> Categorias
+    </h5>
+    <button
+      type="button"
+      class="btn-close btn-close-white"
+      data-bs-dismiss="offcanvas"
+      aria-label="Fechar"
+    ></button>
+  </div>
+  <div class="offcanvas-body p-0">
+    <div class="list-group list-group-flush cat-list">
+      <a
+        class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3"
+        routerLink="/produtos"
+        data-bs-dismiss="offcanvas"
+      >
+        <i class="bi bi-bag-check fs-5 text-brand"></i>
+        <span class="fw-medium">Todos os produtos</span>
+        <i class="bi bi-chevron-right ms-auto text-muted small"></i>
+      </a>
+      @for (c of categorias(); track c._id) {
+        <a
+          class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3"
+          routerLink="/produtos"
+          [queryParams]="{ categoria: c._id }"
+          data-bs-dismiss="offcanvas"
+        >
+          <i class="bi {{ iconCategoria(c.nome) }} fs-5 text-brand"></i>
+          <span class="fw-medium">{{ c.nome }}</span>
+          <i class="bi bi-chevron-right ms-auto text-muted small"></i>
+        </a>
+      }
+    </div>
+  </div>
+</div>
 
 @if (auth.user()?.status === 'pendente') {
   <div class="alert alert-warning text-center mb-0 rounded-0 py-2 small">
