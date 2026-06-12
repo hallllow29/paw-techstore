@@ -282,7 +282,8 @@ export const getOrder = asyncHandler(async (req, res) => {
   }
 
   const u = req.user;
-  const dono = String(order.cliente._id ?? order.cliente) === String(u._id);
+  const dono =
+    order.cliente && String(order.cliente._id ?? order.cliente) === String(u._id);
   const estafetaAtribuido =
     order.estafeta && String(order.estafeta._id ?? order.estafeta) === String(u._id);
   if (!dono && !estafetaAtribuido && u.role !== 'loja' && u.role !== 'admin') {

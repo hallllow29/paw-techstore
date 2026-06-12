@@ -76,6 +76,8 @@ export class StoreOrders implements OnInit {
   }
 
   clienteNome(o: Order): string {
-    return typeof o.cliente === 'string' ? o.cliente : o.cliente.nome;
+    const c = o.cliente;
+    if (!c) return 'Cliente removido';
+    return typeof c === 'string' ? c : c.nome;
   }
 }
