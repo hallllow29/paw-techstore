@@ -10,24 +10,7 @@
         <span class="text-gradient fw-bold d-none d-sm-inline">ElSircários</span>
       </a>
 
-      <form
-        class="search-tech flex-grow-1 mx-auto"
-        style="max-width: 560px; min-width: 0"
-        (submit)="$event.preventDefault(); pesquisar(termo.value)"
-      >
-        <div class="input-group">
-          <input
-            #termo
-            type="search"
-            class="form-control"
-            placeholder="O que procuras hoje?"
-            aria-label="Pesquisar produtos"
-          />
-          <button class="btn btn-accent px-3" type="submit" aria-label="Pesquisar">
-            <i class="bi bi-search"></i>
-          </button>
-        </div>
-      </form>
+      <app-search-box class="flex-grow-1 mx-auto" style="max-width: 560px; min-width: 0" />
 
       <div class="d-flex align-items-center gap-1 flex-shrink-0">
         @if (auth.isAuthenticated()) {

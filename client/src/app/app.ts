@@ -6,10 +6,11 @@ import { CategoryService } from './core/services/category.service';
 import { Category } from './core/models/catalog.model';
 import { categoryIcon } from './core/category-icon';
 import { Toasts } from './shared/toasts/toasts';
+import { SearchBox } from './shared/search-box/search-box';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, Toasts],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, Toasts, SearchBox],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
@@ -27,11 +28,6 @@ export class App {
     this.categoriesSvc.list().subscribe((r) => {
       this.categorias.set(r.categories.filter((c) => !c.parent));
     });
-  }
-
-  pesquisar(termo: string): void {
-    const q = termo.trim();
-    this.router.navigate(['/produtos'], { queryParams: q ? { q } : {} });
   }
 
   logout(): void {

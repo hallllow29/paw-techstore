@@ -1,0 +1,72 @@
+<form class="search-tech" (submit)="$event.preventDefault(); pesquisar()">
+  <div class="input-group">
+    <input
+      type="search"
+      class="form-control"
+      placeholder="O que procuras hoje?"
+      autocomplete="off"
+      aria-label="Pesquisar produtos"
+      [formControl]="termo"
+      (focus)="abrir()"
+    />
+    <button class="btn btn-accent px-3" type="submit" aria-label="Pesquisar">
+      <i class="bi bi-search"></i>
+    </button>
+  </div>
+</form>
+
+@if (aberto()) {
+  <div class="search-panel card border-0 shadow">
+    <div class="card-body p-2">
+      @if (temTermo()) {
+        @if (sugestoes().length > 0) {
+          <div class="small text-muted fw-semibold px-2 pb-1">Sugestões</div>
+          @for (p of sugestoes(); track p._id) {
+            <button type="button" class="search-item" (click)="irProduto(p.slug)">
+              @if (p.imagemDestaque) {
+                <img [src]="img(p.imagemDestaque)" [alt]="p.nome" />
+              } @else {
+                <i class="bi bi-box text-secondary fs-4"></i>
+              }
+              <span class="flex-grow-1" style="min-width: 0">
+                <span class="d-block small text-muted">{{ p.marca }}</span>
+                <span class="d-block text-truncate">{{ p.nome }}</span>
+              </span>
+              <span class="fw-bold text-nowrap">{{ p.preco | number: '1.2-2' }} €</span>
+            </button>
+          }
+          <button type="button" class="search-all" (click)="pesquisar()">
+            Ver todos os resultados para "{{ termo.value.trim() }}"
+            <i class="bi bi-arrow-right"></i>
+          </button>
+        } @else {
+          <div class="text-muted small p-2">Sem resultados para "{{ termo.value.trim() }}".</div>
+        }
+      } @else {
+        <div class="small text-muted fw-semibold px-2 pb-1">Tendências de pesquisa</div>
+        <div class="d-flex flex-wrap gap-1 px-2 pb-2">
+          @for (t of tendencias; track t) {
+            <button type="button" class="chip" (click)="pesquisar(t)">{{ t }}</button>
+          }
+        </div>
+        @if (populares().length > 0) {
+          <div class="small text-muted fw-semibold px-2 pb-1">Populares</div>
+          @for (p of populares(); track p._id) {
+            <button type="button" class="search-item" (click)="irProduto(p.slug)">
+              @if (p.imagemDestaque) {
+                <img [src]="img(p.imagemDestaque)" [alt]="p.nome" />
+              } @else {
+                <i class="bi bi-box text-secondary fs-4"></i>
+              }
+              <span class="flex-grow-1" style="min-width: 0">
+                <span class="d-block small text-muted">{{ p.marca }}</span>
+                <span class="d-block text-truncate">{{ p.nome }}</span>
+              </span>
+              <span class="fw-bold text-nowrap">{{ p.preco | number: '1.2-2' }} €</span>
+            </button>
+          }
+        }
+      }
+    </div>
+  </div>
+}

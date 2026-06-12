@@ -112,6 +112,70 @@ body {
   box-shadow: none;
 }
 
+/* Painel de sugestões (autocomplete) */
+.search-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 1050;
+  max-height: 72vh;
+  overflow-y: auto;
+}
+.search-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.5rem;
+  color: inherit;
+  text-align: left;
+}
+.search-item:hover {
+  background: rgba(37, 99, 235, 0.07);
+}
+.search-item img {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.search-item .bi {
+  width: 46px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.search-all {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-top: 1px solid #eef1f6;
+  background: transparent;
+  padding: 0.55rem 0.5rem;
+  margin-top: 0.25rem;
+  color: var(--brand);
+  font-weight: 600;
+  text-align: left;
+}
+.search-all:hover {
+  text-decoration: underline;
+}
+.chip {
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  border-radius: 999px;
+  padding: 0.2rem 0.7rem;
+  font-size: 0.8rem;
+  color: #334155;
+}
+.chip:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
 /* ─── Hero ─── */
 .hero {
   position: relative;
