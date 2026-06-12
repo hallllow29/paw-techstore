@@ -1,19 +1,24 @@
 <!-- Saudação para utilizadores autenticados -->
 @if (auth.isAuthenticated()) {
   <div class="bg-white border-bottom">
-    <div
-      class="container py-2 small d-flex flex-wrap justify-content-between align-items-center gap-2"
-    >
-      <span>
-        Olá, <strong>{{ auth.user()?.nome }}</strong> 👋
-        <span class="badge text-bg-primary text-uppercase ms-1">{{ auth.role() }}</span>
-        @if (auth.user()?.status === 'pendente') {
-          <span class="badge text-bg-warning ms-1">conta pendente</span>
+    <div class="container py-2 d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div class="d-flex align-items-center gap-2">
+        @if (auth.user()?.avatar) {
+          <img [src]="img(auth.user()!.avatar!)" class="avatar-sm" alt="" />
+        } @else {
+          <i class="bi bi-person-circle fs-4 text-brand"></i>
         }
-      </span>
-      <a routerLink="/dashboard" class="text-decoration-none"
-        ><i class="bi bi-speedometer2"></i> Ir para o painel</a
-      >
+        <span class="small">
+          Olá, <strong>{{ auth.user()?.nome }}</strong>
+          <span class="badge text-bg-primary text-uppercase ms-1">{{ auth.role() }}</span>
+          @if (auth.user()?.status === 'pendente') {
+            <span class="badge text-bg-warning ms-1">conta pendente</span>
+          }
+        </span>
+      </div>
+      <a routerLink="/dashboard" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-speedometer2"></i> Ir para o painel
+      </a>
     </div>
   </div>
 }
