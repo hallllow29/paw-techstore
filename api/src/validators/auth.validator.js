@@ -22,6 +22,7 @@ export const loginRules = [
 
 export const otpRequestRules = [
   body('email').isEmail().withMessage('Email inválido').normalizeEmail(),
+  body('canal').optional().isIn(['email', 'sms']).withMessage('Canal inválido'),
 ];
 
 export const otpVerifyRules = [

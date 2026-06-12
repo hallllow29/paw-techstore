@@ -45,10 +45,14 @@ export class AuthService {
       .pipe(tap((res) => this._user.set(res.user)));
   }
 
-  /** Pede um código de acesso por email (login sem password, clientes). */
-  requestOtp(email: string): Observable<{ message: string; devCode?: string }> {
+  /** Pede um código de acesso (login sem password, clientes) por email ou SMS. */
+  requestOtp(
+    email: string,
+    canal: 'email' | 'sms' = 'email',
+  ): Observable<{ message: string; devCode?: string }> {
     return this.http.post<{ message: string; devCode?: string }>(`${API_URL}/auth/otp/request`, {
       email,
+      canal,
     });
   }
 

@@ -21,6 +21,7 @@ export class Login {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly modo = signal<Modo>('password');
+  readonly canal = signal<'email' | 'sms'>('email');
   readonly otpEnviado = signal(false);
   readonly devCode = signal<string | null>(null);
 
@@ -60,12 +61,17 @@ export class Login {
     }
     this.loading.set(true);
     this.error.set(null);
-    this.auth.requestOtp(email.value).subscribe({
+    const porSms = this.canal() === 'sms';
+    this.auth.requestOtp(email.value, this.canal()).subscribe({
       next: (res) => {
         this.otpEnviado.set(true);
         this.devCode.set(res.devCode ?? null);
         this.loading.set(false);
-        this.toast.info('Se a conta existir, enviámos um código para o email.');
+        this.toast.info(
+          porSms
+            ? 'Se a conta existir, enviámos um código por SMS para o teu telemóvel.'
+            : 'Se a conta existir, enviámos um código para o email.',
+        );
       },
       // A resposta é sempre genérica; avançamos para o passo do código de qualquer forma.
       error: () => {

@@ -79,8 +79,35 @@
           </div>
 
           @if (!otpEnviado()) {
+            <fieldset class="border-0 p-0 m-0 mb-2">
+              <legend class="visually-hidden">Como receber o código</legend>
+              <div class="btn-group btn-group-sm w-100">
+                <button
+                  type="button"
+                  class="btn"
+                  [class.btn-brand]="canal() === 'email'"
+                  [class.btn-outline-secondary]="canal() !== 'email'"
+                  (click)="canal.set('email')"
+                >
+                  <i class="bi bi-envelope"></i> Email
+                </button>
+                <button
+                  type="button"
+                  class="btn"
+                  [class.btn-brand]="canal() === 'sms'"
+                  [class.btn-outline-secondary]="canal() !== 'sms'"
+                  (click)="canal.set('sms')"
+                >
+                  <i class="bi bi-chat-dots"></i> SMS
+                </button>
+              </div>
+            </fieldset>
             <p class="text-muted small">
-              Enviamos-te um código de 6 dígitos para o email. Disponível para contas de cliente.
+              @if (canal() === 'sms') {
+                Enviamos um código de 6 dígitos por SMS para o telemóvel da tua conta de cliente.
+              } @else {
+                Enviamos um código de 6 dígitos para o email. Disponível para contas de cliente.
+              }
             </p>
             @if (error()) {
               <div class="alert alert-danger py-2 small">{{ error() }}</div>

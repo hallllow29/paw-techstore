@@ -163,6 +163,27 @@ test('OTP: o mesmo código não pode ser reutilizado', async () => {
   assert.equal(dois.status, 401);
 });
 
+test('OTP: canal SMS gera código e valida na mesma', async () => {
+  const pedir = await request(app)
+    .post('/api/auth/otp/request')
+    .send({ email: cliente.email, canal: 'sms' });
+  assert.equal(pedir.status, 200);
+  assert.match(String(pedir.body.devCode), /^\d{6}$/);
+
+  const certo = await request(app)
+    .post('/api/auth/otp/verify')
+    .send({ email: cliente.email, code: pedir.body.devCode });
+  assert.equal(certo.status, 200);
+  assert.ok(certo.body.token);
+});
+
+test('OTP: canal inválido devolve 422', async () => {
+  const res = await request(app)
+    .post('/api/auth/otp/request')
+    .send({ email: cliente.email, canal: 'pombo-correio' });
+  assert.equal(res.status, 422);
+});
+
 test('OTP: email sem conta de cliente devolve resposta genérica (sem código)', async () => {
   const res = await request(app)
     .post('/api/auth/otp/request')

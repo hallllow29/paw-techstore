@@ -43,8 +43,15 @@ export const env = {
 
   // Pagamentos Stripe (opcional). Sem chave, o pagamento online fica desativado.
   stripeSecretKey: process.env.STRIPE_SECRET_KEY ?? '',
+
+  // SMS (opcional). Sem provider configurado, o canal SMS corre em modo simulado.
+  smsProvider: process.env.SMS_PROVIDER ?? '', // ex.: 'twilio'
+  smsFrom: process.env.SMS_FROM ?? 'ElSircarios',
+  smsAccountSid: process.env.SMS_ACCOUNT_SID ?? '',
+  smsAuthToken: process.env.SMS_AUTH_TOKEN ?? '',
 };
 
 export const stripeEnabled = Boolean(env.stripeSecretKey);
+export const smsEnabled = Boolean(env.smsProvider);
 
 export const isProd = env.nodeEnv === 'production';

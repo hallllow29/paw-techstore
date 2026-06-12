@@ -4,6 +4,7 @@ import { User } from '../models/user.model.js';
 import { signToken } from '../utils/jwt.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { sendMail } from '../services/mailer.js';
+import { sendSms } from '../services/sms.js';
 import { env } from '../config/env.js';
 
 const OTP_TTL_MIN = 10; // validade do código
@@ -103,13 +104,16 @@ export const updateProfile = asyncHandler(async (req, res) => {
 
 /** POST /api/auth/otp/request — envia um código de acesso por email (só clientes). */
 export const requestOtp = asyncHandler(async (req, res) => {
-  const { email } = req.body;
+  const { email, canal } = req.body;
+  const porSms = canal === 'sms';
   const user = await User.findOne({ email });
 
   // Resposta genérica para não revelar se a conta existe.
   const generic = {
     success: true,
-    message: 'Se existir uma conta de cliente com esse email, enviámos um código.',
+    message: porSms
+      ? 'Se existir uma conta de cliente com esse email, enviámos um código por SMS.'
+      : 'Se existir uma conta de cliente com esse email, enviámos um código.',
   };
 
   // Só clientes usam OTP; os restantes papéis mantêm a password.
@@ -123,11 +127,18 @@ export const requestOtp = asyncHandler(async (req, res) => {
   user.otpAttempts = 0;
   await user.save();
 
-  await sendMail({
-    to: user.email,
-    subject: 'O teu código de acesso — ElSircários Tech Store',
-    html: otpEmailHtml(user.nome, codigo),
-  });
+  if (porSms) {
+    await sendSms({
+      to: user.telefone,
+      text: `ElSircarios: o teu codigo de acesso e ${codigo} (valido ${OTP_TTL_MIN} min).`,
+    });
+  } else {
+    await sendMail({
+      to: user.email,
+      subject: 'O teu código de acesso — ElSircários Tech Store',
+      html: otpEmailHtml(user.nome, codigo),
+    });
+  }
 
   // Em dev/test devolvemos o código para facilitar os testes (NUNCA em produção).
   if (env.nodeEnv === 'production') return res.json(generic);
