@@ -364,3 +364,24 @@ test('quem não comprou não pode avaliar o produto (403)', async () => {
     .send({ rating: 4 });
   assert.equal(av.status, 403);
 });
+
+test('notificações: nova encomenda notifica o cliente e marca-se como lida', async () => {
+  await request(app)
+    .post('/api/orders')
+    .set(auth(tokens.cliente))
+    .send({
+      metodoEntrega: 'levantamento_loja',
+      itens: [{ produto: produto._id, quantidade: 1 }],
+    });
+
+  const res = await request(app).get('/api/notifications').set(auth(tokens.cliente));
+  assert.equal(res.status, 200);
+  assert.ok(res.body.naoLidas >= 1);
+  assert.ok(res.body.notifications.length >= 1);
+
+  const id = res.body.notifications[0]._id;
+  const mark = await request(app)
+    .patch(`/api/notifications/${id}/lida`)
+    .set(auth(tokens.cliente));
+  assert.equal(mark.status, 200);
+});

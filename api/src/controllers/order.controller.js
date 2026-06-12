@@ -6,7 +6,7 @@ import { User } from '../models/user.model.js';
 import { randomInt } from 'node:crypto';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { CANCEL_WINDOW_MIN, PAYMENT_METHODS } from '../utils/constants.js';
-import { notifyOrderStatus } from '../services/notifications.js';
+import { notifyOrderStatus, notifyNewOrder } from '../services/notifications.js';
 
 const round2 = (n) => Math.round(n * 100) / 100;
 
@@ -129,7 +129,8 @@ export const createOrder = asyncHandler(async (req, res) => {
     await User.updateOne({ _id: req.user._id }, { $addToSet: { moradas: morada } });
   }
 
-  notifyOrderStatus(order); // email ao cliente (best-effort)
+  notifyOrderStatus(order); // notifica o cliente (in-app + email)
+  notifyNewOrder(order); // notifica a loja da nova encomenda
   res.status(201).json({ success: true, order });
 });
 

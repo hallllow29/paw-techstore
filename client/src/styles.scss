@@ -176,6 +176,30 @@ body {
   color: var(--brand);
 }
 
+/* ─── Menu de notificações ─── */
+.notif-menu {
+  width: 340px;
+  max-width: 90vw;
+}
+.notif-list {
+  max-height: 380px;
+  overflow-y: auto;
+}
+.notif-item {
+  white-space: normal;
+  border-bottom: 1px solid #f1f3f7;
+}
+.notif-item:last-child {
+  border-bottom: 0;
+}
+.notif-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--brand);
+  flex-shrink: 0;
+}
+
 /* ─── Hero ─── */
 .hero {
   position: relative;
