@@ -59,6 +59,10 @@ export interface CompareResponse {
 export interface ProductQuery {
   q?: string;
   categoria?: string;
+  marca?: string;
+  minPreco?: number;
+  maxPreco?: number;
+  emStock?: boolean;
   sort?: 'preco' | '-preco' | 'nome' | '-nome' | 'recentes';
   page?: number;
   limit?: number;

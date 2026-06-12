@@ -43,6 +43,14 @@ export const listProducts = asyncHandler(async (req, res) => {
     if (req.query.maxPreco) filter.preco.$lte = Number(req.query.maxPreco);
   }
 
+  // Marca (exata)
+  if (req.query.marca) filter.marca = req.query.marca;
+
+  // Apenas produtos com stock
+  if (req.query.emStock === 'true' || req.query.emStock === '1') {
+    filter.stock = { $gt: 0 };
+  }
+
   const sort = SORT_MAP[req.query.sort] ?? { createdAt: -1 };
   const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
   const limit = Math.min(50, Math.max(1, Number.parseInt(req.query.limit, 10) || 12));
@@ -62,6 +70,12 @@ export const listProducts = asyncHandler(async (req, res) => {
     products,
     pagination: { page, limit, total, pages: Math.ceil(total / limit) },
   });
+});
+
+/** GET /api/products/marcas — marcas distintas (para os filtros). */
+export const listMarcas = asyncHandler(async (_req, res) => {
+  const marcas = await Product.distinct('marca', { ativo: true });
+  res.json({ success: true, marcas: marcas.filter(Boolean).sort() });
 });
 
 /** GET /api/products/:idOrSlug — detalhe de um produto (público). */

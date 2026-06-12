@@ -11,7 +11,7 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class ProductService {
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
   list(query: ProductQuery = {}): Observable<ProductListResponse> {
     let params = new HttpParams();
@@ -25,6 +25,10 @@ export class ProductService {
 
   get(idOrSlug: string): Observable<{ product: Product }> {
     return this.http.get<{ product: Product }>(`${API_URL}/products/${idOrSlug}`);
+  }
+
+  marcas(): Observable<{ marcas: string[] }> {
+    return this.http.get<{ marcas: string[] }>(`${API_URL}/products/marcas`);
   }
 
   compare(ids: string[]): Observable<CompareResponse> {

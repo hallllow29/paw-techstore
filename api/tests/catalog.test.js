@@ -160,3 +160,30 @@ test('loja cria um produto novo', async () => {
   assert.equal(res.status, 201);
   assert.equal(res.body.product.slug, 'teclado-teste-555');
 });
+
+test('filtros: marcas, marca, intervalo de preço e em-stock', async () => {
+  const marcas = await request(app).get('/api/products/marcas');
+  assert.ok(marcas.body.marcas.includes('HP'));
+  assert.ok(marcas.body.marcas.includes('ASUS'));
+
+  const hp = await request(app).get('/api/products?marca=HP');
+  assert.equal(hp.body.pagination.total, 1);
+  assert.equal(hp.body.products[0].ean, '222');
+
+  // ASUS 600 + Lenovo 500 (HP 800 e Samsung 200 ficam de fora)
+  const faixa = await request(app).get('/api/products?minPreco=400&maxPreco=700');
+  assert.equal(faixa.body.pagination.total, 2);
+
+  // produto esgotado fica de fora com emStock=true
+  await Product.create({
+    ean: '000',
+    nome: 'ASUS Esgotado',
+    marca: 'ASUS',
+    categoria: cat.monitores._id,
+    preco: 100,
+    stock: 0,
+  });
+  const todos = await request(app).get('/api/products?marca=ASUS');
+  const comStock = await request(app).get('/api/products?marca=ASUS&emStock=true');
+  assert.ok(todos.body.pagination.total > comStock.body.pagination.total);
+});

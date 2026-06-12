@@ -4,6 +4,7 @@ import {
   listProducts,
   getProduct,
   compareProducts,
+  listMarcas,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -58,6 +59,17 @@ router.get('/', listProducts);
  *       400: { description: Categorias diferentes ou número inválido }
  */
 router.get('/compare', compareProducts);
+
+/**
+ * @openapi
+ * /api/products/marcas:
+ *   get:
+ *     tags: [Produtos]
+ *     summary: Marcas distintas (para os filtros)
+ *     responses:
+ *       200: { description: Lista de marcas }
+ */
+router.get('/marcas', listMarcas);
 
 /**
  * @openapi

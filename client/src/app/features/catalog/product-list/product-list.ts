@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { ReactiveFormsModule, FormControl } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormControl } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
@@ -14,7 +14,7 @@ import { imageUrl } from '../../../core/config';
 
 @Component({
   selector: 'app-product-list',
-  imports: [ReactiveFormsModule, RouterLink, DecimalPipe, Stars],
+  imports: [ReactiveFormsModule, FormsModule, RouterLink, DecimalPipe, Stars],
   templateUrl: './product-list.html',
 })
 export class ProductList implements OnInit {
@@ -28,6 +28,7 @@ export class ProductList implements OnInit {
   readonly search = new FormControl('', { nonNullable: true });
   readonly items = signal<Product[]>([]);
   readonly categories = signal<Category[]>([]);
+  readonly marcas = signal<string[]>([]);
   readonly pagination = signal<Pagination | null>(null);
   readonly loading = signal(false);
 
@@ -35,10 +36,16 @@ export class ProductList implements OnInit {
   private categoria = '';
   private sort: ProductQuery['sort'] = 'recentes';
   private page = 1;
+  // Filtros avançados (ligados por ngModel)
+  protected marca = '';
+  protected minPreco: number | null = null;
+  protected maxPreco: number | null = null;
+  protected emStock = false;
 
   ngOnInit(): void {
     if (this.auth.token) this.favorites.load();
     this.categoriesSvc.list().subscribe((res) => this.categories.set(res.categories));
+    this.products.marcas().subscribe((r) => this.marcas.set(r.marcas));
 
     this.search.valueChanges.pipe(debounceTime(350), distinctUntilChanged()).subscribe(() => {
       this.page = 1;
@@ -61,6 +68,10 @@ export class ProductList implements OnInit {
       .list({
         q: this.search.value,
         categoria: this.categoria,
+        marca: this.marca || undefined,
+        minPreco: this.minPreco ?? undefined,
+        maxPreco: this.maxPreco ?? undefined,
+        emStock: this.emStock || undefined,
         sort: this.sort,
         page: this.page,
         limit: 8,
@@ -85,6 +96,25 @@ export class ProductList implements OnInit {
     this.sort = value as ProductQuery['sort'];
     this.page = 1;
     this.load();
+  }
+
+  /** Aplica os filtros avançados (marca, preço, stock). */
+  aplicarFiltros(): void {
+    this.page = 1;
+    this.load();
+  }
+
+  limparFiltros(): void {
+    this.marca = '';
+    this.minPreco = null;
+    this.maxPreco = null;
+    this.emStock = false;
+    this.page = 1;
+    this.load();
+  }
+
+  temFiltros(): boolean {
+    return Boolean(this.marca || this.minPreco != null || this.maxPreco != null || this.emStock);
   }
 
   goToPage(p: number): void {
