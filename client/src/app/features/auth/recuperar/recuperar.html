@@ -1,0 +1,121 @@
+<div class="auth-wrapper">
+  <div class="card shadow-sm border-0" style="max-width: 420px; width: 100%">
+    <div class="card-body p-4">
+      <h1 class="h4 mb-1">Recuperar password</h1>
+      <p class="text-muted small mb-4">Enviamos-te um código para definires uma nova password.</p>
+
+      <form [formGroup]="form" novalidate>
+        <div class="mb-3">
+          <label class="form-label" for="rec-email">Email</label>
+          <input
+            id="rec-email"
+            type="email"
+            class="form-control"
+            formControlName="email"
+            autocomplete="email"
+            [readonly]="enviado()"
+          />
+        </div>
+
+        @if (!enviado()) {
+          <fieldset class="border-0 p-0 m-0 mb-2">
+            <legend class="visually-hidden">Como receber o código</legend>
+            <div class="btn-group btn-group-sm w-100">
+              <button
+                type="button"
+                class="btn"
+                [class.btn-brand]="canal() === 'email'"
+                [class.btn-outline-secondary]="canal() !== 'email'"
+                (click)="canal.set('email')"
+              >
+                <i class="bi bi-envelope"></i> Email
+              </button>
+              <button
+                type="button"
+                class="btn"
+                [class.btn-brand]="canal() === 'sms'"
+                [class.btn-outline-secondary]="canal() !== 'sms'"
+                (click)="canal.set('sms')"
+              >
+                <i class="bi bi-chat-dots"></i> SMS
+              </button>
+            </div>
+          </fieldset>
+
+          @if (error()) {
+            <div class="alert alert-danger py-2 small">{{ error() }}</div>
+          }
+          <button
+            type="button"
+            class="btn btn-brand w-100"
+            [disabled]="loading()"
+            (click)="pedirCodigo()"
+          >
+            @if (loading()) {
+              <span class="spinner-border spinner-border-sm me-1"></span> A enviar…
+            } @else {
+              Enviar código
+            }
+          </button>
+        } @else {
+          <div class="mb-2">
+            <label class="form-label" for="rec-code">Código</label>
+            <input
+              id="rec-code"
+              type="text"
+              inputmode="numeric"
+              maxlength="6"
+              class="form-control form-control-lg text-center"
+              style="letter-spacing: 0.5rem"
+              placeholder="------"
+              formControlName="code"
+              autocomplete="one-time-code"
+            />
+          </div>
+
+          <div class="mb-2">
+            <label class="form-label" for="rec-pass">Nova password</label>
+            <input
+              id="rec-pass"
+              type="password"
+              class="form-control"
+              formControlName="newPassword"
+              autocomplete="new-password"
+            />
+          </div>
+
+          @if (devCode()) {
+            <div class="alert alert-info py-2 small mb-2">
+              <i class="bi bi-info-circle"></i> Modo de demonstração — o teu código é
+              <strong>{{ devCode() }}</strong
+              >.
+            </div>
+          }
+          @if (error()) {
+            <div class="alert alert-danger py-2 small">{{ error() }}</div>
+          }
+
+          <button
+            type="button"
+            class="btn btn-brand w-100"
+            [disabled]="form.invalid || loading()"
+            (click)="definir()"
+          >
+            @if (loading()) {
+              <span class="spinner-border spinner-border-sm me-1"></span> A repor…
+            } @else {
+              Definir nova password
+            }
+          </button>
+          <button type="button" class="btn btn-link w-100 mt-1 text-muted" (click)="voltarEmail()">
+            Usar outro email / reenviar código
+          </button>
+        }
+      </form>
+
+      <p class="text-center text-muted small mt-3 mb-0">
+        Lembraste-te? <a routerLink="/login">Voltar ao login</a>.
+      </p>
+    </div>
+  </div>
+</div>

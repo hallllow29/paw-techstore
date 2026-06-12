@@ -41,7 +41,7 @@
             />
           </div>
 
-          <div class="mb-3">
+          <div class="mb-1">
             <label class="form-label" for="password">Password</label>
             <input
               id="password"
@@ -50,6 +50,9 @@
               formControlName="password"
               autocomplete="current-password"
             />
+          </div>
+          <div class="text-end mb-3">
+            <a routerLink="/recuperar" class="small text-decoration-none">Esqueci-me da password</a>
           </div>
 
           @if (error()) {

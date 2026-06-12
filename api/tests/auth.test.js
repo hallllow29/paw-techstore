@@ -212,3 +212,35 @@ test('cliente atualiza o próprio perfil', async () => {
   assert.equal(res.body.user.nome, 'Ana Atualizada');
   assert.equal(res.body.user.telefone, '911111111');
 });
+
+test('recuperar password: forgot envia código e reset define nova password', async () => {
+  const email = 'reset@example.com';
+  await request(app)
+    .post('/api/auth/register')
+    .send({ ...cliente, email, password: 'velha123' });
+
+  const forgot = await request(app).post('/api/auth/password/forgot').send({ email });
+  assert.equal(forgot.status, 200);
+  assert.match(String(forgot.body.devCode), /^\d{6}$/);
+
+  const errado = await request(app)
+    .post('/api/auth/password/reset')
+    .send({ email, code: '000000', newPassword: 'nova12345' });
+  assert.equal(errado.status, 401);
+
+  const reset = await request(app)
+    .post('/api/auth/password/reset')
+    .send({ email, code: forgot.body.devCode, newPassword: 'nova12345' });
+  assert.equal(reset.status, 200);
+  assert.ok(reset.body.token);
+
+  const ok = await request(app)
+    .post('/api/auth/login')
+    .send({ email, password: 'nova12345' });
+  assert.equal(ok.status, 200);
+
+  const bad = await request(app)
+    .post('/api/auth/login')
+    .send({ email, password: 'velha123' });
+  assert.equal(bad.status, 401);
+});

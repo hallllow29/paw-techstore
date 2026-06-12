@@ -14,10 +14,10 @@ function gerarCodigoOtp() {
   return String(randomInt(100000, 1000000)); // sempre 6 dígitos
 }
 
-function otpEmailHtml(nome, codigo) {
+function otpEmailHtml(nome, codigo, acao = 'entrares na ElSircários Tech Store') {
   return `<div style="font-family:system-ui,sans-serif;max-width:480px">
-    <h2 style="margin:0 0 8px">O teu código de acesso</h2>
-    <p>Olá ${nome}, usa este código para entrares na ElSircários Tech Store:</p>
+    <h2 style="margin:0 0 8px">O teu código</h2>
+    <p>Olá ${nome}, usa este código para ${acao}:</p>
     <p style="font-size:30px;font-weight:700;letter-spacing:6px;margin:16px 0">${codigo}</p>
     <p style="color:#666;font-size:14px">Válido por ${OTP_TTL_MIN} minutos. Se não foste tu a pedir, ignora este email.</p>
   </div>`;
@@ -173,6 +173,77 @@ export const verifyOtp = asyncHandler(async (req, res) => {
   }
 
   // Sucesso: limpar o OTP (não pode ser reutilizado) e emitir o token.
+  user.otpHash = null;
+  user.otpExpiresAt = null;
+  user.otpAttempts = 0;
+  await user.save();
+
+  const token = signToken(user);
+  res.json({ success: true, token, user });
+});
+
+/** POST /api/auth/password/forgot — envia código para repor a password (qualquer papel). */
+export const forgotPassword = asyncHandler(async (req, res) => {
+  const { email, canal } = req.body;
+  const porSms = canal === 'sms';
+  const user = await User.findOne({ email });
+
+  const generic = {
+    success: true,
+    message: 'Se a conta existir, enviámos um código para repor a password.',
+  };
+  if (!user || user.status === 'rejeitado') return res.json(generic);
+
+  const codigo = gerarCodigoOtp();
+  user.otpHash = await bcrypt.hash(codigo, 10);
+  user.otpExpiresAt = new Date(Date.now() + OTP_TTL_MIN * 60 * 1000);
+  user.otpAttempts = 0;
+  await user.save();
+
+  if (porSms) {
+    await sendSms({
+      to: user.telefone,
+      text: `ElSircarios: codigo para repor a password ${codigo} (valido ${OTP_TTL_MIN} min).`,
+    });
+  } else {
+    await sendMail({
+      to: user.email,
+      subject: 'Repor a password — ElSircários Tech Store',
+      html: otpEmailHtml(user.nome, codigo, 'repores a tua password'),
+    });
+  }
+
+  if (env.nodeEnv === 'production') return res.json(generic);
+  return res.json({ ...generic, devCode: codigo });
+});
+
+/** POST /api/auth/password/reset — valida o código e define a nova password. */
+export const resetPassword = asyncHandler(async (req, res) => {
+  const { email, code, newPassword } = req.body;
+  const user = await User.findOne({ email }).select(
+    '+otpHash +otpExpiresAt +otpAttempts'
+  );
+
+  const temOtp = Boolean(user?.otpHash);
+  const expirado = !user?.otpExpiresAt || user.otpExpiresAt.getTime() < Date.now();
+
+  if (temOtp && user.otpAttempts >= OTP_MAX_ATTEMPTS) {
+    res.status(429);
+    throw new Error('Demasiadas tentativas. Pede um novo código.');
+  }
+
+  const valido =
+    temOtp && !expirado && (await bcrypt.compare(String(code), user.otpHash));
+  if (!valido) {
+    if (temOtp && !expirado) {
+      user.otpAttempts += 1;
+      await user.save();
+    }
+    res.status(401);
+    throw new Error('Código inválido ou expirado');
+  }
+
+  user.password = newPassword; // o pre-save faz o hash
   user.otpHash = null;
   user.otpExpiresAt = null;
   user.otpAttempts = 0;

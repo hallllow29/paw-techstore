@@ -35,6 +35,24 @@ export const otpVerifyRules = [
     .withMessage('Código inválido'),
 ];
 
+export const forgotPasswordRules = [
+  body('email').isEmail().withMessage('Email inválido').normalizeEmail(),
+  body('canal').optional().isIn(['email', 'sms']).withMessage('Canal inválido'),
+];
+
+export const resetPasswordRules = [
+  body('email').isEmail().withMessage('Email inválido').normalizeEmail(),
+  body('code')
+    .trim()
+    .isLength({ min: 6, max: 6 })
+    .withMessage('O código tem 6 dígitos')
+    .isNumeric()
+    .withMessage('Código inválido'),
+  body('newPassword')
+    .isLength({ min: 6 })
+    .withMessage('A nova password deve ter pelo menos 6 caracteres'),
+];
+
 export const changePasswordRules = [
   body('currentPassword').notEmpty().withMessage('Password atual obrigatória'),
   body('newPassword')

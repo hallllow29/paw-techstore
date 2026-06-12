@@ -63,6 +63,24 @@ export class AuthService {
       .pipe(tap((res) => this.setSession(res)));
   }
 
+  /** Pede um código para repor a password (email ou SMS). */
+  forgotPassword(
+    email: string,
+    canal: 'email' | 'sms' = 'email',
+  ): Observable<{ message: string; devCode?: string }> {
+    return this.http.post<{ message: string; devCode?: string }>(
+      `${API_URL}/auth/password/forgot`,
+      { email, canal },
+    );
+  }
+
+  /** Valida o código e define a nova password (inicia sessão). */
+  resetPassword(email: string, code: string, newPassword: string): Observable<AuthResponse> {
+    return this.http
+      .post<AuthResponse>(`${API_URL}/auth/password/reset`, { email, code, newPassword })
+      .pipe(tap((res) => this.setSession(res)));
+  }
+
   changePassword(currentPassword: string, newPassword: string): Observable<unknown> {
     return this.http.patch(`${API_URL}/auth/password`, { currentPassword, newPassword });
   }

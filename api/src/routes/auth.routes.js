@@ -7,6 +7,8 @@ import {
   updateProfile,
   requestOtp,
   verifyOtp,
+  forgotPassword,
+  resetPassword,
 } from '../controllers/auth.controller.js';
 import { auth } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
@@ -17,6 +19,8 @@ import {
   profileRules,
   otpRequestRules,
   otpVerifyRules,
+  forgotPasswordRules,
+  resetPasswordRules,
 } from '../validators/auth.validator.js';
 
 const router = Router();
@@ -112,6 +116,50 @@ router.post('/otp/request', otpRequestRules, validate, requestOtp);
  *       429: { description: Demasiadas tentativas }
  */
 router.post('/otp/verify', otpVerifyRules, validate, verifyOtp);
+
+/**
+ * @openapi
+ * /api/auth/password/forgot:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Pede um código para repor a password (email ou SMS)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email: { type: string, format: email }
+ *               canal: { type: string, enum: [email, sms] }
+ *     responses:
+ *       200: { description: "Resposta genérica" }
+ */
+router.post('/password/forgot', forgotPasswordRules, validate, forgotPassword);
+
+/**
+ * @openapi
+ * /api/auth/password/reset:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Valida o código e define a nova password (devolve JWT)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, code, newPassword]
+ *             properties:
+ *               email: { type: string, format: email }
+ *               code: { type: string, example: "123456" }
+ *               newPassword: { type: string, minLength: 6 }
+ *     responses:
+ *       200: { description: Password reposta (token + user) }
+ *       401: { description: Código inválido ou expirado }
+ */
+router.post('/password/reset', resetPasswordRules, validate, resetPassword);
 
 /**
  * @openapi
