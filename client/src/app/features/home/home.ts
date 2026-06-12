@@ -6,11 +6,12 @@ import { CategoryService } from '../../core/services/category.service';
 import { ProductService } from '../../core/services/product.service';
 import { Category, Product } from '../../core/models/catalog.model';
 import { categoryIcon } from '../../core/category-icon';
+import { Stars } from '../../shared/star-rating/star-rating';
 import { imageUrl } from '../../core/config';
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, DecimalPipe],
+  imports: [RouterLink, DecimalPipe, Stars],
   templateUrl: './home.html',
 })
 export class Home {

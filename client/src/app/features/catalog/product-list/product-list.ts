@@ -9,11 +9,12 @@ import { CompareService } from '../../../core/services/compare.service';
 import { FavoriteService } from '../../../core/services/favorite.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Category, Pagination, Product, ProductQuery } from '../../../core/models/catalog.model';
+import { Stars } from '../../../shared/star-rating/star-rating';
 import { imageUrl } from '../../../core/config';
 
 @Component({
   selector: 'app-product-list',
-  imports: [ReactiveFormsModule, RouterLink, DecimalPipe],
+  imports: [ReactiveFormsModule, RouterLink, DecimalPipe, Stars],
   templateUrl: './product-list.html',
 })
 export class ProductList implements OnInit {

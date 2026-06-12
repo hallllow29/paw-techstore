@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { body } from 'express-validator';
 import {
   listProducts,
   getProduct,
@@ -7,6 +8,11 @@ import {
   updateProduct,
   deleteProduct,
 } from '../controllers/product.controller.js';
+import {
+  listProductReviews,
+  myReviewStatus,
+  createProductReview,
+} from '../controllers/productReview.controller.js';
 import { auth, authorize } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { productRules } from '../validators/catalog.validator.js';
@@ -14,6 +20,11 @@ import { uploadProductImages } from '../middleware/upload.js';
 
 const router = Router();
 const loja = [auth, authorize('loja', 'admin')];
+
+const reviewRules = [
+  body('rating').isInt({ min: 1, max: 5 }).withMessage('Indica de 1 a 5 estrelas'),
+  body('comentario').optional().trim().isLength({ max: 1000 }),
+];
 
 /**
  * @openapi
@@ -61,6 +72,48 @@ router.get('/compare', compareProducts);
  *       404: { description: Não encontrado }
  */
 router.get('/:idOrSlug', getProduct);
+
+/**
+ * @openapi
+ * /api/products/{idOrSlug}/reviews:
+ *   get:
+ *     tags: [Produtos]
+ *     summary: Avaliações de um produto + resumo (média e total)
+ *     parameters:
+ *       - { in: path, name: idOrSlug, required: true, schema: { type: string } }
+ *     responses:
+ *       200: { description: Lista de avaliações }
+ *   post:
+ *     tags: [Produtos]
+ *     summary: Avaliar um produto (cliente que o comprou e recebeu)
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - { in: path, name: idOrSlug, required: true, schema: { type: string } }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [rating]
+ *             properties:
+ *               rating: { type: integer, minimum: 1, maximum: 5 }
+ *               comentario: { type: string }
+ *     responses:
+ *       201: { description: Avaliação criada }
+ *       403: { description: Não comprou o produto }
+ *       409: { description: Já avaliou }
+ */
+router.get('/:idOrSlug/reviews', listProductReviews);
+router.get('/:idOrSlug/reviews/me', auth, authorize('cliente'), myReviewStatus);
+router.post(
+  '/:idOrSlug/reviews',
+  auth,
+  authorize('cliente'),
+  reviewRules,
+  validate,
+  createProductReview
+);
 
 /**
  * @openapi

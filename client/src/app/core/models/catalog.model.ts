@@ -21,7 +21,19 @@ export interface Product {
   stock: number;
   atributos: Record<string, string>;
   ativo: boolean;
+  ratingMedia?: number;
+  numAvaliacoes?: number;
   createdAt?: string;
+}
+
+export interface ProductReview {
+  _id: string;
+  produto: string;
+  cliente: string;
+  nome: string;
+  rating: number;
+  comentario: string;
+  createdAt: string;
 }
 
 export interface Pagination {

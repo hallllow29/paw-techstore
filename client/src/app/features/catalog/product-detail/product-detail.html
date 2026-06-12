@@ -26,7 +26,10 @@
     </nav>
 
     <div class="text-muted small fw-semibold text-uppercase">{{ p.marca }}</div>
-    <h1 class="h3 fw-bold mb-3">{{ p.nome }}</h1>
+    <h1 class="h3 fw-bold mb-2">{{ p.nome }}</h1>
+    <div class="mb-3">
+      <app-stars [value]="p.ratingMedia ?? 0" [count]="p.numAvaliacoes ?? 0" />
+    </div>
 
     <div class="row g-4">
       <!-- Galeria + descrição + especificações -->
@@ -156,6 +159,80 @@
             }
           </div>
         }
+        <!-- Avaliações -->
+        <div class="mt-4">
+          <h2 class="h5 fw-bold d-flex align-items-center flex-wrap gap-2">
+            Avaliações
+            @if (p.numAvaliacoes) {
+              <span class="fs-6 text-muted">· {{ p.ratingMedia }}/5</span>
+              <app-stars [value]="p.ratingMedia ?? 0" />
+            }
+          </h2>
+
+          @if (jaAvaliou()) {
+            <div class="alert alert-success py-2 small">
+              <i class="bi bi-check-circle"></i> Já avaliaste este produto. Obrigado!
+            </div>
+          } @else if (podeAvaliar()) {
+            <div class="card border-0 shadow-sm mb-3">
+              <div class="card-body">
+                <div class="fw-semibold mb-2">Deixa a tua avaliação</div>
+                <div class="mb-2">
+                  @for (s of estrelas; track s) {
+                    <button
+                      type="button"
+                      class="btn btn-link p-0 fs-4"
+                      style="color: #f59e0b"
+                      [attr.aria-label]="'Dar ' + s + ' estrelas'"
+                      (click)="ratingSel = s"
+                    >
+                      <i
+                        class="bi"
+                        [class.bi-star-fill]="s <= ratingSel"
+                        [class.bi-star]="s > ratingSel"
+                      ></i>
+                    </button>
+                  }
+                </div>
+                <textarea
+                  class="form-control mb-2"
+                  rows="2"
+                  placeholder="Comentário (opcional)"
+                  [(ngModel)]="comentario"
+                ></textarea>
+                @if (reviewError()) {
+                  <div class="text-danger small mb-2">{{ reviewError() }}</div>
+                }
+                <button
+                  class="btn btn-brand btn-sm"
+                  [disabled]="ratingSel === 0 || enviandoReview()"
+                  (click)="avaliar()"
+                >
+                  Enviar avaliação
+                </button>
+              </div>
+            </div>
+          } @else if (auth.hasRole('cliente')) {
+            <p class="text-muted small">Só podes avaliar produtos que compraste e já recebeste.</p>
+          }
+
+          @if (reviews().length > 0) {
+            @for (r of reviews(); track r._id) {
+              <div class="border-bottom py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="fw-semibold">{{ r.nome || 'Cliente' }}</span>
+                  <span class="text-muted small">{{ r.createdAt | date: 'dd/MM/yy' }}</span>
+                </div>
+                <app-stars [value]="r.rating" />
+                @if (r.comentario) {
+                  <p class="mb-0 mt-1 text-secondary">{{ r.comentario }}</p>
+                }
+              </div>
+            }
+          } @else {
+            <p class="text-muted small">Ainda não há avaliações. Sê o primeiro!</p>
+          }
+        </div>
       </div>
 
       <!-- Caixa de compra -->

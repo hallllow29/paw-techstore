@@ -52,6 +52,9 @@ const productSchema = new mongoose.Schema(
     precoAntigo: { type: Number, min: 0, default: null },
     imagemDestaque: { type: String, default: '' },
     imagens: { type: [String], default: [] },
+    // Agregado das avaliações de produto (atualizado em ProductReview)
+    ratingMedia: { type: Number, default: 0 },
+    numAvaliacoes: { type: Number, default: 0 },
     stock: { type: Number, default: 0, min: 0 },
     // Especificações livres (RAM, CPU, polegadas...) que alimentam o comparador
     atributos: { type: Map, of: String, default: {} },

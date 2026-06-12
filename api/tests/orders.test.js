@@ -317,3 +317,50 @@ test('pagamento MB WAY marca a encomenda como paga', async () => {
   assert.equal(pay.status, 200);
   assert.equal(pay.body.pago, true);
 });
+
+test('cliente avalia um produto que comprou (média atualiza, não duplica)', async () => {
+  const r = await request(app)
+    .post('/api/orders')
+    .set(auth(tokens.cliente))
+    .send({
+      metodoEntrega: 'levantamento_loja',
+      itens: [{ produto: produto._id, quantidade: 1 }],
+    });
+  const id = r.body.order._id;
+  for (const estado of ['confirmada', 'em_preparacao', 'em_entrega', 'entregue']) {
+    await request(app)
+      .patch(`/api/orders/${id}/estado`)
+      .set(auth(tokens.loja))
+      .send({ estado });
+  }
+
+  const av = await request(app)
+    .post(`/api/products/${produto._id}/reviews`)
+    .set(auth(tokens.cliente))
+    .send({ rating: 5, comentario: 'Excelente produto' });
+  assert.equal(av.status, 201);
+  assert.equal(av.body.ratingMedia, 5);
+  assert.ok(av.body.numAvaliacoes >= 1);
+
+  const dup = await request(app)
+    .post(`/api/products/${produto._id}/reviews`)
+    .set(auth(tokens.cliente))
+    .send({ rating: 3 });
+  assert.equal(dup.status, 409);
+});
+
+test('quem não comprou não pode avaliar o produto (403)', async () => {
+  const cat = await Category.findOne();
+  const p2 = await Product.create({
+    ean: 'SEM-COMPRAS-1',
+    nome: 'Produto sem compras',
+    categoria: cat._id,
+    preco: 10,
+    stock: 5,
+  });
+  const av = await request(app)
+    .post(`/api/products/${p2._id}/reviews`)
+    .set(auth(tokens.cliente))
+    .send({ rating: 4 });
+  assert.equal(av.status, 403);
+});
