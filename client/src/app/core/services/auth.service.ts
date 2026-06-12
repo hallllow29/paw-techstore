@@ -3,10 +3,12 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { API_URL, TOKEN_KEY } from '../config';
 import { AuthResponse, RegisterData, Role, User } from '../models/user.model';
+import { CartService } from './cart.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
+  private readonly cart = inject(CartService);
 
   // Estado reativo (signals) do utilizador autenticado
   private readonly _user = signal<User | null>(null);
@@ -60,6 +62,9 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem(TOKEN_KEY);
     this._user.set(null);
+    // O carrinho não deve sobreviver à sessão (nem ficar visível ao próximo
+    // utilizador numa máquina partilhada).
+    this.cart.clear();
   }
 
   hasRole(...roles: Role[]): boolean {
