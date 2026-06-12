@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { DELIVERY_METHODS, ORDER_STATES } from '../utils/constants.js';
+import { DELIVERY_METHODS, ORDER_STATES, PAYMENT_METHODS } from '../utils/constants.js';
 
 const orderItemSchema = new mongoose.Schema(
   {
@@ -60,8 +60,14 @@ const orderSchema = new mongoose.Schema(
       index: true,
     },
     confirmadaEm: { type: Date, default: null }, // marca o início da janela de cancelamento
-    pago: { type: Boolean, default: false }, // pagamento Stripe confirmado
+    metodoPagamento: { type: String, enum: PAYMENT_METHODS, default: 'entrega' },
+    pago: { type: Boolean, default: false },
     stripeSessionId: { type: String, default: '' },
+    // Referência Multibanco (gerada quando o método é multibanco)
+    multibanco: {
+      entidade: { type: String, default: '' },
+      referencia: { type: String, default: '' },
+    },
     // Última posição do estafeta (rastreio em tempo real durante a entrega)
     ultimaPosicao: {
       lat: { type: Number, default: null },

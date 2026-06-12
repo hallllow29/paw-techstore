@@ -3,8 +3,52 @@
 
   <div class="card shadow-sm border-0 mb-3">
     <div class="card-body">
-      <h2 class="h6">Morada de entrega</h2>
-      <p class="mb-0 text-muted">{{ auth.user()?.morada }}</p>
+      <h2 class="h6 mb-3">Morada de entrega</h2>
+      @for (m of enderecos(); track m) {
+        <div class="form-check py-1">
+          <input
+            class="form-check-input"
+            type="radio"
+            name="morada"
+            [id]="'morada-' + $index"
+            [checked]="moradaOpcao() === m"
+            (change)="moradaOpcao.set(m)"
+          />
+          <label class="form-check-label" [for]="'morada-' + $index">{{ m }}</label>
+        </div>
+      }
+      <div class="form-check py-1">
+        <input
+          class="form-check-input"
+          type="radio"
+          name="morada"
+          id="morada-nova"
+          [checked]="moradaOpcao() === NOVA"
+          (change)="moradaOpcao.set(NOVA)"
+        />
+        <label class="form-check-label" for="morada-nova">Enviar para outra morada</label>
+      </div>
+      @if (moradaOpcao() === NOVA) {
+        <div class="ms-4 mt-2">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Rua, número, código postal, localidade"
+            [(ngModel)]="novaMorada"
+          />
+          <div class="form-check mt-2">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="guardar-morada"
+              [(ngModel)]="guardarMorada"
+            />
+            <label class="form-check-label small text-muted" for="guardar-morada">
+              Guardar esta morada para a próxima vez
+            </label>
+          </div>
+        </div>
+      }
     </div>
   </div>
 
@@ -49,6 +93,119 @@
           </span>
         </div>
       }
+    </div>
+  </div>
+
+  <div class="card shadow-sm border-0 mb-3">
+    <div class="card-body">
+      <h2 class="h6 mb-3">Pagamento</h2>
+
+      <div class="form-check py-1">
+        <input
+          class="form-check-input"
+          type="radio"
+          name="pagamento"
+          id="pag-mbway"
+          [checked]="pagamento() === 'mbway'"
+          (change)="pagamento.set('mbway')"
+        />
+        <label class="form-check-label" for="pag-mbway">
+          <i class="bi bi-phone text-danger"></i> MB WAY
+        </label>
+      </div>
+      @if (pagamento() === 'mbway') {
+        <div class="ms-4 mt-1 mb-2">
+          <input
+            type="tel"
+            class="form-control form-control-sm"
+            style="max-width: 220px"
+            placeholder="Telemóvel (9xx xxx xxx)"
+            [(ngModel)]="telefoneMbway"
+          />
+          <small class="text-muted">Vais receber um pedido de pagamento na app MB WAY.</small>
+        </div>
+      }
+
+      <div class="form-check py-1">
+        <input
+          class="form-check-input"
+          type="radio"
+          name="pagamento"
+          id="pag-multibanco"
+          [checked]="pagamento() === 'multibanco'"
+          (change)="pagamento.set('multibanco')"
+        />
+        <label class="form-check-label" for="pag-multibanco">
+          <i class="bi bi-credit-card-2-back text-primary"></i> Referência Multibanco
+        </label>
+      </div>
+      @if (pagamento() === 'multibanco') {
+        <p class="ms-4 mt-1 mb-2 small text-muted">
+          Geramos uma entidade e referência para pagares em qualquer Multibanco ou homebanking.
+        </p>
+      }
+
+      <div class="form-check py-1">
+        <input
+          class="form-check-input"
+          type="radio"
+          name="pagamento"
+          id="pag-cartao"
+          [checked]="pagamento() === 'cartao'"
+          (change)="pagamento.set('cartao')"
+        />
+        <label class="form-check-label" for="pag-cartao">
+          <i class="bi bi-credit-card text-success"></i> Cartão de crédito/débito
+        </label>
+      </div>
+      @if (pagamento() === 'cartao') {
+        @if (stripeAtivo()) {
+          <p class="ms-4 mt-1 mb-2 small text-muted">
+            Vais ser encaminhado para uma página de pagamento segura (Stripe).
+          </p>
+        } @else {
+          <div class="ms-4 mt-1 mb-2 row g-2" style="max-width: 380px">
+            <div class="col-12">
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Número do cartão"
+                [(ngModel)]="cartaoNumero"
+              />
+            </div>
+            <div class="col-6">
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="MM/AA"
+                [(ngModel)]="cartaoValidade"
+              />
+            </div>
+            <div class="col-6">
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="CVC"
+                [(ngModel)]="cartaoCvc"
+              />
+            </div>
+          </div>
+        }
+      }
+
+      <div class="form-check py-1">
+        <input
+          class="form-check-input"
+          type="radio"
+          name="pagamento"
+          id="pag-entrega"
+          [checked]="pagamento() === 'entrega'"
+          (change)="pagamento.set('entrega')"
+        />
+        <label class="form-check-label" for="pag-entrega">
+          <i class="bi bi-cash-coin text-secondary"></i> Pagar na entrega
+        </label>
+      </div>
     </div>
   </div>
 

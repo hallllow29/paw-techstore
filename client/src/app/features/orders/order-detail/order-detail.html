@@ -18,6 +18,11 @@
       </div>
     </div>
 
+    <p class="text-muted small mb-3">
+      <i class="bi bi-geo-alt"></i> {{ o.morada }} · <i class="bi bi-clock"></i>
+      {{ o.createdAt | date: 'dd/MM/yy HH:mm' }}
+    </p>
+
     @if (o.estado === 'em_entrega') {
       <div class="card shadow-sm border-0 mb-3">
         <div class="card-body">
@@ -196,16 +201,47 @@
       <div class="alert alert-danger py-2 small">{{ error() }}</div>
     }
 
-    @if (podePagar()) {
-      <div class="mb-3">
-        <button class="btn btn-brand" [disabled]="pagando()" (click)="pagar()">
-          @if (pagando()) {
-            <span class="spinner-border spinner-border-sm me-1"></span>
+    <div class="card shadow-sm border-0 mb-3">
+      <div class="card-body">
+        <h2 class="h6 d-flex justify-content-between align-items-center mb-2">
+          <span>Pagamento</span>
+          @if (o.pago) {
+            <span class="badge text-bg-success"><i class="bi bi-check-circle"></i> Pago</span>
+          } @else if (o.metodoPagamento === 'entrega') {
+            <span class="badge text-bg-secondary">Na entrega</span>
+          } @else {
+            <span class="badge text-bg-warning">Por pagar</span>
           }
-          <i class="bi bi-credit-card"></i> Pagar com Stripe
-        </button>
+        </h2>
+        <p class="mb-2 text-muted">{{ pagamentos[o.metodoPagamento ?? 'entrega'] }}</p>
+
+        @if (o.metodoPagamento === 'multibanco' && !o.pago && o.multibanco) {
+          <div class="border rounded p-3 bg-light mb-3">
+            <div class="d-flex justify-content-between py-1">
+              <span class="text-muted">Entidade</span>
+              <span class="fw-semibold font-monospace">{{ o.multibanco.entidade }}</span>
+            </div>
+            <div class="d-flex justify-content-between py-1">
+              <span class="text-muted">Referência</span>
+              <span class="fw-semibold font-monospace">{{ o.multibanco.referencia }}</span>
+            </div>
+            <div class="d-flex justify-content-between py-1">
+              <span class="text-muted">Valor</span>
+              <span class="fw-semibold">{{ o.total | number: '1.2-2' }} €</span>
+            </div>
+          </div>
+        }
+
+        @if (porPagar()) {
+          <button class="btn btn-brand" [disabled]="pagando()" (click)="pagar()">
+            @if (pagando()) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            <i class="bi bi-credit-card"></i> {{ textoPagar() }}
+          </button>
+        }
       </div>
-    }
+    </div>
 
     @if (podeCancelar()) {
       <button class="btn btn-outline-danger" (click)="cancelar()">

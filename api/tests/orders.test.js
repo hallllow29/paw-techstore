@@ -278,3 +278,42 @@ test('estafeta pendente não pode operar entregas', async () => {
     .set(auth(login.body.token));
   assert.equal(res.status, 403);
 });
+
+test('encomenda com morada escolhida e Multibanco gera referência e confirma', async () => {
+  const r = await request(app)
+    .post('/api/orders')
+    .set(auth(tokens.cliente))
+    .send({
+      metodoEntrega: 'levantamento_loja',
+      metodoPagamento: 'multibanco',
+      morada: 'Rua Nova 99, Lisboa',
+      itens: [{ produto: produto._id, quantidade: 1 }],
+    });
+  assert.equal(r.status, 201);
+  assert.equal(r.body.order.morada, 'Rua Nova 99, Lisboa');
+  assert.ok(r.body.order.multibanco.entidade);
+  assert.ok(r.body.order.multibanco.referencia);
+  assert.equal(r.body.order.pago, false);
+
+  const conf = await request(app)
+    .post(`/api/payments/multibanco/${r.body.order._id}/confirmar`)
+    .set(auth(tokens.cliente));
+  assert.equal(conf.status, 200);
+  assert.equal(conf.body.pago, true);
+});
+
+test('pagamento MB WAY marca a encomenda como paga', async () => {
+  const r = await request(app)
+    .post('/api/orders')
+    .set(auth(tokens.cliente))
+    .send({
+      metodoEntrega: 'levantamento_loja',
+      metodoPagamento: 'mbway',
+      itens: [{ produto: produto._id, quantidade: 1 }],
+    });
+  const pay = await request(app)
+    .post(`/api/payments/mbway/${r.body.order._id}`)
+    .set(auth(tokens.cliente));
+  assert.equal(pay.status, 200);
+  assert.equal(pay.body.pago, true);
+});

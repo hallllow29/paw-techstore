@@ -13,3 +13,6 @@ export const ORDER_STATES = [
 
 // Janela (minutos) durante a qual o cliente pode cancelar após a confirmação
 export const CANCEL_WINDOW_MIN = 10;
+
+// Métodos de pagamento (mbway, multibanco e cartão; ou pagar na entrega)
+export const PAYMENT_METHODS = ['mbway', 'multibanco', 'cartao', 'entrega'];

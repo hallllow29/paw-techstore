@@ -2,11 +2,21 @@ import { Order } from '../models/order.model.js';
 import { Product } from '../models/product.model.js';
 import { StoreSettings } from '../models/storeSettings.model.js';
 import { Coupon } from '../models/coupon.model.js';
+import { User } from '../models/user.model.js';
+import { randomInt } from 'node:crypto';
 import { asyncHandler } from '../utils/asyncHandler.js';
-import { CANCEL_WINDOW_MIN } from '../utils/constants.js';
+import { CANCEL_WINDOW_MIN, PAYMENT_METHODS } from '../utils/constants.js';
 import { notifyOrderStatus } from '../services/notifications.js';
 
 const round2 = (n) => Math.round(n * 100) / 100;
+
+/** Gera uma referência Multibanco (entidade 5 díg. + referência 9 díg.). */
+function gerarReferenciaMb() {
+  return {
+    entidade: String(randomInt(10000, 100000)),
+    referencia: String(randomInt(100000000, 1000000000)),
+  };
+}
 
 /** Atualiza o estado e regista no histórico. */
 function setEstado(order, estado) {
@@ -19,11 +29,21 @@ function setEstado(order, estado) {
 
 /** POST /api/orders — cria encomenda a partir do carrinho (cliente). */
 export const createOrder = asyncHandler(async (req, res) => {
-  const { itens, metodoEntrega, cupao: codigoCupao } = req.body;
+  const {
+    itens,
+    metodoEntrega,
+    cupao: codigoCupao,
+    morada: moradaEscolhida,
+    metodoPagamento: metodoPag,
+    guardarMorada,
+  } = req.body;
   if (!Array.isArray(itens) || itens.length === 0) {
     res.status(400);
     throw new Error('O carrinho está vazio');
   }
+
+  const metodoPagamento = PAYMENT_METHODS.includes(metodoPag) ? metodoPag : 'entrega';
+  const morada = (moradaEscolhida ?? '').trim() || req.user.morada;
 
   const settings = await StoreSettings.getSettings();
   const metodo = settings.metodosEntrega.find(
@@ -89,6 +109,7 @@ export const createOrder = asyncHandler(async (req, res) => {
   }
 
   const custoEntrega = metodo.custo;
+  const multibanco = metodoPagamento === 'multibanco' ? gerarReferenciaMb() : undefined;
   const order = await Order.create({
     cliente: req.user._id,
     itens: orderItens,
@@ -98,8 +119,15 @@ export const createOrder = asyncHandler(async (req, res) => {
     custoEntrega,
     total: round2(subtotal - desconto + custoEntrega),
     metodoEntrega,
-    morada: req.user.morada,
+    morada,
+    metodoPagamento,
+    multibanco,
   });
+
+  // Guardar a nova morada no perfil, se pedido e ainda não existir
+  if (guardarMorada && morada !== req.user.morada && !req.user.moradas.includes(morada)) {
+    await User.updateOne({ _id: req.user._id }, { $addToSet: { moradas: morada } });
+  }
 
   notifyOrderStatus(order); // email ao cliente (best-effort)
   res.status(201).json({ success: true, order });

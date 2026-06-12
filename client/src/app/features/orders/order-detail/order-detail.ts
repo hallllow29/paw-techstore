@@ -11,6 +11,7 @@ import { ToastService } from '../../../core/services/toast.service';
 import {
   METHOD_LABELS,
   Order,
+  PAYMENT_LABELS,
   Review,
   STATE_COLORS,
   STATE_LABELS,
@@ -47,6 +48,7 @@ export class OrderDetail implements OnInit {
   readonly labels = STATE_LABELS;
   readonly colors = STATE_COLORS;
   readonly metodos = METHOD_LABELS;
+  readonly pagamentos = PAYMENT_LABELS;
 
   readonly podeCancelar = computed(() => {
     const o = this.order();
@@ -60,16 +62,32 @@ export class OrderDetail implements OnInit {
     return o && this.auth.hasRole('cliente') && o.estado === 'entregue' && !this.review();
   });
 
-  readonly podePagar = computed(() => {
+  /** Encomenda ainda por liquidar (e que não é "pagar na entrega"). */
+  readonly porPagar = computed(() => {
     const o = this.order();
-    return (
+    return Boolean(
       o &&
-      this.stripeAtivo() &&
       this.auth.hasRole('cliente') &&
       !o.pago &&
+      o.metodoPagamento !== 'entrega' &&
       o.estado !== 'cancelada' &&
-      o.estado !== 'entregue'
+      o.estado !== 'entregue',
     );
+  });
+
+  /** Texto do botão de pagamento conforme o método escolhido na encomenda. */
+  readonly textoPagar = computed(() => {
+    const o = this.order();
+    switch (o?.metodoPagamento) {
+      case 'cartao':
+        return this.stripeAtivo() ? 'Pagar com cartão (Stripe)' : 'Pagar com cartão';
+      case 'mbway':
+        return 'Confirmar pagamento MB WAY';
+      case 'multibanco':
+        return 'Já efetuei o pagamento';
+      default:
+        return 'Pagar';
+    }
   });
 
   ngOnInit(): void {
@@ -88,18 +106,45 @@ export class OrderDetail implements OnInit {
     }
   }
 
+  /** Conclui o pagamento de acordo com o método registado na encomenda. */
   pagar(): void {
     const o = this.order();
     if (!o) return;
     this.pagando.set(true);
     this.error.set(null);
-    this.payments.checkout(o._id).subscribe({
-      next: (res) => (globalThis.location.href = res.url),
-      error: (err) => {
+
+    const falha = (err: { error?: { message?: string } }) => {
+      this.pagando.set(false);
+      this.error.set(err?.error?.message ?? 'Não foi possível concluir o pagamento');
+    };
+    const concluido = () => {
+      this.pagando.set(false);
+      this.toast.success('Pagamento confirmado!');
+      this.load();
+    };
+
+    switch (o.metodoPagamento) {
+      case 'cartao':
+        if (this.stripeAtivo()) {
+          this.payments.checkout(o._id).subscribe({
+            next: (res) => (globalThis.location.href = res.url),
+            error: falha,
+          });
+        } else {
+          this.payments.cartao(o._id).subscribe({ next: concluido, error: falha });
+        }
+        break;
+      case 'mbway':
+        this.payments
+          .mbway(o._id, this.auth.user()?.telefone ?? '')
+          .subscribe({ next: concluido, error: falha });
+        break;
+      case 'multibanco':
+        this.payments.confirmarMultibanco(o._id).subscribe({ next: concluido, error: falha });
+        break;
+      default:
         this.pagando.set(false);
-        this.error.set(err?.error?.message ?? 'Não foi possível iniciar o pagamento');
-      },
-    });
+    }
   }
 
   private load(): void {

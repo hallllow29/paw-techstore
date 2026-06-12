@@ -78,3 +78,48 @@ export const confirmPayment = asyncHandler(async (req, res) => {
   }
   res.json({ success: true, pago: order.pago });
 });
+
+/** Carrega a encomenda do próprio cliente (ou lança). */
+async function ownOrder(req, res) {
+  const order = await Order.findById(req.params.orderId);
+  if (!order || String(order.cliente) !== String(req.user._id)) {
+    res.status(404);
+    throw new Error('Encomenda não encontrada');
+  }
+  if (order.pago) {
+    res.status(409);
+    throw new Error('Encomenda já paga');
+  }
+  return order;
+}
+
+/** POST /api/payments/mbway/:orderId — pagamento MB WAY (simulado). */
+export const payMbway = asyncHandler(async (req, res) => {
+  const order = await ownOrder(req, res);
+  // Simulação: na vida real o cliente confirmaria no telemóvel.
+  order.metodoPagamento = 'mbway';
+  order.pago = true;
+  await order.save();
+  res.json({ success: true, pago: true });
+});
+
+/** POST /api/payments/multibanco/:orderId/confirmar — confirma pagamento MB (simulado). */
+export const confirmMultibanco = asyncHandler(async (req, res) => {
+  const order = await ownOrder(req, res);
+  order.pago = true;
+  await order.save();
+  res.json({ success: true, pago: true });
+});
+
+/**
+ * POST /api/payments/cartao/:orderId — pagamento por cartão (simulado).
+ * Os dados do cartão chegam apenas para realismo do formulário e nunca são
+ * guardados. Em produção isto seria delegado ao Stripe (ver createCheckout).
+ */
+export const payCartao = asyncHandler(async (req, res) => {
+  const order = await ownOrder(req, res);
+  order.metodoPagamento = 'cartao';
+  order.pago = true;
+  await order.save();
+  res.json({ success: true, pago: true });
+});

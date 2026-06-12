@@ -18,4 +18,19 @@ export class PaymentService {
   confirm(sessionId: string): Observable<{ pago: boolean }> {
     return this.http.post<{ pago: boolean }>(`${API_URL}/payments/confirm`, { sessionId });
   }
+
+  mbway(orderId: string, telefone: string): Observable<{ pago: boolean }> {
+    return this.http.post<{ pago: boolean }>(`${API_URL}/payments/mbway/${orderId}`, { telefone });
+  }
+
+  confirmarMultibanco(orderId: string): Observable<{ pago: boolean }> {
+    return this.http.post<{ pago: boolean }>(
+      `${API_URL}/payments/multibanco/${orderId}/confirmar`,
+      {},
+    );
+  }
+
+  cartao(orderId: string): Observable<{ pago: boolean }> {
+    return this.http.post<{ pago: boolean }>(`${API_URL}/payments/cartao/${orderId}`, {});
+  }
 }

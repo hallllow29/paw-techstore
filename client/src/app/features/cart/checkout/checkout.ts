@@ -4,6 +4,7 @@ import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CartService } from '../../../core/services/cart.service';
 import { OrderService } from '../../../core/services/order.service';
+import { PaymentService } from '../../../core/services/payment.service';
 import { StoreService } from '../../../core/services/store.service';
 import { CouponService } from '../../../core/services/coupon.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -12,7 +13,10 @@ import {
   DeliveryMethod,
   DeliveryMethodConfig,
   METHOD_LABELS,
+  PaymentMethod,
 } from '../../../core/models/order.model';
+
+const NOVA_MORADA = '__nova__';
 
 @Component({
   selector: 'app-checkout',
@@ -23,6 +27,7 @@ export class Checkout implements OnInit {
   protected readonly cart = inject(CartService);
   protected readonly auth = inject(AuthService);
   private readonly orders = inject(OrderService);
+  private readonly payments = inject(PaymentService);
   private readonly store = inject(StoreService);
   private readonly coupons = inject(CouponService);
   private readonly toast = inject(ToastService);
@@ -34,6 +39,26 @@ export class Checkout implements OnInit {
   readonly error = signal<string | null>(null);
   readonly estafetas = signal<{ total: number; livres: number } | null>(null);
   readonly labels = METHOD_LABELS;
+
+  // Morada de entrega
+  readonly NOVA = NOVA_MORADA;
+  readonly moradaOpcao = signal<string>('');
+  protected novaMorada = '';
+  protected guardarMorada = false;
+  /** Morada do perfil + moradas guardadas, sem duplicados. */
+  readonly enderecos = computed(() => {
+    const u = this.auth.user();
+    if (!u) return [];
+    return [...new Set([u.morada, ...(u.moradas ?? [])].filter(Boolean))];
+  });
+
+  // Pagamento
+  readonly pagamento = signal<PaymentMethod>('mbway');
+  readonly stripeAtivo = signal(false);
+  protected telefoneMbway = '';
+  protected cartaoNumero = '';
+  protected cartaoValidade = '';
+  protected cartaoCvc = '';
 
   // Cupão
   protected codigoCupao = '';
@@ -54,12 +79,17 @@ export class Checkout implements OnInit {
       this.router.navigate(['/carrinho']);
       return;
     }
+    const u = this.auth.user();
+    this.moradaOpcao.set(u?.morada ?? NOVA_MORADA);
+    this.telefoneMbway = u?.telefone ?? '';
+
     this.store.get().subscribe((res) => {
       const ativos = res.settings.metodosEntrega.filter((m) => m.ativo);
       this.metodos.set(ativos);
       if (ativos.length) this.selecionado.set(ativos[0].metodo);
     });
     this.store.couriers().subscribe((c) => this.estafetas.set(c));
+    this.payments.config().subscribe((c) => this.stripeAtivo.set(c.enabled));
   }
 
   aplicarCupao(): void {
@@ -87,24 +117,90 @@ export class Checkout implements OnInit {
     this.cupaoError.set(null);
   }
 
+  /** Morada final tendo em conta a opção escolhida. */
+  private moradaFinal(): string {
+    return this.moradaOpcao() === NOVA_MORADA ? this.novaMorada.trim() : this.moradaOpcao();
+  }
+
   confirmar(): void {
     const metodo = this.selecionado();
     if (!metodo) return;
+
+    const morada = this.moradaFinal();
+    if (!morada) {
+      this.error.set('Indica uma morada de entrega');
+      return;
+    }
+    if (this.pagamento() === 'mbway' && !this.telefoneMbway.trim()) {
+      this.error.set('Indica o número de telemóvel para o MB WAY');
+      return;
+    }
+    if (this.pagamento() === 'cartao' && !this.stripeAtivo() && !this.cartaoNumero.trim()) {
+      this.error.set('Preenche os dados do cartão');
+      return;
+    }
+
     this.loading.set(true);
     this.error.set(null);
 
+    const ehNova = this.moradaOpcao() === NOVA_MORADA;
     this.orders
-      .create(this.cart.toOrderItems(), metodo, this.cupaoAplicado() ?? undefined)
+      .create({
+        itens: this.cart.toOrderItems(),
+        metodoEntrega: metodo,
+        metodoPagamento: this.pagamento(),
+        morada,
+        guardarMorada: ehNova && this.guardarMorada,
+        cupao: this.cupaoAplicado() ?? undefined,
+      })
       .subscribe({
         next: (res) => {
           this.cart.clear();
-          this.toast.success('Encomenda criada com sucesso!');
-          this.router.navigate(['/encomendas', res.order._id]);
+          this.processarPagamento(res.order._id);
         },
         error: (err) => {
           this.error.set(err?.error?.message ?? 'Não foi possível criar a encomenda');
           this.loading.set(false);
         },
       });
+  }
+
+  /** Após criar a encomenda, encaminha conforme o método de pagamento. */
+  private processarPagamento(orderId: string): void {
+    const irParaEncomenda = (msg: string) => {
+      this.toast.success(msg);
+      this.router.navigate(['/encomendas', orderId]);
+    };
+    const falhaPagamento = () => {
+      this.toast.info('Encomenda criada — podes concluir o pagamento na página da encomenda');
+      this.router.navigate(['/encomendas', orderId]);
+    };
+
+    switch (this.pagamento()) {
+      case 'mbway':
+        this.payments.mbway(orderId, this.telefoneMbway.trim()).subscribe({
+          next: () => irParaEncomenda('Pagamento MB WAY confirmado'),
+          error: falhaPagamento,
+        });
+        break;
+      case 'cartao':
+        if (this.stripeAtivo()) {
+          this.payments.checkout(orderId).subscribe({
+            next: (r) => (globalThis.location.href = r.url),
+            error: falhaPagamento,
+          });
+        } else {
+          this.payments.cartao(orderId).subscribe({
+            next: () => irParaEncomenda('Pagamento por cartão confirmado'),
+            error: falhaPagamento,
+          });
+        }
+        break;
+      case 'multibanco':
+        irParaEncomenda('Encomenda criada — usa a referência Multibanco para pagar');
+        break;
+      default:
+        irParaEncomenda('Encomenda criada com sucesso!');
+    }
   }
 }

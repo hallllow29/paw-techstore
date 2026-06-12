@@ -1,6 +1,14 @@
 import { User } from './user.model';
 
 export type DeliveryMethod = 'levantamento_loja' | 'estafeta' | 'transportadora';
+export type PaymentMethod = 'mbway' | 'multibanco' | 'cartao' | 'entrega';
+
+export const PAYMENT_LABELS: Record<PaymentMethod, string> = {
+  mbway: 'MB WAY',
+  multibanco: 'Multibanco',
+  cartao: 'Cartão',
+  entrega: 'Pagar na entrega',
+};
 
 export type OrderState =
   | 'pendente'
@@ -52,7 +60,9 @@ export interface Order {
   estado: OrderState;
   estafeta?: string | User | null;
   confirmadaEm?: string | null;
+  metodoPagamento?: PaymentMethod;
   pago?: boolean;
+  multibanco?: { entidade: string; referencia: string };
   ultimaPosicao?: { lat: number | null; lng: number | null; em: string | null };
   historico: { estado: OrderState; em: string }[];
   createdAt: string;

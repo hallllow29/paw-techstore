@@ -44,6 +44,8 @@ const userSchema = new mongoose.Schema(
     status: { type: String, enum: USER_STATUS, default: 'ativo' },
     // Produtos marcados como favoritos (wishlist)
     favoritos: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
+    // Moradas de entrega guardadas (além da morada principal)
+    moradas: [{ type: String, trim: true }],
   },
   { timestamps: true }
 );

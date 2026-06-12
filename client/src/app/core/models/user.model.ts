@@ -9,6 +9,7 @@ export interface User {
   telefone: string;
   role: Role;
   status: UserStatus;
+  moradas?: string[];
   createdAt?: string;
 }
 

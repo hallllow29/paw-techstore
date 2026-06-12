@@ -3,6 +3,9 @@ import {
   paymentConfig,
   createCheckout,
   confirmPayment,
+  payMbway,
+  confirmMultibanco,
+  payCartao,
 } from '../controllers/payment.controller.js';
 import { auth, authorize } from '../middleware/auth.js';
 
@@ -46,5 +49,44 @@ router.post('/checkout/:orderId', authorize('cliente'), createCheckout);
  *       200: { description: "{ pago: boolean }" }
  */
 router.post('/confirm', authorize('cliente'), confirmPayment);
+
+/**
+ * @openapi
+ * /api/payments/mbway/{orderId}:
+ *   post:
+ *     tags: [Pagamentos]
+ *     summary: Pagamento MB WAY (simulado)
+ *     security: [{ bearerAuth: [] }]
+ *     parameters: [{ in: path, name: orderId, required: true, schema: { type: string } }]
+ *     responses:
+ *       200: { description: Pago }
+ */
+router.post('/mbway/:orderId', authorize('cliente'), payMbway);
+
+/**
+ * @openapi
+ * /api/payments/multibanco/{orderId}/confirmar:
+ *   post:
+ *     tags: [Pagamentos]
+ *     summary: Confirma pagamento por Multibanco (simulado)
+ *     security: [{ bearerAuth: [] }]
+ *     parameters: [{ in: path, name: orderId, required: true, schema: { type: string } }]
+ *     responses:
+ *       200: { description: Pago }
+ */
+router.post('/multibanco/:orderId/confirmar', authorize('cliente'), confirmMultibanco);
+
+/**
+ * @openapi
+ * /api/payments/cartao/{orderId}:
+ *   post:
+ *     tags: [Pagamentos]
+ *     summary: Pagamento por cartão (simulado, quando o Stripe não está configurado)
+ *     security: [{ bearerAuth: [] }]
+ *     parameters: [{ in: path, name: orderId, required: true, schema: { type: string } }]
+ *     responses:
+ *       200: { description: Pago }
+ */
+router.post('/cartao/:orderId', authorize('cliente'), payCartao);
 
 export default router;

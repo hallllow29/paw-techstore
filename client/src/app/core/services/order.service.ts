@@ -2,7 +2,16 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_URL } from '../config';
-import { DeliveryMethod, Order } from '../models/order.model';
+import { DeliveryMethod, Order, PaymentMethod } from '../models/order.model';
+
+export interface CreateOrderPayload {
+  itens: { produto: string; quantidade: number }[];
+  metodoEntrega: DeliveryMethod;
+  metodoPagamento: PaymentMethod;
+  morada?: string;
+  guardarMorada?: boolean;
+  cupao?: string;
+}
 
 interface OrderResponse {
   success: boolean;
@@ -19,12 +28,8 @@ export class OrderService {
   private readonly http = inject(HttpClient);
 
   // Cliente
-  create(
-    itens: { produto: string; quantidade: number }[],
-    metodoEntrega: DeliveryMethod,
-    cupao?: string,
-  ) {
-    return this.http.post<OrderResponse>(`${API_URL}/orders`, { itens, metodoEntrega, cupao });
+  create(payload: CreateOrderPayload): Observable<OrderResponse> {
+    return this.http.post<OrderResponse>(`${API_URL}/orders`, payload);
   }
   mine(): Observable<OrderListResponse> {
     return this.http.get<OrderListResponse>(`${API_URL}/orders/me`);
