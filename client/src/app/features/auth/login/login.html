@@ -2,43 +2,151 @@
   <div class="card shadow-sm border-0" style="max-width: 420px; width: 100%">
     <div class="card-body p-4">
       <h1 class="h4 mb-1">Entrar</h1>
-      <p class="text-muted small mb-4">Acede à tua conta paw-techstore.</p>
+      <p class="text-muted small mb-3">Acede à tua conta paw-techstore.</p>
 
-      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-        <div class="mb-3">
-          <label class="form-label" for="email">Email</label>
-          <input
-            id="email"
-            type="email"
-            class="form-control"
-            formControlName="email"
-            autocomplete="email"
-          />
+      <fieldset class="border-0 p-0 m-0 mb-4">
+        <legend class="visually-hidden">Método de login</legend>
+        <div class="btn-group w-100">
+          <button
+            type="button"
+            class="btn btn-sm"
+            [class.btn-brand]="modo() === 'password'"
+            [class.btn-outline-secondary]="modo() !== 'password'"
+            (click)="setModo('password')"
+          >
+            <i class="bi bi-key"></i> Password
+          </button>
+          <button
+            type="button"
+            class="btn btn-sm"
+            [class.btn-brand]="modo() === 'otp'"
+            [class.btn-outline-secondary]="modo() !== 'otp'"
+            (click)="setModo('otp')"
+          >
+            <i class="bi bi-envelope"></i> Código por email
+          </button>
         </div>
+      </fieldset>
 
-        <div class="mb-3">
-          <label class="form-label" for="password">Password</label>
-          <input
-            id="password"
-            type="password"
-            class="form-control"
-            formControlName="password"
-            autocomplete="current-password"
-          />
-        </div>
+      @if (modo() === 'password') {
+        <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+          <div class="mb-3">
+            <label class="form-label" for="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              class="form-control"
+              formControlName="email"
+              autocomplete="email"
+            />
+          </div>
 
-        @if (error()) {
-          <div class="alert alert-danger py-2 small">{{ error() }}</div>
-        }
+          <div class="mb-3">
+            <label class="form-label" for="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              class="form-control"
+              formControlName="password"
+              autocomplete="current-password"
+            />
+          </div>
 
-        <button type="submit" class="btn btn-brand w-100" [disabled]="form.invalid || loading()">
-          @if (loading()) {
-            <span class="spinner-border spinner-border-sm me-1"></span> A entrar…
-          } @else {
-            Entrar
+          @if (error()) {
+            <div class="alert alert-danger py-2 small">{{ error() }}</div>
           }
-        </button>
-      </form>
+
+          <button type="submit" class="btn btn-brand w-100" [disabled]="form.invalid || loading()">
+            @if (loading()) {
+              <span class="spinner-border spinner-border-sm me-1"></span> A entrar…
+            } @else {
+              Entrar
+            }
+          </button>
+        </form>
+      } @else {
+        <form [formGroup]="otpForm" novalidate>
+          <div class="mb-3">
+            <label class="form-label" for="otp-email">Email</label>
+            <input
+              id="otp-email"
+              type="email"
+              class="form-control"
+              formControlName="email"
+              autocomplete="email"
+              [readonly]="otpEnviado()"
+            />
+          </div>
+
+          @if (!otpEnviado()) {
+            <p class="text-muted small">
+              Enviamos-te um código de 6 dígitos para o email. Disponível para contas de cliente.
+            </p>
+            @if (error()) {
+              <div class="alert alert-danger py-2 small">{{ error() }}</div>
+            }
+            <button
+              type="button"
+              class="btn btn-brand w-100"
+              [disabled]="loading()"
+              (click)="pedirCodigo()"
+            >
+              @if (loading()) {
+                <span class="spinner-border spinner-border-sm me-1"></span> A enviar…
+              } @else {
+                Enviar código
+              }
+            </button>
+          } @else {
+            <div class="mb-2">
+              <label class="form-label" for="otp-code">Código</label>
+              <input
+                id="otp-code"
+                type="text"
+                inputmode="numeric"
+                maxlength="6"
+                class="form-control form-control-lg text-center"
+                style="letter-spacing: 0.5rem"
+                placeholder="------"
+                formControlName="code"
+                autocomplete="one-time-code"
+              />
+            </div>
+
+            @if (devCode()) {
+              <div class="alert alert-info py-2 small mb-2">
+                <i class="bi bi-info-circle"></i> Modo de demonstração — o teu código é
+                <strong>{{ devCode() }}</strong
+                >. (Em produção só chega ao email.)
+              </div>
+            }
+
+            @if (error()) {
+              <div class="alert alert-danger py-2 small">{{ error() }}</div>
+            }
+
+            <button
+              type="button"
+              class="btn btn-brand w-100"
+              [disabled]="otpForm.invalid || loading()"
+              (click)="confirmarCodigo()"
+            >
+              @if (loading()) {
+                <span class="spinner-border spinner-border-sm me-1"></span> A validar…
+              } @else {
+                Entrar
+              }
+            </button>
+            <button
+              type="button"
+              class="btn btn-link w-100 mt-1 text-muted"
+              (click)="trocarEmail()"
+            >
+              Usar outro email / reenviar código
+            </button>
+          }
+        </form>
+      }
 
       <p class="text-center text-muted small mt-3 mb-0">
         Não tens conta? <a routerLink="/registo">Cria uma aqui</a>.

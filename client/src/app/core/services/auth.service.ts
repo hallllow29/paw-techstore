@@ -45,6 +45,20 @@ export class AuthService {
       .pipe(tap((res) => this._user.set(res.user)));
   }
 
+  /** Pede um código de acesso por email (login sem password, clientes). */
+  requestOtp(email: string): Observable<{ message: string; devCode?: string }> {
+    return this.http.post<{ message: string; devCode?: string }>(`${API_URL}/auth/otp/request`, {
+      email,
+    });
+  }
+
+  /** Valida o código e inicia a sessão. */
+  verifyOtp(email: string, code: string): Observable<AuthResponse> {
+    return this.http
+      .post<AuthResponse>(`${API_URL}/auth/otp/verify`, { email, code })
+      .pipe(tap((res) => this.setSession(res)));
+  }
+
   changePassword(currentPassword: string, newPassword: string): Observable<unknown> {
     return this.http.patch(`${API_URL}/auth/password`, { currentPassword, newPassword });
   }

@@ -20,6 +20,20 @@ export const loginRules = [
   body('password').notEmpty().withMessage('Password obrigatória'),
 ];
 
+export const otpRequestRules = [
+  body('email').isEmail().withMessage('Email inválido').normalizeEmail(),
+];
+
+export const otpVerifyRules = [
+  body('email').isEmail().withMessage('Email inválido').normalizeEmail(),
+  body('code')
+    .trim()
+    .isLength({ min: 6, max: 6 })
+    .withMessage('O código tem 6 dígitos')
+    .isNumeric()
+    .withMessage('Código inválido'),
+];
+
 export const changePasswordRules = [
   body('currentPassword').notEmpty().withMessage('Password atual obrigatória'),
   body('newPassword')

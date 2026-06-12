@@ -46,6 +46,10 @@ const userSchema = new mongoose.Schema(
     favoritos: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
     // Moradas de entrega guardadas (além da morada principal)
     moradas: [{ type: String, trim: true }],
+    // Login por código no email (OTP) — alternativa à password, só para clientes
+    otpHash: { type: String, select: false },
+    otpExpiresAt: { type: Date, select: false },
+    otpAttempts: { type: Number, default: 0, select: false },
   },
   { timestamps: true }
 );
@@ -63,10 +67,13 @@ userSchema.methods.comparePassword = function comparePassword(candidate) {
   return bcrypt.compare(candidate, this.password);
 };
 
-// Garante que a password nunca sai em respostas JSON
+// Garante que a password e os campos de OTP nunca saem em respostas JSON
 userSchema.set('toJSON', {
   transform: (_doc, ret) => {
     delete ret.password;
+    delete ret.otpHash;
+    delete ret.otpExpiresAt;
+    delete ret.otpAttempts;
     return ret;
   },
 });

@@ -5,6 +5,8 @@ import {
   me,
   changePassword,
   updateProfile,
+  requestOtp,
+  verifyOtp,
 } from '../controllers/auth.controller.js';
 import { auth } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
@@ -13,6 +15,8 @@ import {
   loginRules,
   changePasswordRules,
   profileRules,
+  otpRequestRules,
+  otpVerifyRules,
 } from '../validators/auth.validator.js';
 
 const router = Router();
@@ -65,6 +69,49 @@ router.post('/register', registerRules, validate, register);
  *       401: { description: Credenciais inválidas }
  */
 router.post('/login', loginRules, validate, login);
+
+/**
+ * @openapi
+ * /api/auth/otp/request:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Pede um código de acesso por email (login sem password, só clientes)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email: { type: string, format: email }
+ *     responses:
+ *       200: { description: "Resposta genérica (não revela se a conta existe)" }
+ */
+router.post('/otp/request', otpRequestRules, validate, requestOtp);
+
+/**
+ * @openapi
+ * /api/auth/otp/verify:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Valida o código de acesso e devolve um JWT
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, code]
+ *             properties:
+ *               email: { type: string, format: email }
+ *               code: { type: string, example: "123456" }
+ *     responses:
+ *       200: { description: Autenticado (token + user) }
+ *       401: { description: Código inválido ou expirado }
+ *       429: { description: Demasiadas tentativas }
+ */
+router.post('/otp/verify', otpVerifyRules, validate, verifyOtp);
 
 /**
  * @openapi

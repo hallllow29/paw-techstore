@@ -121,6 +121,64 @@ test('rota de admin recusa um cliente (403)', async () => {
   assert.equal(res.status, 403);
 });
 
+test('OTP: cliente pede código e recebe-o (devCode em ambiente de teste)', async () => {
+  const res = await request(app)
+    .post('/api/auth/otp/request')
+    .send({ email: cliente.email });
+  assert.equal(res.status, 200);
+  assert.match(String(res.body.devCode), /^\d{6}$/);
+});
+
+test('OTP: código errado falha (401) e código certo autentica', async () => {
+  const pedir = await request(app)
+    .post('/api/auth/otp/request')
+    .send({ email: cliente.email });
+  const code = pedir.body.devCode;
+
+  const errado = await request(app)
+    .post('/api/auth/otp/verify')
+    .send({ email: cliente.email, code: '000000' });
+  assert.equal(errado.status, 401);
+
+  const certo = await request(app)
+    .post('/api/auth/otp/verify')
+    .send({ email: cliente.email, code });
+  assert.equal(certo.status, 200);
+  assert.ok(certo.body.token);
+  assert.equal(certo.body.user.otpHash, undefined); // nunca devolver o hash do OTP
+});
+
+test('OTP: o mesmo código não pode ser reutilizado', async () => {
+  const pedir = await request(app)
+    .post('/api/auth/otp/request')
+    .send({ email: cliente.email });
+  const code = pedir.body.devCode;
+  const um = await request(app)
+    .post('/api/auth/otp/verify')
+    .send({ email: cliente.email, code });
+  assert.equal(um.status, 200);
+  const dois = await request(app)
+    .post('/api/auth/otp/verify')
+    .send({ email: cliente.email, code });
+  assert.equal(dois.status, 401);
+});
+
+test('OTP: email sem conta de cliente devolve resposta genérica (sem código)', async () => {
+  const res = await request(app)
+    .post('/api/auth/otp/request')
+    .send({ email: 'naoexiste@example.com' });
+  assert.equal(res.status, 200);
+  assert.equal(res.body.devCode, undefined);
+});
+
+test('OTP: estafeta não usa OTP (mantém password)', async () => {
+  const res = await request(app)
+    .post('/api/auth/otp/request')
+    .send({ email: 'rui@example.com' });
+  assert.equal(res.status, 200);
+  assert.equal(res.body.devCode, undefined);
+});
+
 test('cliente atualiza o próprio perfil', async () => {
   const login = await request(app)
     .post('/api/auth/login')

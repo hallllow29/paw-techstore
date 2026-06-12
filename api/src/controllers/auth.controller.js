@@ -1,6 +1,26 @@
+import bcrypt from 'bcryptjs';
+import { randomInt } from 'node:crypto';
 import { User } from '../models/user.model.js';
 import { signToken } from '../utils/jwt.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { sendMail } from '../services/mailer.js';
+import { env } from '../config/env.js';
+
+const OTP_TTL_MIN = 10; // validade do código
+const OTP_MAX_ATTEMPTS = 5; // tentativas antes de obrigar a pedir novo
+
+function gerarCodigoOtp() {
+  return String(randomInt(100000, 1000000)); // sempre 6 dígitos
+}
+
+function otpEmailHtml(nome, codigo) {
+  return `<div style="font-family:system-ui,sans-serif;max-width:480px">
+    <h2 style="margin:0 0 8px">O teu código de acesso</h2>
+    <p>Olá ${nome}, usa este código para entrares na paw-techstore:</p>
+    <p style="font-size:30px;font-weight:700;letter-spacing:6px;margin:16px 0">${codigo}</p>
+    <p style="color:#666;font-size:14px">Válido por ${OTP_TTL_MIN} minutos. Se não foste tu a pedir, ignora este email.</p>
+  </div>`;
+}
 
 /** POST /api/auth/register — auto-registo de cliente ou estafeta. */
 export const register = asyncHandler(async (req, res) => {
@@ -79,4 +99,74 @@ export const updateProfile = asyncHandler(async (req, res) => {
   if (telefone !== undefined) user.telefone = telefone;
   await user.save();
   res.json({ success: true, user });
+});
+
+/** POST /api/auth/otp/request — envia um código de acesso por email (só clientes). */
+export const requestOtp = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+
+  // Resposta genérica para não revelar se a conta existe.
+  const generic = {
+    success: true,
+    message: 'Se existir uma conta de cliente com esse email, enviámos um código.',
+  };
+
+  // Só clientes usam OTP; os restantes papéis mantêm a password.
+  if (user?.role !== 'cliente' || user?.status === 'rejeitado') {
+    return res.json(generic);
+  }
+
+  const codigo = gerarCodigoOtp();
+  user.otpHash = await bcrypt.hash(codigo, 10);
+  user.otpExpiresAt = new Date(Date.now() + OTP_TTL_MIN * 60 * 1000);
+  user.otpAttempts = 0;
+  await user.save();
+
+  await sendMail({
+    to: user.email,
+    subject: 'O teu código de acesso — paw-techstore',
+    html: otpEmailHtml(user.nome, codigo),
+  });
+
+  // Em dev/test devolvemos o código para facilitar os testes (NUNCA em produção).
+  if (env.nodeEnv === 'production') return res.json(generic);
+  return res.json({ ...generic, devCode: codigo });
+});
+
+/** POST /api/auth/otp/verify — valida o código e devolve um JWT. */
+export const verifyOtp = asyncHandler(async (req, res) => {
+  const { email, code } = req.body;
+  const user = await User.findOne({ email }).select(
+    '+otpHash +otpExpiresAt +otpAttempts'
+  );
+
+  const temOtp = user?.role === 'cliente' && Boolean(user?.otpHash);
+  const expirado = !user?.otpExpiresAt || user.otpExpiresAt.getTime() < Date.now();
+
+  if (temOtp && user.otpAttempts >= OTP_MAX_ATTEMPTS) {
+    res.status(429);
+    throw new Error('Demasiadas tentativas. Pede um novo código.');
+  }
+
+  const valido =
+    temOtp && !expirado && (await bcrypt.compare(String(code), user.otpHash));
+
+  if (!valido) {
+    if (temOtp && !expirado) {
+      user.otpAttempts += 1;
+      await user.save();
+    }
+    res.status(401);
+    throw new Error('Código inválido ou expirado');
+  }
+
+  // Sucesso: limpar o OTP (não pode ser reutilizado) e emitir o token.
+  user.otpHash = null;
+  user.otpExpiresAt = null;
+  user.otpAttempts = 0;
+  await user.save();
+
+  const token = signToken(user);
+  res.json({ success: true, token, user });
 });
