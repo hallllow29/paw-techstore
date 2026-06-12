@@ -41,13 +41,8 @@
 
           <div class="col-12">
             <label class="form-label" for="morada">Morada</label>
-            <input
-              id="morada"
-              type="text"
-              class="form-control"
-              formControlName="morada"
-              autocomplete="address-line1"
-            />
+            <app-address-input id="morada" formControlName="morada" />
+            <div class="form-text">Começa a escrever e escolhe a tua morada nas sugestões.</div>
           </div>
 
           <div class="col-md-6">

@@ -197,6 +197,17 @@ body {
   color: var(--brand);
 }
 
+/* ─── Autocomplete de morada ─── */
+.addr-menu {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  z-index: 1056;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
 /* ─── Menu de notificações ─── */
 .notif-menu {
   width: 340px;

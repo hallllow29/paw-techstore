@@ -30,12 +30,7 @@
       </div>
       @if (moradaOpcao() === NOVA) {
         <div class="ms-4 mt-2">
-          <input
-            type="text"
-            class="form-control"
-            placeholder="Rua, número, código postal, localidade"
-            [(ngModel)]="novaMorada"
-          />
+          <app-address-input [(ngModel)]="novaMorada" />
           <div class="form-check mt-2">
             <input
               class="form-check-input"

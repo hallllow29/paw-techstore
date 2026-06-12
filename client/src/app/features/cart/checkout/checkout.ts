@@ -2,6 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { AddressInput } from '../../../shared/address-input/address-input';
 import { CartService } from '../../../core/services/cart.service';
 import { OrderService } from '../../../core/services/order.service';
 import { PaymentService } from '../../../core/services/payment.service';
@@ -20,7 +21,7 @@ const NOVA_MORADA = '__nova__';
 
 @Component({
   selector: 'app-checkout',
-  imports: [DecimalPipe, FormsModule],
+  imports: [DecimalPipe, FormsModule, AddressInput],
   templateUrl: './checkout.html',
 })
 export class Checkout implements OnInit {
