@@ -16,7 +16,7 @@ function gerarCodigoOtp() {
 function otpEmailHtml(nome, codigo) {
   return `<div style="font-family:system-ui,sans-serif;max-width:480px">
     <h2 style="margin:0 0 8px">O teu código de acesso</h2>
-    <p>Olá ${nome}, usa este código para entrares na paw-techstore:</p>
+    <p>Olá ${nome}, usa este código para entrares na ElSircários Tech Store:</p>
     <p style="font-size:30px;font-weight:700;letter-spacing:6px;margin:16px 0">${codigo}</p>
     <p style="color:#666;font-size:14px">Válido por ${OTP_TTL_MIN} minutos. Se não foste tu a pedir, ignora este email.</p>
   </div>`;
@@ -125,7 +125,7 @@ export const requestOtp = asyncHandler(async (req, res) => {
 
   await sendMail({
     to: user.email,
-    subject: 'O teu código de acesso — paw-techstore',
+    subject: 'O teu código de acesso — ElSircários Tech Store',
     html: otpEmailHtml(user.nome, codigo),
   });
 

@@ -31,11 +31,11 @@ export async function notifyOrderStatus(order) {
       subject: `Encomenda #${ref} — ${order.estado}`,
       html: `
         <div style="font-family: system-ui, sans-serif; max-width: 480px">
-          <h2 style="color:#c2410c">paw-techstore</h2>
+          <h2 style="color:#2563eb">ElSircários Tech Store</h2>
           <p>Olá <strong>${user.nome}</strong>,</p>
           <p>A tua encomenda <strong>#${ref}</strong> ${estado}.</p>
           <p>Total: <strong>${order.total.toFixed(2)} €</strong></p>
-          <p><a href="${link}" style="background:#c2410c;color:#fff;padding:8px 16px;border-radius:6px;text-decoration:none">Ver encomenda</a></p>
+          <p><a href="${link}" style="background:#2563eb;color:#fff;padding:8px 16px;border-radius:6px;text-decoration:none">Ver encomenda</a></p>
           <hr><p style="color:#888;font-size:12px">Este é um email automático.</p>
         </div>`,
     });

@@ -132,6 +132,11 @@ body {
   color: transparent;
   filter: drop-shadow(0 12px 30px rgba(6, 182, 212, 0.35));
 }
+.hero-logo {
+  width: min(320px, 80%);
+  border-radius: 1.25rem;
+  box-shadow: 0 22px 55px rgba(6, 182, 212, 0.3);
+}
 
 /* ─── Mosaico de categorias ─── */
 .cat-tile {

@@ -11,10 +11,10 @@ const options = {
   definition: {
     openapi: '3.0.3',
     info: {
-      title: 'paw-techstore API',
+      title: 'ElSircários Tech Store API',
       version: '0.1.0',
       description:
-        'API REST da plataforma e-commerce paw-techstore (PAW — Avaliação de Recurso).',
+        'API REST da plataforma e-commerce ElSircários Tech Store (PAW — Avaliação de Recurso).',
     },
     servers: [{ url: `http://localhost:${env.port}`, description: 'Local' }],
     components: {

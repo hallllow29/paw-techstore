@@ -37,7 +37,7 @@ export const createCheckout = asyncHandler(async (req, res) => {
       {
         price_data: {
           currency: 'eur',
-          product_data: { name: `Encomenda #${ref} — paw-techstore` },
+          product_data: { name: `Encomenda #${ref} — ElSircários Tech Store` },
           unit_amount: Math.round(order.total * 100), // em cêntimos
         },
         quantity: 1,

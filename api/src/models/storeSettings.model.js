@@ -33,7 +33,7 @@ const deliveryMethodSchema = new mongoose.Schema(
 
 const storeSettingsSchema = new mongoose.Schema(
   {
-    nome: { type: String, default: 'paw-techstore', trim: true },
+    nome: { type: String, default: 'ElSircários Tech Store', trim: true },
     logotipo: { type: String, default: '' },
     horario: { type: String, default: 'Seg-Sex 9h-18h' },
     metodosEntrega: {

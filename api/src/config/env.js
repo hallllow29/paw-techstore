@@ -39,7 +39,7 @@ export const env = {
   smtpPort: Number(process.env.SMTP_PORT ?? 587),
   smtpUser: process.env.SMTP_USER ?? '',
   smtpPass: process.env.SMTP_PASS ?? '',
-  mailFrom: process.env.MAIL_FROM ?? 'paw-techstore <no-reply@paw-techstore.pt>',
+  mailFrom: process.env.MAIL_FROM ?? 'ElSircários Tech Store <no-reply@elsircarios.pt>',
 
   // Pagamentos Stripe (opcional). Sem chave, o pagamento online fica desativado.
   stripeSecretKey: process.env.STRIPE_SECRET_KEY ?? '',
