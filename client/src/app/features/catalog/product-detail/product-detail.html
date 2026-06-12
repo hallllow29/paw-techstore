@@ -2,26 +2,53 @@
   @if (loading()) {
     <div class="text-center py-5"><span class="spinner-border text-secondary"></span></div>
   } @else if (product(); as p) {
-    <nav class="small mb-3">
-      <a routerLink="/produtos" class="text-decoration-none">← Voltar aos produtos</a>
+    <!-- Breadcrumb -->
+    <nav class="small mb-3" aria-label="Navegação">
+      <a routerLink="/produtos" class="text-decoration-none text-muted">Produtos</a>
+      @if (categoriaPai(p); as pai) {
+        <span class="text-muted mx-1">/</span>
+        <a
+          routerLink="/produtos"
+          [queryParams]="{ categoria: pai._id }"
+          class="text-decoration-none text-muted"
+          >{{ pai.nome }}</a
+        >
+      }
+      @if (categoria(p); as cat) {
+        <span class="text-muted mx-1">/</span>
+        <a
+          routerLink="/produtos"
+          [queryParams]="{ categoria: cat._id }"
+          class="text-decoration-none text-muted"
+          >{{ cat.nome }}</a
+        >
+      }
     </nav>
 
+    <div class="text-muted small fw-semibold text-uppercase">{{ p.marca }}</div>
+    <h1 class="h3 fw-bold mb-3">{{ p.nome }}</h1>
+
     <div class="row g-4">
-      <!-- Galeria -->
-      <div class="col-md-5">
+      <!-- Galeria + descrição + especificações -->
+      <div class="col-lg-8">
         <div class="card border-0 shadow-sm">
-          <div class="card-body text-center" style="min-height: 260px">
+          <div class="card-body text-center position-relative" style="min-height: 380px">
+            @if (desconto(p); as d) {
+              <span class="badge text-bg-danger position-absolute top-0 end-0 m-3 fs-6"
+                >-{{ d }}%</span
+              >
+            }
             @if (activeImage()) {
               <img
                 [src]="img(activeImage())"
                 [alt]="p.nome"
                 class="img-fluid"
-                style="max-height: 240px; object-fit: contain"
+                style="max-height: 380px; object-fit: contain"
               />
             } @else {
               <div
                 class="d-flex align-items-center justify-content-center text-secondary"
-                style="height: 240px"
+                style="height: 380px"
               >
                 <i class="bi bi-pc-display" style="font-size: 5rem"></i>
               </div>
@@ -33,7 +60,8 @@
           <div class="d-flex gap-2 mt-2 flex-wrap">
             <button
               type="button"
-              class="btn p-0 border rounded"
+              class="thumb-btn btn p-0 border rounded"
+              [class.active]="activeImage() === p.imagemDestaque"
               (click)="activeImage.set(p.imagemDestaque)"
               aria-label="Ver imagem de destaque"
             >
@@ -47,7 +75,8 @@
             @for (im of p.imagens; track im) {
               <button
                 type="button"
-                class="btn p-0 border rounded"
+                class="thumb-btn btn p-0 border rounded"
+                [class.active]="activeImage() === im"
                 (click)="activeImage.set(im)"
                 aria-label="Ver foto do produto"
               >
@@ -61,67 +90,161 @@
             }
           </div>
         }
+
+        @if (p.descricao) {
+          <div class="mt-4">
+            <h2 class="h6 fw-bold">Descrição</h2>
+            <p class="text-secondary mb-0">{{ p.descricao }}</p>
+          </div>
+        }
+
+        <!-- Características técnicas (expansível) -->
+        @if (atributos(p).length > 0) {
+          <div class="card border-0 shadow-sm mt-4">
+            <button
+              type="button"
+              class="btn d-flex align-items-center justify-content-between w-100 p-3 text-start fw-semibold"
+              (click)="specsAbertas.set(!specsAbertas())"
+              [attr.aria-expanded]="specsAbertas()"
+            >
+              <span><i class="bi bi-card-list text-brand me-2"></i>Características técnicas</span>
+              <i
+                class="bi"
+                [class.bi-chevron-down]="!specsAbertas()"
+                [class.bi-chevron-up]="specsAbertas()"
+              ></i>
+            </button>
+
+            @if (specsAbertas()) {
+              <div class="card-body pt-0">
+                <div class="spec-group">Referências</div>
+                <table class="table table-sm spec-table mb-3">
+                  <tbody>
+                    <tr>
+                      <th>Referência</th>
+                      <td>{{ p.ean }}</td>
+                    </tr>
+                    <tr>
+                      <th>EAN</th>
+                      <td>{{ p.ean }}</td>
+                    </tr>
+                    <tr>
+                      <th>Marca</th>
+                      <td>{{ p.marca }}</td>
+                    </tr>
+                    @if (categoria(p); as cat) {
+                      <tr>
+                        <th>Categoria</th>
+                        <td>{{ cat.nome }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+
+                <div class="spec-group">Especificações</div>
+                <table class="table table-sm spec-table mb-0">
+                  <tbody>
+                    @for (a of atributos(p); track a.chave) {
+                      <tr>
+                        <th>{{ a.chave }}</th>
+                        <td>{{ a.valor }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </div>
+        }
       </div>
 
-      <!-- Info -->
-      <div class="col-md-7">
-        <div class="text-muted">{{ p.marca }}</div>
-        <h1 class="h3">{{ p.nome }}</h1>
-
-        <div class="d-flex align-items-baseline gap-2 my-3">
-          <span class="fw-bold fs-2 text-brand">{{ p.preco | number: '1.2-2' }} €</span>
-          @if (p.precoAntigo && p.precoAntigo > p.preco) {
-            <span class="text-muted text-decoration-line-through"
-              >{{ p.precoAntigo | number: '1.2-2' }} €</span
-            >
-          }
-        </div>
-
-        @if (p.stock > 0) {
-          <span class="badge text-bg-success mb-3"
-            ><i class="bi bi-check-circle"></i> {{ p.stock }} em stock</span
-          >
-        } @else {
-          <span class="badge text-bg-danger mb-3">Esgotado</span>
-        }
-
-        <p>{{ p.descricao }}</p>
-
-        <div class="d-flex gap-2 mb-4">
-          <button class="btn btn-brand" [disabled]="p.stock === 0" (click)="addToCart(p)">
-            <i class="bi" [class.bi-cart-plus]="!added()" [class.bi-check-lg]="added()"></i>
-            {{ added() ? 'Adicionado!' : 'Adicionar ao carrinho' }}
-          </button>
-          <button
-            class="btn btn-outline-secondary"
-            [disabled]="!compare.isSelected(p._id) && !compare.canAdd(p)"
-            (click)="compare.toggle(p)"
-          >
-            <i class="bi bi-bar-chart"></i>
-            {{ compare.isSelected(p._id) ? 'A comparar' : 'Comparar' }}
-          </button>
-        </div>
-
-        <!-- Especificações -->
-        @if (atributos(p).length > 0) {
-          <h2 class="h6">Especificações</h2>
-          <table class="table table-sm">
-            <tbody>
-              @for (a of atributos(p); track a.chave) {
-                <tr>
-                  <th class="text-muted fw-normal" style="width: 40%">{{ a.chave }}</th>
-                  <td>{{ a.valor }}</td>
-                </tr>
+      <!-- Caixa de compra -->
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm buy-box">
+          <div class="card-body">
+            <div class="d-flex align-items-center gap-2">
+              <span class="fw-bold text-brand" style="font-size: 2rem">
+                {{ p.preco | number: '1.2-2' }} €
+              </span>
+              @if (desconto(p); as d) {
+                <span class="badge text-bg-danger">-{{ d }}%</span>
               }
-            </tbody>
-          </table>
-        }
+            </div>
+            @if (p.precoAntigo && p.precoAntigo > p.preco) {
+              <div class="text-muted small">
+                PVP recomendado
+                <span class="text-decoration-line-through"
+                  >{{ p.precoAntigo | number: '1.2-2' }} €</span
+                >
+              </div>
+            }
 
-        <div class="small text-muted mt-3">
-          EAN: {{ p.ean }}
-          @if (p.categoria && $any(p.categoria).nome) {
-            · Categoria: {{ $any(p.categoria).nome }}
-          }
+            <div class="mt-2 mb-3">
+              @if (p.stock > 0) {
+                <span class="text-success small fw-semibold">
+                  <i class="bi bi-check-circle-fill"></i> Em stock ({{ p.stock }} unid.)
+                </span>
+              } @else {
+                <span class="text-danger small fw-semibold">
+                  <i class="bi bi-x-circle-fill"></i> Esgotado
+                </span>
+              }
+            </div>
+
+            <button
+              class="btn btn-brand btn-lg w-100"
+              [disabled]="p.stock === 0"
+              (click)="addToCart(p)"
+            >
+              <i class="bi" [class.bi-cart-plus]="!added()" [class.bi-check-lg]="added()"></i>
+              {{ added() ? 'Adicionado!' : 'Adicionar ao carrinho' }}
+            </button>
+
+            <div class="d-flex gap-2 mt-2">
+              @if (auth.isAuthenticated()) {
+                <button
+                  class="btn btn-outline-secondary flex-grow-1"
+                  (click)="favorites.toggle(p._id)"
+                >
+                  <i
+                    class="bi"
+                    [class.bi-heart-fill]="favorites.isFavorite(p._id)"
+                    [class.bi-heart]="!favorites.isFavorite(p._id)"
+                    style="color: #dc2626"
+                  ></i>
+                  Favorito
+                </button>
+              }
+              <button
+                class="btn btn-outline-secondary flex-grow-1"
+                [disabled]="!compare.isSelected(p._id) && !compare.canAdd(p)"
+                (click)="compare.toggle(p)"
+              >
+                <i class="bi bi-bar-chart"></i>
+                {{ compare.isSelected(p._id) ? 'A comparar' : 'Comparar' }}
+              </button>
+            </div>
+
+            @if (metodos().length > 0) {
+              <hr />
+              <div class="small fw-semibold mb-2">Como queres receber?</div>
+              @for (m of metodos(); track m.metodo) {
+                <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                  <span>
+                    <i class="bi {{ iconeEntrega(m.metodo) }} text-brand me-2"></i>
+                    {{ labelsEntrega[m.metodo] }}
+                  </span>
+                  <span class="fw-semibold" [class.text-success]="m.custo === 0">
+                    {{ m.custo === 0 ? 'Grátis' : (m.custo | number: '1.2-2') + ' €' }}
+                  </span>
+                </div>
+              }
+            }
+
+            <div class="text-muted mt-3" style="font-size: 0.75rem">
+              Ref. {{ p.ean }} · Vendido por <strong>ElSircários</strong>
+            </div>
+          </div>
         </div>
       </div>
     </div>

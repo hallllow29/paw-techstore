@@ -71,7 +71,11 @@ export const getProduct = asyncHandler(async (req, res) => {
     ? { _id: idOrSlug }
     : { slug: idOrSlug };
 
-  const product = await Product.findOne(query).populate('categoria', 'nome slug parent');
+  const product = await Product.findOne(query).populate({
+    path: 'categoria',
+    select: 'nome slug parent',
+    populate: { path: 'parent', select: 'nome slug' },
+  });
   if (!product) {
     res.status(404);
     throw new Error('Produto não encontrado');

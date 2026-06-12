@@ -14,6 +14,7 @@ import { User } from '../models/user.model.js';
 import { Category } from '../models/category.model.js';
 import { Product } from '../models/product.model.js';
 import { assignProductImages } from './product-images.js';
+import { assignProductSpecs } from './product-specs.js';
 
 const PWD = 'demo1234';
 
@@ -188,6 +189,9 @@ try {
   ];
 
   for (const p of products) await Product.create(p);
+
+  // Especificações técnicas ricas (fonte única em product-specs.js)
+  await assignProductSpecs();
 
   // Imagens: fotos reais (seed-assets) ou placeholders on-brand
   await assignProductImages();

@@ -261,6 +261,28 @@ body {
   font-size: 1.5rem;
 }
 
+/* ─── Página de detalhe do produto ─── */
+.buy-box {
+  position: sticky;
+  top: 92px;
+}
+.thumb-btn.active {
+  border-color: var(--brand) !important;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+.spec-group {
+  font-weight: 700;
+  color: #0b1220;
+  border-left: 3px solid var(--brand);
+  padding-left: 0.55rem;
+  margin: 0.25rem 0 0.6rem;
+}
+.spec-table th {
+  width: 42%;
+  font-weight: 500;
+  color: #64748b;
+}
+
 /* Cartão de autenticação centrado verticalmente */
 .auth-wrapper {
   min-height: calc(100vh - 56px);

@@ -12,6 +12,7 @@
     "dev": "node --watch src/server.js",
     "seed": "node src/seed/seed.js",
     "seed:images": "node src/seed/seed-images.js",
+    "seed:specs": "node src/seed/seed-specs.js",
     "test": "cross-env NODE_ENV=test node --test --test-reporter=spec",
     "test:coverage": "cross-env NODE_ENV=test c8 --reporter=lcov --reporter=text node --test",
     "lint": "eslint .",
