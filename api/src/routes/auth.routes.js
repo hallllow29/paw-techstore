@@ -5,12 +5,14 @@ import {
   me,
   changePassword,
   updateProfile,
+  updateAvatar,
   requestOtp,
   verifyOtp,
   forgotPassword,
   resetPassword,
 } from '../controllers/auth.controller.js';
 import { auth } from '../middleware/auth.js';
+import { uploadAvatar } from '../middleware/upload.js';
 import { validate } from '../middleware/validate.js';
 import {
   registerRules,
@@ -194,6 +196,26 @@ router.get('/me', auth, me);
  *       200: { description: Perfil atualizado }
  */
 router.patch('/me', auth, profileRules, validate, updateProfile);
+
+/**
+ * @openapi
+ * /api/auth/avatar:
+ *   patch:
+ *     tags: [Auth]
+ *     summary: Atualiza a foto de perfil
+ *     security: [{ bearerAuth: [] }]
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               avatar: { type: string, format: binary }
+ *     responses:
+ *       200: { description: Perfil atualizado }
+ *       400: { description: Nenhuma imagem enviada }
+ */
+router.patch('/avatar', auth, uploadAvatar, updateAvatar);
 
 /**
  * @openapi

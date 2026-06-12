@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
 import { AddressInput } from '../../shared/address-input/address-input';
+import { imageUrl } from '../../core/config';
 
 @Component({
   selector: 'app-profile',
@@ -11,12 +12,15 @@ import { AddressInput } from '../../shared/address-input/address-input';
 export class Profile implements OnInit {
   private readonly fb = inject(FormBuilder);
   protected readonly auth = inject(AuthService);
+  readonly img = imageUrl;
 
   readonly perfilMsg = signal<string | null>(null);
   readonly savingPerfil = signal(false);
   readonly pwdMsg = signal<string | null>(null);
   readonly pwdError = signal<string | null>(null);
   readonly savingPwd = signal(false);
+  readonly avatarMsg = signal<string | null>(null);
+  readonly uploadingAvatar = signal(false);
 
   readonly perfilForm = this.fb.nonNullable.group({
     nome: ['', Validators.required],
@@ -35,6 +39,22 @@ export class Profile implements OnInit {
     if (u) {
       this.perfilForm.patchValue({ nome: u.nome, morada: u.morada, telefone: u.telefone });
     }
+  }
+
+  onAvatar(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    this.uploadingAvatar.set(true);
+    this.avatarMsg.set(null);
+    this.auth.uploadAvatar(file).subscribe({
+      next: () => {
+        this.uploadingAvatar.set(false);
+        this.avatarMsg.set('Foto de perfil atualizada.');
+      },
+      error: () => this.uploadingAvatar.set(false),
+    });
+    input.value = '';
   }
 
   guardarPerfil(): void {

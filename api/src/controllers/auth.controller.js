@@ -5,6 +5,7 @@ import { signToken } from '../utils/jwt.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { sendMail } from '../services/mailer.js';
 import { sendSms } from '../services/sms.js';
+import { toPublicPath } from '../middleware/upload.js';
 import { env } from '../config/env.js';
 
 const OTP_TTL_MIN = 10; // validade do código
@@ -98,6 +99,18 @@ export const updateProfile = asyncHandler(async (req, res) => {
   if (nome !== undefined) user.nome = nome;
   if (morada !== undefined) user.morada = morada;
   if (telefone !== undefined) user.telefone = telefone;
+  await user.save();
+  res.json({ success: true, user });
+});
+
+/** PATCH /api/auth/avatar — atualiza a foto de perfil (multipart, campo "avatar"). */
+export const updateAvatar = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    res.status(400);
+    throw new Error('Nenhuma imagem enviada');
+  }
+  const user = await User.findById(req.user._id);
+  user.avatar = toPublicPath(req.file);
   await user.save();
   res.json({ success: true, user });
 });

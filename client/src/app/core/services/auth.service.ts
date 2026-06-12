@@ -95,6 +95,15 @@ export class AuthService {
       .pipe(tap((res) => this._user.set(res.user)));
   }
 
+  /** Atualiza a foto de perfil (upload). */
+  uploadAvatar(file: File): Observable<{ user: User }> {
+    const fd = new FormData();
+    fd.append('avatar', file);
+    return this.http
+      .patch<{ user: User }>(`${API_URL}/auth/avatar`, fd)
+      .pipe(tap((res) => this._user.set(res.user)));
+  }
+
   logout(): void {
     localStorage.removeItem(TOKEN_KEY);
     this._user.set(null);

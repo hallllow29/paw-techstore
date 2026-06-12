@@ -46,6 +46,8 @@ const userSchema = new mongoose.Schema(
     favoritos: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
     // Moradas de entrega guardadas (além da morada principal)
     moradas: [{ type: String, trim: true }],
+    // Foto de perfil (caminho servido em /uploads)
+    avatar: { type: String, default: '' },
     // Login por código no email (OTP) — alternativa à password, só para clientes
     otpHash: { type: String, select: false },
     otpExpiresAt: { type: Date, select: false },

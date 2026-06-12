@@ -7,6 +7,7 @@ import { CategoryService } from './core/services/category.service';
 import { NotificationService } from './core/services/notification.service';
 import { Category } from './core/models/catalog.model';
 import { categoryIcon } from './core/category-icon';
+import { imageUrl } from './core/config';
 import { Toasts } from './shared/toasts/toasts';
 import { SearchBox } from './shared/search-box/search-box';
 
@@ -25,6 +26,7 @@ export class App {
 
   readonly categorias = signal<Category[]>([]);
   readonly iconCategoria = categoryIcon;
+  readonly img = imageUrl;
 
   constructor() {
     // Categorias de topo para o mega-menu

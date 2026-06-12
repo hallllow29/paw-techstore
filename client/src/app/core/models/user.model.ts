@@ -10,6 +10,7 @@ export interface User {
   role: Role;
   status: UserStatus;
   moradas?: string[];
+  avatar?: string;
   createdAt?: string;
 }
 
