@@ -163,6 +163,7 @@ export class Dashboard implements OnInit {
         ];
       case 'loja':
         return [
+          { label: 'Análise da loja', icon: 'bi-bar-chart-line', link: '/loja/analise' },
           { label: 'Gerir produtos', icon: 'bi-box-seam', link: '/loja/produtos' },
           { label: 'Encomendas', icon: 'bi-receipt', link: '/loja/encomendas' },
           { label: 'Cupões', icon: 'bi-tag', link: '/loja/cupoes' },
@@ -171,7 +172,11 @@ export class Dashboard implements OnInit {
       case 'estafeta':
         return [{ label: 'Entregas disponíveis', icon: 'bi-truck', link: '/estafeta/entregas' }];
       case 'admin':
-        return [{ label: 'Aprovar estafetas', icon: 'bi-person-check', link: '/admin/estafetas' }];
+        return [
+          { label: 'Observabilidade', icon: 'bi-graph-up-arrow', link: '/admin' },
+          { label: 'Gerir utilizadores', icon: 'bi-people-fill', link: '/admin/utilizadores' },
+          { label: 'Aprovar estafetas', icon: 'bi-person-check', link: '/admin/estafetas' },
+        ];
       default:
         return [];
     }

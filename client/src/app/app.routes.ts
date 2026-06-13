@@ -52,6 +52,16 @@ export const routes: Routes = [
       import('./features/store/product-form/product-form').then((m) => m.ProductForm),
   },
   {
+    path: 'admin',
+    canActivate: [authGuard, roleGuard(['admin'])],
+    loadComponent: () => import('./features/admin/overview/overview').then((m) => m.AdminOverview),
+  },
+  {
+    path: 'admin/utilizadores',
+    canActivate: [authGuard, roleGuard(['admin'])],
+    loadComponent: () => import('./features/admin/users/users').then((m) => m.Users),
+  },
+  {
     path: 'admin/estafetas',
     canActivate: [authGuard, roleGuard(['admin'])],
     loadComponent: () => import('./features/admin/estafetas/estafetas').then((m) => m.Estafetas),
@@ -107,6 +117,12 @@ export const routes: Routes = [
     path: 'loja/cupoes',
     canActivate: [authGuard, roleGuard(['loja', 'admin'])],
     loadComponent: () => import('./features/store/coupons/coupons').then((m) => m.Coupons),
+  },
+  {
+    path: 'loja/analise',
+    canActivate: [authGuard, roleGuard(['loja', 'admin'])],
+    loadComponent: () =>
+      import('./features/store/analytics/analytics').then((m) => m.StoreAnalytics),
   },
   {
     path: 'estafeta/entregas',

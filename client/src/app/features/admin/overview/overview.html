@@ -1,0 +1,188 @@
+<div class="container py-4">
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div>
+      <h1 class="h4 mb-0"><i class="bi bi-graph-up-arrow text-brand"></i> Observabilidade</h1>
+      <p class="text-muted small mb-0">Visão global da plataforma.</p>
+    </div>
+    <a routerLink="/admin/utilizadores" class="btn btn-brand btn-sm">
+      <i class="bi bi-people-fill"></i> Gerir utilizadores
+    </a>
+  </div>
+
+  @if (loading()) {
+    <div class="text-center py-5"><span class="spinner-border text-secondary"></span></div>
+  } @else if (stats(); as s) {
+    <!-- KPIs -->
+    <div class="row g-3 mb-1">
+      <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body d-flex align-items-center gap-3">
+            <span class="stat-ico text-bg-primary"><i class="bi bi-people"></i></span>
+            <div class="min-w-0">
+              <div class="text-muted small">Utilizadores</div>
+              <div class="h4 mb-0 fw-bold">{{ s.kpis.totalUtilizadores }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body d-flex align-items-center gap-3">
+            <span class="stat-ico text-bg-info"><i class="bi bi-receipt"></i></span>
+            <div class="min-w-0">
+              <div class="text-muted small">Encomendas</div>
+              <div class="h4 mb-0 fw-bold">{{ s.kpis.totalEncomendas }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body d-flex align-items-center gap-3">
+            <span class="stat-ico text-bg-secondary"><i class="bi bi-box-seam"></i></span>
+            <div class="min-w-0">
+              <div class="text-muted small">Produtos</div>
+              <div class="h4 mb-0 fw-bold">{{ s.kpis.totalProdutos }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body d-flex align-items-center gap-3">
+            <span class="stat-ico text-bg-success"><i class="bi bi-cash-coin"></i></span>
+            <div class="min-w-0">
+              <div class="text-muted small">Receita total</div>
+              <div class="h4 mb-0 fw-bold">{{ eur(s.kpis.receita) }}</div>
+              <div class="small text-success">+{{ eur(s.kpis.receita30) }} (30d)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tendências -->
+    <div class="row g-3 mt-0">
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <h2 class="h6 text-muted mb-3">
+              <i class="bi bi-currency-euro"></i> Receita (últimos 14 dias)
+            </h2>
+            <app-trend-chart [points]="serieReceita()" cor="#16a34a" [height]="130" />
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <h2 class="h6 text-muted mb-3">
+              <i class="bi bi-person-plus"></i> Novos registos (14 dias)
+            </h2>
+            <app-trend-chart [points]="serieNovos()" cor="#2563eb" [height]="130" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Distribuições -->
+    <div class="row g-3 mt-0">
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <h2 class="h6 text-muted mb-3"><i class="bi bi-pie-chart"></i> Por papel</h2>
+            <app-bar-list [items]="barrasRole()" cor="#2563eb" />
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <h2 class="h6 text-muted mb-3"><i class="bi bi-shield-check"></i> Estado das contas</h2>
+            <app-bar-list [items]="barrasStatus()" cor="#06b6d4" />
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <h2 class="h6 text-muted mb-3"><i class="bi bi-truck"></i> Encomendas por estado</h2>
+            <app-bar-list [items]="barrasEstado()" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top produtos + recentes -->
+    <div class="row g-3 mt-0">
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <h2 class="h6 text-muted mb-3"><i class="bi bi-trophy"></i> Top produtos</h2>
+            <app-bar-list [items]="barrasProdutos()" cor="#f59e0b" />
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-transparent border-0 pb-0">
+            <h2 class="h6 text-muted mb-0">
+              <i class="bi bi-clock-history"></i> Últimas encomendas
+            </h2>
+          </div>
+          <ul class="list-group list-group-flush">
+            @for (o of s.ultimasEncomendas; track o._id) {
+              <li
+                class="list-group-item d-flex align-items-center justify-content-between bg-transparent"
+              >
+                <div class="min-w-0">
+                  <div class="fw-semibold text-truncate">{{ o.cliente?.nome ?? 'Cliente' }}</div>
+                  <div class="small text-muted">{{ o.createdAt | date: 'dd/MM HH:mm' }}</div>
+                </div>
+                <div class="text-end">
+                  <div class="fw-semibold">{{ eur(o.total) }}</div>
+                  <span class="badge text-bg-light text-dark border">{{
+                    estadoLabel(o.estado)
+                  }}</span>
+                </div>
+              </li>
+            } @empty {
+              <li class="list-group-item text-muted small bg-transparent">Sem encomendas.</li>
+            }
+          </ul>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-transparent border-0 pb-0">
+            <h2 class="h6 text-muted mb-0">
+              <i class="bi bi-person-lines-fill"></i> Novos utilizadores
+            </h2>
+          </div>
+          <ul class="list-group list-group-flush">
+            @for (u of s.ultimosUtilizadores; track u._id) {
+              <li class="list-group-item d-flex align-items-center gap-2 bg-transparent">
+                @if (u.avatar) {
+                  <img [src]="img(u.avatar)" class="avatar-sm" alt="" />
+                } @else {
+                  <i class="bi bi-person-circle fs-4 text-muted"></i>
+                }
+                <div class="min-w-0 flex-grow-1">
+                  <div class="fw-semibold text-truncate">{{ u.nome }}</div>
+                  <div class="small text-muted text-truncate">{{ u.email }}</div>
+                </div>
+                <span class="badge text-bg-light text-dark border text-uppercase">{{
+                  u.role
+                }}</span>
+              </li>
+            } @empty {
+              <li class="list-group-item text-muted small bg-transparent">Sem registos.</li>
+            }
+          </ul>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="alert alert-danger">Não foi possível carregar as estatísticas.</div>
+  }
+</div>

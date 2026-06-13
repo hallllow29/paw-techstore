@@ -1,0 +1,127 @@
+<div class="container py-4">
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div>
+      <h1 class="h4 mb-0"><i class="bi bi-people-fill text-brand"></i> Utilizadores</h1>
+      <p class="text-muted small mb-0">Gere contas, aprovações e suspensões.</p>
+    </div>
+    <a routerLink="/admin" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-graph-up"></i> Observabilidade
+    </a>
+  </div>
+
+  <!-- Filtros -->
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-body row g-2 align-items-end">
+      <div class="col-12 col-md">
+        <label class="form-label small text-muted mb-1">Pesquisar</label>
+        <div class="input-group input-group-sm">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input
+            type="search"
+            class="form-control"
+            placeholder="Nome ou email…"
+            [ngModel]="termo()"
+            (ngModelChange)="termo.set($event)"
+          />
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <label class="form-label small text-muted mb-1">Papel</label>
+        <select class="form-select form-select-sm" (change)="setRole($any($event.target).value)">
+          <option value="">Todos</option>
+          @for (r of roles; track r) {
+            <option [value]="r">{{ roleLabel(r) }}</option>
+          }
+        </select>
+      </div>
+      <div class="col-6 col-md-3">
+        <label class="form-label small text-muted mb-1">Estado</label>
+        <select class="form-select form-select-sm" (change)="setStatus($any($event.target).value)">
+          <option value="">Todos</option>
+          @for (s of estados; track s) {
+            <option [value]="s">{{ statusLabel(s) }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="text-center py-5"><span class="spinner-border text-secondary"></span></div>
+  } @else if (filtrados().length === 0) {
+    <div class="alert alert-info">Nenhum utilizador encontrado.</div>
+  } @else {
+    <div class="card shadow-sm border-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Utilizador</th>
+              <th>Papel</th>
+              <th>Estado</th>
+              <th class="d-none d-md-table-cell">Registo</th>
+              <th class="text-end">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (u of filtrados(); track u._id) {
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    @if (u.avatar) {
+                      <img [src]="img(u.avatar)" class="avatar-sm" alt="" />
+                    } @else {
+                      <i class="bi bi-person-circle fs-4 text-muted"></i>
+                    }
+                    <div class="min-w-0">
+                      <div class="fw-semibold text-truncate">
+                        {{ u.nome }}
+                        @if (isSelf(u)) {
+                          <span class="badge text-bg-light text-dark border ms-1">tu</span>
+                        }
+                      </div>
+                      <div class="small text-muted text-truncate">{{ u.email }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span class="badge text-bg-{{ roleCor(u.role) }}">{{ roleLabel(u.role) }}</span>
+                </td>
+                <td>
+                  <span class="badge text-bg-{{ statusCor(u.status) }}">{{
+                    statusLabel(u.status)
+                  }}</span>
+                </td>
+                <td class="small text-muted d-none d-md-table-cell">
+                  {{ u.createdAt | date: 'dd/MM/yyyy' }}
+                </td>
+                <td class="text-end text-nowrap">
+                  @if (u.role === 'estafeta' && u.status === 'pendente') {
+                    <button class="btn btn-sm btn-success me-1" (click)="aprovar(u)">
+                      <i class="bi bi-check-lg"></i> Aprovar
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary me-1" (click)="rejeitar(u)">
+                      Rejeitar
+                    </button>
+                  }
+                  @if (u.role !== 'admin' && !isSelf(u)) {
+                    @if (u.status === 'banido') {
+                      <button class="btn btn-sm btn-outline-success" (click)="desbanir(u)">
+                        <i class="bi bi-arrow-counterclockwise"></i> Reativar
+                      </button>
+                    } @else {
+                      <button class="btn btn-sm btn-outline-danger" (click)="banir(u)">
+                        <i class="bi bi-slash-circle"></i> Suspender
+                      </button>
+                    }
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <p class="text-muted small mt-2 mb-0">{{ filtrados().length }} utilizador(es).</p>
+  }
+</div>

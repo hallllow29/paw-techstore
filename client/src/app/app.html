@@ -13,6 +13,19 @@
       <app-search-box class="flex-grow-1 mx-auto" style="max-width: 560px; min-width: 0" />
 
       <div class="d-flex align-items-center gap-1 flex-shrink-0">
+        <button
+          class="btn btn-link text-white-50 p-2"
+          type="button"
+          (click)="theme.toggle()"
+          [title]="theme.dark() ? 'Mudar para modo claro' : 'Mudar para modo escuro'"
+          aria-label="Alternar tema claro/escuro"
+        >
+          <i
+            class="bi fs-5"
+            [class.bi-moon-stars]="!theme.dark()"
+            [class.bi-sun-fill]="theme.dark()"
+          ></i>
+        </button>
         @if (auth.isAuthenticated()) {
           <a
             class="btn btn-link text-white-50 p-2"
@@ -48,14 +61,29 @@
                 class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom"
               >
                 <span class="fw-semibold">Notificações</span>
-                @if (notif.naoLidas() > 0) {
+                <div class="d-flex align-items-center gap-2">
                   <button
-                    class="btn btn-link btn-sm p-0 text-decoration-none"
-                    (click)="notif.marcarTodasLidas()"
+                    class="btn btn-link btn-sm p-0 text-decoration-none text-muted"
+                    type="button"
+                    (click)="$event.stopPropagation(); notif.alternarSom()"
+                    [title]="notif.som() ? 'Desligar som' : 'Ligar som'"
+                    aria-label="Alternar som das notificações"
                   >
-                    Marcar lidas
+                    <i
+                      class="bi"
+                      [class.bi-volume-up]="notif.som()"
+                      [class.bi-volume-mute]="!notif.som()"
+                    ></i>
                   </button>
-                }
+                  @if (notif.naoLidas() > 0) {
+                    <button
+                      class="btn btn-link btn-sm p-0 text-decoration-none"
+                      (click)="notif.marcarTodasLidas()"
+                    >
+                      Marcar lidas
+                    </button>
+                  }
+                </div>
               </div>
               @if (notif.notifications().length > 0) {
                 <div class="notif-list">
@@ -187,6 +215,9 @@
         }
         @if (auth.hasRole('loja')) {
           <li class="nav-item flex-shrink-0">
+            <a class="nav-link" routerLink="/loja/analise" routerLinkActive="active">Análise</a>
+          </li>
+          <li class="nav-item flex-shrink-0">
             <a class="nav-link" routerLink="/loja/produtos" routerLinkActive="active"
               >Gerir produtos</a
             >
@@ -211,6 +242,20 @@
           </li>
         }
         @if (auth.hasRole('admin')) {
+          <li class="nav-item flex-shrink-0">
+            <a
+              class="nav-link"
+              routerLink="/admin"
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{ exact: true }"
+              >Observabilidade</a
+            >
+          </li>
+          <li class="nav-item flex-shrink-0">
+            <a class="nav-link" routerLink="/admin/utilizadores" routerLinkActive="active"
+              >Utilizadores</a
+            >
+          </li>
           <li class="nav-item flex-shrink-0">
             <a class="nav-link" routerLink="/admin/estafetas" routerLinkActive="active"
               >Estafetas</a

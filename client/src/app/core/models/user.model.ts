@@ -1,5 +1,5 @@
 export type Role = 'cliente' | 'loja' | 'estafeta' | 'admin';
-export type UserStatus = 'ativo' | 'pendente' | 'rejeitado';
+export type UserStatus = 'ativo' | 'pendente' | 'rejeitado' | 'banido';
 
 export interface User {
   _id: string;

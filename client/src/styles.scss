@@ -441,3 +441,156 @@ body {
   justify-content: center;
   padding: 1.5rem;
 }
+
+/* ───────────────────────────────────────────────────────────
+   Modo escuro — Bootstrap 5.3 (data-bs-theme="dark")
+   Mantemos a marca (azul + ciano); o header já é escuro.
+   Aqui reescrevemos as superfícies claras para um navy coerente
+   e corrigimos as utilidades de cor fixo (bg-white/bg-light/…).
+   ─────────────────────────────────────────────────────────── */
+[data-bs-theme='dark'] {
+  --bs-body-bg: #0a1019;
+  --bs-body-color: #e6edf6;
+  --bs-secondary-color: rgba(230, 237, 246, 0.65);
+  --bs-tertiary-color: rgba(230, 237, 246, 0.5);
+  --bs-border-color: #243049;
+  --bs-border-color-translucent: rgba(255, 255, 255, 0.1);
+  --bs-secondary-bg: #131c30;
+  --bs-tertiary-bg: #0f1828;
+  --bs-emphasis-color: #f8fafc;
+  --bs-emphasis-color-rgb: 248, 250, 252;
+  --bs-heading-color: #f1f6fd;
+  --bs-link-color-rgb: 96, 165, 250;
+  --bs-link-hover-color-rgb: 147, 197, 253;
+  color-scheme: dark;
+
+  /* Fundo da página */
+  body {
+    background:
+      radial-gradient(1100px 500px at 90% -10%, rgba(6, 182, 212, 0.06), transparent 60%),
+      var(--bs-body-bg);
+    color: var(--bs-body-color);
+  }
+
+  /* Superfícies (cartões, dropdowns, modais, offcanvas, listas, inputs) */
+  .card {
+    --bs-card-bg: #111b2e;
+    --bs-card-border-color: #233149;
+    --bs-card-cap-bg: #16243c;
+  }
+  .dropdown-menu {
+    --bs-dropdown-bg: #111b2e;
+    --bs-dropdown-border-color: #233149;
+    --bs-dropdown-link-color: #d7e1ef;
+    --bs-dropdown-link-hover-bg: #1b2a44;
+    --bs-dropdown-link-hover-color: #fff;
+  }
+  .list-group {
+    --bs-list-group-bg: #111b2e;
+    --bs-list-group-border-color: #233149;
+    --bs-list-group-color: #d7e1ef;
+    --bs-list-group-action-hover-bg: #1b2a44;
+    --bs-list-group-action-hover-color: #fff;
+  }
+  .modal,
+  .offcanvas:not(.bg-ink) {
+    --bs-modal-bg: #111b2e;
+    --bs-offcanvas-bg: #0e1626;
+    --bs-modal-border-color: #233149;
+  }
+  .form-control,
+  .form-select,
+  .input-group-text {
+    background-color: #0e1626;
+    border-color: #2a3756;
+    color: var(--bs-body-color);
+  }
+  .form-control:focus,
+  .form-select:focus {
+    background-color: #0e1626;
+    color: var(--bs-body-color);
+  }
+  .form-control::placeholder {
+    color: rgba(230, 237, 246, 0.4);
+  }
+
+  /* Utilidades de cor fixa que não acompanham o tema por defeito */
+  .bg-white {
+    background-color: #111b2e !important;
+  }
+  .bg-light {
+    background-color: #16243c !important;
+  }
+  .text-dark {
+    color: #e6edf6 !important;
+  }
+  .table {
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--bs-body-color);
+  }
+  .table-light,
+  .table-light > th,
+  .table-light > td {
+    --bs-table-bg: #16243c;
+    --bs-table-color: #cdd9ea;
+    color: #cdd9ea;
+  }
+  .border {
+    border-color: var(--bs-border-color) !important;
+  }
+
+  /* Componentes próprios */
+  .cat-tile {
+    background: #111b2e;
+    border-color: #233149;
+    color: #e6edf6;
+  }
+  .cat-tile:hover {
+    border-color: var(--brand);
+    color: var(--accent-light);
+  }
+  .cat-tile .cat-ico,
+  .avatar-lg {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.24), rgba(6, 182, 212, 0.24));
+    color: var(--accent-light);
+  }
+  .chip {
+    background: #16243c;
+    border-color: #2a3756;
+    color: #c7d2e3;
+  }
+  .chip:hover {
+    border-color: var(--accent-light);
+    color: var(--accent-light);
+  }
+  .search-item:hover {
+    background: rgba(37, 99, 235, 0.2);
+  }
+  .search-all {
+    border-top-color: #233149;
+  }
+  .notif-item {
+    border-bottom-color: #1c2740;
+  }
+  .spec-group {
+    color: #f1f6fd;
+  }
+  .spec-table th {
+    color: #94a3b8;
+  }
+  .cart-thumb {
+    background: #16243c;
+    border-color: #233149;
+  }
+  .qty-stepper {
+    border-color: #2a3756;
+  }
+  .qty-stepper button {
+    background: #16243c;
+    color: #c7d2e3;
+  }
+  .qty-stepper input {
+    background: #0e1626;
+    color: var(--bs-body-color);
+  }
+}

@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_URL } from '../config';
-import { User } from '../models/user.model';
+import { Role, User, UserStatus } from '../models/user.model';
 
 interface UserListResponse {
   success: boolean;
@@ -12,7 +12,15 @@ interface UserListResponse {
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
+
+  /** Lista utilizadores (admin), com filtros opcionais por papel e estado. */
+  list(filtros: { role?: Role; status?: UserStatus } = {}): Observable<UserListResponse> {
+    let params = new HttpParams();
+    if (filtros.role) params = params.set('role', filtros.role);
+    if (filtros.status) params = params.set('status', filtros.status);
+    return this.http.get<UserListResponse>(`${API_URL}/users`, { params });
+  }
 
   pendingEstafetas(): Observable<UserListResponse> {
     return this.http.get<UserListResponse>(`${API_URL}/users/estafetas/pendentes`);
@@ -24,5 +32,13 @@ export class UserService {
 
   rejeitar(id: string): Observable<unknown> {
     return this.http.patch(`${API_URL}/users/${id}/rejeitar`, {});
+  }
+
+  banir(id: string): Observable<unknown> {
+    return this.http.patch(`${API_URL}/users/${id}/banir`, {});
+  }
+
+  desbanir(id: string): Observable<unknown> {
+    return this.http.patch(`${API_URL}/users/${id}/desbanir`, {});
   }
 }

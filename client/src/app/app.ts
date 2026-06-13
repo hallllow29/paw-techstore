@@ -5,6 +5,7 @@ import { AuthService } from './core/services/auth.service';
 import { CartService } from './core/services/cart.service';
 import { CategoryService } from './core/services/category.service';
 import { NotificationService } from './core/services/notification.service';
+import { ThemeService } from './core/services/theme.service';
 import { Category } from './core/models/catalog.model';
 import { categoryIcon } from './core/category-icon';
 import { imageUrl } from './core/config';
@@ -21,6 +22,7 @@ export class App {
   protected readonly auth = inject(AuthService);
   protected readonly cart = inject(CartService);
   protected readonly notif = inject(NotificationService);
+  protected readonly theme = inject(ThemeService);
   private readonly categoriesSvc = inject(CategoryService);
   private readonly router = inject(Router);
 
@@ -33,9 +35,13 @@ export class App {
     this.categoriesSvc.list().subscribe((r) => {
       this.categorias.set(r.categories.filter((c) => !c.parent));
     });
-    // Carrega notificações sempre que o utilizador fica autenticado (login ou restauro)
+    // Carrega notificações e liga o canal em tempo real sempre que o
+    // utilizador fica autenticado (login ou restauro de sessão)
     effect(() => {
-      if (this.auth.isAuthenticated()) this.notif.carregar();
+      if (this.auth.isAuthenticated()) {
+        this.notif.carregar();
+        void this.notif.conectar();
+      }
     });
   }
 
