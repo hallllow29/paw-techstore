@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { OrderService } from '../../../core/services/order.service';
-import { Order, STATE_COLORS, STATE_LABELS } from '../../../core/models/order.model';
+import { METHOD_LABELS, Order, STATE_COLORS, STATE_LABELS } from '../../../core/models/order.model';
 
 @Component({
   selector: 'app-order-list',
@@ -16,6 +16,7 @@ export class OrderList implements OnInit {
   readonly loading = signal(true);
   readonly labels = STATE_LABELS;
   readonly colors = STATE_COLORS;
+  readonly metodos = METHOD_LABELS;
 
   ngOnInit(): void {
     this.orders.mine().subscribe({
@@ -25,5 +26,9 @@ export class OrderList implements OnInit {
       },
       error: () => this.loading.set(false),
     });
+  }
+
+  ref(o: Order): string {
+    return o._id.slice(-6).toUpperCase();
   }
 }

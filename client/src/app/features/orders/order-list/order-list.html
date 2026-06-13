@@ -1,44 +1,38 @@
-<div class="container py-4">
+<div class="container py-4" style="max-width: 820px">
   <h1 class="h4 mb-3">As minhas encomendas</h1>
 
   @if (loading()) {
     <div class="text-center py-5"><span class="spinner-border text-secondary"></span></div>
   } @else if (items().length === 0) {
-    <div class="alert alert-info">
-      Ainda não fizeste encomendas. <a routerLink="/produtos" class="alert-link">Ver produtos</a>.
+    <div class="text-center py-5">
+      <i class="bi bi-bag text-secondary" style="font-size: 3.5rem"></i>
+      <p class="text-muted mt-2 mb-3">Ainda não fizeste encomendas.</p>
+      <a routerLink="/produtos" class="btn btn-brand"><i class="bi bi-bag"></i> Ver produtos</a>
     </div>
   } @else {
-    <div class="card shadow-sm border-0">
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="table-light">
-            <tr>
-              <th>Data</th>
-              <th>Itens</th>
-              <th>Estado</th>
-              <th class="text-end">Total</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (o of items(); track o._id) {
-              <tr>
-                <td class="small">{{ o.createdAt | date: 'dd/MM/yy HH:mm' }}</td>
-                <td>{{ o.itens.length }} produto(s)</td>
-                <td>
-                  <span class="badge text-bg-{{ colors[o.estado] }}">{{ labels[o.estado] }}</span>
-                </td>
-                <td class="text-end fw-semibold">{{ o.total | number: '1.2-2' }} €</td>
-                <td class="text-end">
-                  <a [routerLink]="['/encomendas', o._id]" class="btn btn-sm btn-outline-secondary"
-                    >Ver</a
-                  >
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    </div>
+    @for (o of items(); track o._id) {
+      <a
+        [routerLink]="['/encomendas', o._id]"
+        class="card product-card shadow-sm border-0 mb-2 text-decoration-none text-dark"
+      >
+        <div class="card-body d-flex flex-wrap align-items-center gap-3">
+          <div class="flex-grow-1 min-w-0">
+            <div class="fw-semibold">Encomenda #{{ ref(o) }}</div>
+            <div class="small text-muted">
+              {{ o.createdAt | date: 'dd/MM/yy HH:mm' }} · {{ o.itens.length }} artigo(s) ·
+              {{ metodos[o.metodoEntrega] }}
+            </div>
+          </div>
+          <span class="badge text-bg-{{ colors[o.estado] }}">{{ labels[o.estado] }}</span>
+          @if (o.pago) {
+            <span class="badge text-bg-success"><i class="bi bi-check-circle"></i> Pago</span>
+          } @else if (o.metodoPagamento !== 'entrega') {
+            <span class="badge text-bg-light text-dark border">Por pagar</span>
+          }
+          <div class="fw-bold fs-5">{{ o.total | number: '1.2-2' }} €</div>
+          <i class="bi bi-chevron-right text-muted"></i>
+        </div>
+      </a>
+    }
   }
 </div>
