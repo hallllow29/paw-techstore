@@ -138,6 +138,7 @@ export const requestOtp = asyncHandler(async (req, res) => {
   user.otpHash = await bcrypt.hash(codigo, 10);
   user.otpExpiresAt = new Date(Date.now() + OTP_TTL_MIN * 60 * 1000);
   user.otpAttempts = 0;
+  user.otpPurpose = 'login';
   await user.save();
 
   if (porSms) {
@@ -153,19 +154,21 @@ export const requestOtp = asyncHandler(async (req, res) => {
     });
   }
 
-  // Em dev/test devolvemos o código para facilitar os testes (NUNCA em produção).
-  if (env.nodeEnv === 'production') return res.json(generic);
-  return res.json({ ...generic, devCode: codigo });
+  // O código segue por email/SMS. Só em ambiente de testes é devolvido na resposta
+  // (em dev/produção isso permitiria account takeover e enumeração de contas).
+  if (env.nodeEnv === 'test') return res.json({ ...generic, devCode: codigo });
+  return res.json(generic);
 });
 
 /** POST /api/auth/otp/verify — valida o código e devolve um JWT. */
 export const verifyOtp = asyncHandler(async (req, res) => {
   const { email, code } = req.body;
   const user = await User.findOne({ email }).select(
-    '+otpHash +otpExpiresAt +otpAttempts'
+    '+otpHash +otpExpiresAt +otpAttempts +otpPurpose'
   );
 
-  const temOtp = user?.role === 'cliente' && Boolean(user?.otpHash);
+  const temOtp =
+    user?.role === 'cliente' && Boolean(user?.otpHash) && user?.otpPurpose === 'login';
   const expirado = !user?.otpExpiresAt || user.otpExpiresAt.getTime() < Date.now();
 
   if (temOtp && user.otpAttempts >= OTP_MAX_ATTEMPTS) {
@@ -189,6 +192,7 @@ export const verifyOtp = asyncHandler(async (req, res) => {
   user.otpHash = null;
   user.otpExpiresAt = null;
   user.otpAttempts = 0;
+  user.otpPurpose = null;
   await user.save();
 
   const token = signToken(user);
@@ -211,6 +215,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
   user.otpHash = await bcrypt.hash(codigo, 10);
   user.otpExpiresAt = new Date(Date.now() + OTP_TTL_MIN * 60 * 1000);
   user.otpAttempts = 0;
+  user.otpPurpose = 'reset';
   await user.save();
 
   if (porSms) {
@@ -226,18 +231,18 @@ export const forgotPassword = asyncHandler(async (req, res) => {
     });
   }
 
-  if (env.nodeEnv === 'production') return res.json(generic);
-  return res.json({ ...generic, devCode: codigo });
+  if (env.nodeEnv === 'test') return res.json({ ...generic, devCode: codigo });
+  return res.json(generic);
 });
 
 /** POST /api/auth/password/reset — valida o código e define a nova password. */
 export const resetPassword = asyncHandler(async (req, res) => {
   const { email, code, newPassword } = req.body;
   const user = await User.findOne({ email }).select(
-    '+otpHash +otpExpiresAt +otpAttempts'
+    '+otpHash +otpExpiresAt +otpAttempts +otpPurpose'
   );
 
-  const temOtp = Boolean(user?.otpHash);
+  const temOtp = Boolean(user?.otpHash) && user?.otpPurpose === 'reset';
   const expirado = !user?.otpExpiresAt || user.otpExpiresAt.getTime() < Date.now();
 
   if (temOtp && user.otpAttempts >= OTP_MAX_ATTEMPTS) {
@@ -260,6 +265,7 @@ export const resetPassword = asyncHandler(async (req, res) => {
   user.otpHash = null;
   user.otpExpiresAt = null;
   user.otpAttempts = 0;
+  user.otpPurpose = null;
   await user.save();
 
   const token = signToken(user);

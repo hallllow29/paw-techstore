@@ -52,6 +52,7 @@ const userSchema = new mongoose.Schema(
     otpHash: { type: String, select: false },
     otpExpiresAt: { type: Date, select: false },
     otpAttempts: { type: Number, default: 0, select: false },
+    otpPurpose: { type: String, select: false }, // 'login' | 'reset'
   },
   { timestamps: true }
 );
@@ -76,6 +77,7 @@ userSchema.set('toJSON', {
     delete ret.otpHash;
     delete ret.otpExpiresAt;
     delete ret.otpAttempts;
+    delete ret.otpPurpose;
     return ret;
   },
 });

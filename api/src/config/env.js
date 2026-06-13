@@ -55,3 +55,12 @@ export const stripeEnabled = Boolean(env.stripeSecretKey);
 export const smsEnabled = Boolean(env.smsProvider);
 
 export const isProd = env.nodeEnv === 'production';
+
+// Em produção, recusa arrancar com um JWT_SECRET em falta ou com o placeholder
+// (caso contrário a app assinaria tokens com um segredo público e forjável).
+if (
+  isProd &&
+  (!process.env.JWT_SECRET || env.jwtSecret === 'dev-only-insecure-secret-change-me')
+) {
+  throw new Error('[config] Define um JWT_SECRET forte (>= 32 chars) em produção.');
+}

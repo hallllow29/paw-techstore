@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import {
   register,
   login,
@@ -14,6 +15,7 @@ import {
 import { auth } from '../middleware/auth.js';
 import { uploadAvatar } from '../middleware/upload.js';
 import { validate } from '../middleware/validate.js';
+import { env } from '../config/env.js';
 import {
   registerRules,
   loginRules,
@@ -26,6 +28,22 @@ import {
 } from '../validators/auth.validator.js';
 
 const router = Router();
+
+// Limite estrito nas rotas sensíveis (mitiga brute-force de password/OTP e enumeração).
+// Em testes fica desligado (supertest faz muitos pedidos do mesmo IP).
+const authLimiter =
+  env.nodeEnv === 'test'
+    ? (_req, _res, next) => next()
+    : rateLimit({
+        windowMs: 15 * 60 * 1000,
+        max: 30,
+        standardHeaders: true,
+        legacyHeaders: false,
+        message: {
+          success: false,
+          message: 'Demasiados pedidos. Tenta novamente mais tarde.',
+        },
+      });
 
 /**
  * @openapi
@@ -52,7 +70,7 @@ const router = Router();
  *       409: { description: Email já registado }
  *       422: { description: Dados inválidos }
  */
-router.post('/register', registerRules, validate, register);
+router.post('/register', authLimiter, registerRules, validate, register);
 
 /**
  * @openapi
@@ -74,7 +92,7 @@ router.post('/register', registerRules, validate, register);
  *       200: { description: Autenticado (token + user) }
  *       401: { description: Credenciais inválidas }
  */
-router.post('/login', loginRules, validate, login);
+router.post('/login', authLimiter, loginRules, validate, login);
 
 /**
  * @openapi
@@ -94,7 +112,7 @@ router.post('/login', loginRules, validate, login);
  *     responses:
  *       200: { description: "Resposta genérica (não revela se a conta existe)" }
  */
-router.post('/otp/request', otpRequestRules, validate, requestOtp);
+router.post('/otp/request', authLimiter, otpRequestRules, validate, requestOtp);
 
 /**
  * @openapi
@@ -117,7 +135,7 @@ router.post('/otp/request', otpRequestRules, validate, requestOtp);
  *       401: { description: Código inválido ou expirado }
  *       429: { description: Demasiadas tentativas }
  */
-router.post('/otp/verify', otpVerifyRules, validate, verifyOtp);
+router.post('/otp/verify', authLimiter, otpVerifyRules, validate, verifyOtp);
 
 /**
  * @openapi
@@ -138,7 +156,13 @@ router.post('/otp/verify', otpVerifyRules, validate, verifyOtp);
  *     responses:
  *       200: { description: "Resposta genérica" }
  */
-router.post('/password/forgot', forgotPasswordRules, validate, forgotPassword);
+router.post(
+  '/password/forgot',
+  authLimiter,
+  forgotPasswordRules,
+  validate,
+  forgotPassword
+);
 
 /**
  * @openapi
@@ -161,7 +185,7 @@ router.post('/password/forgot', forgotPasswordRules, validate, forgotPassword);
  *       200: { description: Password reposta (token + user) }
  *       401: { description: Código inválido ou expirado }
  */
-router.post('/password/reset', resetPasswordRules, validate, resetPassword);
+router.post('/password/reset', authLimiter, resetPasswordRules, validate, resetPassword);
 
 /**
  * @openapi

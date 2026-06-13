@@ -13,9 +13,16 @@ export function errorHandler(err, req, res, next) {
     logger.error(`${req.method} ${req.originalUrl} -> ${err.message}`);
   }
 
+  // Erros 4xx são intencionais (mensagem útil). Em 5xx, não expor detalhes
+  // internos em produção (fuga de implementação/stack).
+  const mensagem =
+    status >= 500 && isProd
+      ? 'Erro interno do servidor'
+      : err.message || 'Erro interno do servidor';
+
   res.status(status).json({
     success: false,
-    message: err.message || 'Erro interno do servidor',
+    message: mensagem,
     ...(isProd ? {} : { stack: err.stack }),
   });
 }
