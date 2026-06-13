@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
 export const ROLES = ['cliente', 'loja', 'estafeta', 'admin'];
-export const USER_STATUS = ['ativo', 'pendente', 'rejeitado'];
+export const USER_STATUS = ['ativo', 'pendente', 'rejeitado', 'banido'];
 
 /**
  * @openapi
@@ -17,7 +17,7 @@ export const USER_STATUS = ['ativo', 'pendente', 'rejeitado'];
  *         morada: { type: string }
  *         telefone: { type: string }
  *         role: { type: string, enum: [cliente, loja, estafeta, admin] }
- *         status: { type: string, enum: [ativo, pendente, rejeitado] }
+ *         status: { type: string, enum: [ativo, pendente, rejeitado, banido] }
  *         createdAt: { type: string, format: date-time }
  */
 const userSchema = new mongoose.Schema(

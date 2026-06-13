@@ -21,6 +21,12 @@ export async function auth(req, res, next) {
       throw new Error('Não autenticado: utilizador inexistente');
     }
 
+    // Conta suspensa: invalida o token de imediato (mesmo que ainda válido)
+    if (user.status === 'banido') {
+      res.status(403);
+      throw new Error('Conta suspensa. Contacta o administrador.');
+    }
+
     req.user = user;
     next();
   } catch (err) {

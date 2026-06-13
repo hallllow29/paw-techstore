@@ -33,7 +33,7 @@ export const rejeitarEstafeta = asyncHandler(async (req, res) => {
 
 async function setEstafetaStatus(id, status, res) {
   const user = await User.findById(id);
-  if (!user || user.role !== 'estafeta') {
+  if (user?.role !== 'estafeta') {
     res.status(404);
     throw new Error('Estafeta não encontrado');
   }
@@ -41,3 +41,35 @@ async function setEstafetaStatus(id, status, res) {
   await user.save();
   return user;
 }
+
+/** PATCH /api/users/:id/banir — suspende uma conta (admin). */
+export const banUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    res.status(404);
+    throw new Error('Utilizador não encontrado');
+  }
+  if (user.role === 'admin') {
+    res.status(403);
+    throw new Error('Não é possível suspender um administrador');
+  }
+  if (String(user._id) === String(req.user._id)) {
+    res.status(400);
+    throw new Error('Não te podes suspender a ti próprio');
+  }
+  user.status = 'banido';
+  await user.save();
+  res.json({ success: true, message: 'Conta suspensa', user });
+});
+
+/** PATCH /api/users/:id/desbanir — reativa uma conta suspensa (admin). */
+export const unbanUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    res.status(404);
+    throw new Error('Utilizador não encontrado');
+  }
+  user.status = 'ativo';
+  await user.save();
+  res.json({ success: true, message: 'Conta reativada', user });
+});

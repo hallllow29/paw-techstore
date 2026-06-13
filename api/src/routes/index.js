@@ -21,6 +21,7 @@ import reviewRoutes from './review.routes.js';
 import paymentRoutes from './payment.routes.js';
 import favoriteRoutes from './favorite.routes.js';
 import notificationRoutes from './notification.routes.js';
+import analyticsRoutes from './analytics.routes.js';
 
 const router = Router();
 
@@ -37,5 +38,6 @@ router.use('/reviews', reviewRoutes);
 router.use('/payments', paymentRoutes);
 router.use('/favorites', favoriteRoutes);
 router.use('/notifications', notificationRoutes);
+router.use('/analytics', analyticsRoutes);
 
 export default router;

@@ -4,9 +4,22 @@ import { Order } from './models/order.model.js';
 import { env } from './config/env.js';
 import { logger } from './utils/logger.js';
 
+// Referência ao servidor Socket.IO, partilhada com os serviços que precisam
+// de empurrar eventos em tempo real (ex.: notificações). Fica null em testes,
+// onde o socket não arranca — e emitToUser passa a no-op.
+let ioRef = null;
+
+/** Empurra um evento para a sala pessoal de um utilizador (`user:<id>`). */
+export function emitToUser(userId, event, payload) {
+  if (!ioRef || !userId) return;
+  ioRef.to(`user:${String(userId)}`).emit(event, payload);
+}
+
 /**
  * Inicializa o Socket.IO para rastreio em tempo real do estafeta.
  * - Cada encomenda tem uma sala `order:<id>`.
+ * - Cada utilizador autenticado entra na sua sala pessoal `user:<id>` para
+ *   receber notificações em tempo real.
  * - O estafeta atribuído emite a sua posição; o servidor retransmite para a
  *   sala (cliente/loja) e persiste a última posição na encomenda.
  */
@@ -14,6 +27,7 @@ export function initSocket(httpServer) {
   const io = new Server(httpServer, {
     cors: { origin: env.clientUrl, credentials: true },
   });
+  ioRef = io;
 
   // Autenticação opcional por JWT no handshake (necessária para emitir posição)
   io.use((socket, next) => {
@@ -29,6 +43,9 @@ export function initSocket(httpServer) {
   });
 
   io.on('connection', (socket) => {
+    // Sala pessoal: recebe notificações em tempo real (encomendas, estado, …)
+    if (socket.user?.sub) socket.join(`user:${socket.user.sub}`);
+
     // Entrar na sala de uma encomenda para receber atualizações de posição
     socket.on('join', (orderId) => {
       if (orderId) socket.join(`order:${orderId}`);
@@ -44,7 +61,7 @@ export function initSocket(httpServer) {
         .lean()
         .catch(() => null);
       if (!order || order.estado !== 'em_entrega') return;
-      if (!socket.user || String(order.estafeta) !== String(socket.user.sub)) return;
+      if (String(order.estafeta) !== String(socket.user?.sub)) return;
 
       io.to(`order:${orderId}`).emit('posicao', { lat, lng, em: Date.now() });
       await Order.updateOne(

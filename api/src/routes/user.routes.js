@@ -4,6 +4,8 @@ import {
   listPendingEstafetas,
   aprovarEstafeta,
   rejeitarEstafeta,
+  banUser,
+  unbanUser,
 } from '../controllers/user.controller.js';
 import { auth, authorize } from '../middleware/auth.js';
 
@@ -79,5 +81,42 @@ router.patch('/:id/aprovar', aprovarEstafeta);
  *       404: { description: Estafeta não encontrado }
  */
 router.patch('/:id/rejeitar', rejeitarEstafeta);
+
+/**
+ * @openapi
+ * /api/users/{id}/banir:
+ *   patch:
+ *     tags: [Users]
+ *     summary: Suspende uma conta (admin)
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200: { description: Conta suspensa }
+ *       403: { description: Não permitido (admin/próprio) }
+ *       404: { description: Utilizador não encontrado }
+ */
+router.patch('/:id/banir', banUser);
+
+/**
+ * @openapi
+ * /api/users/{id}/desbanir:
+ *   patch:
+ *     tags: [Users]
+ *     summary: Reativa uma conta suspensa (admin)
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200: { description: Conta reativada }
+ *       404: { description: Utilizador não encontrado }
+ */
+router.patch('/:id/desbanir', unbanUser);
 
 export default router;

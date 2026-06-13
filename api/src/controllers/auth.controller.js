@@ -10,6 +10,7 @@ import { env } from '../config/env.js';
 
 const OTP_TTL_MIN = 10; // validade do código
 const OTP_MAX_ATTEMPTS = 5; // tentativas antes de obrigar a pedir novo
+const STATUS_BLOQUEADO = new Set(['rejeitado', 'banido']); // sem acesso por OTP/reset
 
 function gerarCodigoOtp() {
   return String(randomInt(100000, 1000000)); // sempre 6 dígitos
@@ -65,6 +66,10 @@ export const login = asyncHandler(async (req, res) => {
   if (user.status === 'rejeitado') {
     res.status(403);
     throw new Error('Conta rejeitada. Contacta o administrador.');
+  }
+  if (user.status === 'banido') {
+    res.status(403);
+    throw new Error('Conta suspensa. Contacta o administrador.');
   }
 
   const token = signToken(user);
@@ -142,7 +147,7 @@ export const requestOtp = asyncHandler(async (req, res) => {
   };
 
   // Só clientes usam OTP; os restantes papéis mantêm a password.
-  if (user?.role !== 'cliente' || user?.status === 'rejeitado') {
+  if (user?.role !== 'cliente' || STATUS_BLOQUEADO.has(user?.status)) {
     return res.json(generic);
   }
 
@@ -221,7 +226,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
     success: true,
     message: 'Se a conta existir, enviámos um código para repor a password.',
   };
-  if (!user || user.status === 'rejeitado') return res.json(generic);
+  if (!user || STATUS_BLOQUEADO.has(user.status)) return res.json(generic);
 
   const codigo = gerarCodigoOtp();
   user.otpHash = await bcrypt.hash(codigo, 10);

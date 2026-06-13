@@ -1,6 +1,7 @@
 import { User } from '../models/user.model.js';
 import { Notification } from '../models/notification.model.js';
 import { sendMail } from './mailer.js';
+import { emitToUser } from '../socket.js';
 import { env } from '../config/env.js';
 import { logger } from '../utils/logger.js';
 
@@ -13,13 +14,23 @@ const ESTADO_TEXTO = {
   cancelada: 'foi cancelada',
 };
 
-/** Cria uma notificação in-app (best-effort, nunca lança). */
+/** Cria uma notificação in-app (best-effort, nunca lança) e empurra-a por socket. */
 export async function notify(
   userId,
   { tipo = 'info', titulo, mensagem = '', link = '' }
 ) {
   try {
-    await Notification.create({ user: userId, tipo, titulo, mensagem, link });
+    const doc = await Notification.create({ user: userId, tipo, titulo, mensagem, link });
+    // Push em tempo real para a sala pessoal do utilizador (no-op se offline)
+    emitToUser(userId, 'notificacao', {
+      _id: String(doc._id),
+      tipo: doc.tipo,
+      titulo: doc.titulo,
+      mensagem: doc.mensagem,
+      link: doc.link,
+      lida: doc.lida,
+      createdAt: doc.createdAt,
+    });
   } catch (err) {
     logger.warn(`Notificação in-app falhou: ${err.message}`);
   }
