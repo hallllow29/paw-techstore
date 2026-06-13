@@ -61,6 +61,11 @@ export const confirmPayment = asyncHandler(async (req, res) => {
   }
 
   const { sessionId } = req.body;
+  // Sem isto, um sessionId vazio casaria com encomendas sem checkout (default '').
+  if (!sessionId || typeof sessionId !== 'string') {
+    res.status(400);
+    throw new Error('sessionId em falta');
+  }
   const order = await Order.findOne({ stripeSessionId: sessionId });
   if (!order) {
     res.status(404);

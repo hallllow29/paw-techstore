@@ -187,3 +187,23 @@ test('filtros: marcas, marca, intervalo de preço e em-stock', async () => {
   const comStock = await request(app).get('/api/products?marca=ASUS&emStock=true');
   assert.ok(todos.body.pagination.total > comStock.body.pagination.total);
 });
+
+test('input malicioso na pesquisa/preço não rebenta (sem 500)', async () => {
+  const qArray = await request(app).get('/api/products?q=a&q=b'); // q chega como array
+  assert.equal(qArray.status, 200);
+  const precoMau = await request(app).get('/api/products?minPreco=abc&maxPreco=xyz');
+  assert.equal(precoMau.status, 200);
+  const catMau = await request(app).get('/api/products?categoria=nao-e-um-id');
+  assert.equal(catMau.status, 200);
+});
+
+test('criar produto com categoria inexistente devolve 400', async () => {
+  const res = await request(app)
+    .post('/api/products')
+    .set('Authorization', `Bearer ${lojaToken}`)
+    .field('ean', '777')
+    .field('nome', 'Sem categoria')
+    .field('categoria', '0123456789abcdef01234567')
+    .field('preco', '20');
+  assert.equal(res.status, 400);
+});

@@ -23,28 +23,34 @@ const SORT_MAP = {
 export const listProducts = asyncHandler(async (req, res) => {
   const filter = { ativo: true };
 
-  // Pesquisa por nome, EAN ou marca (input escapado contra injeção de regex)
-  if (req.query.q) {
+  // Pesquisa por nome, EAN ou marca (input escapado e coagido a string —
+  // ?q=a&q=b chega como array e rebentaria em .trim())
+  const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+  if (q) {
     // eslint-disable-next-line security/detect-non-literal-regexp -- input escapado por escapeRegex
-    const rx = new RegExp(escapeRegex(req.query.q.trim()), 'i');
+    const rx = new RegExp(escapeRegex(q), 'i');
     filter.$or = [{ nome: rx }, { ean: rx }, { marca: rx }];
   }
 
-  // Filtro por categoria (inclui descendentes)
-  if (req.query.categoria) {
-    const ids = await Category.descendantIds(req.query.categoria);
+  // Filtro por categoria (inclui descendentes) — só se for um ObjectId válido
+  const categoria = typeof req.query.categoria === 'string' ? req.query.categoria : '';
+  if (categoria && mongoose.isValidObjectId(categoria)) {
+    const ids = await Category.descendantIds(categoria);
     filter.categoria = { $in: ids };
   }
 
-  // Intervalo de preço
-  if (req.query.minPreco || req.query.maxPreco) {
+  // Intervalo de preço (ignora valores não numéricos — evita CastError 500)
+  const min = req.query.minPreco ? Number(req.query.minPreco) : NaN;
+  const max = req.query.maxPreco ? Number(req.query.maxPreco) : NaN;
+  if (Number.isFinite(min) || Number.isFinite(max)) {
     filter.preco = {};
-    if (req.query.minPreco) filter.preco.$gte = Number(req.query.minPreco);
-    if (req.query.maxPreco) filter.preco.$lte = Number(req.query.maxPreco);
+    if (Number.isFinite(min)) filter.preco.$gte = min;
+    if (Number.isFinite(max)) filter.preco.$lte = max;
   }
 
   // Marca (exata)
-  if (req.query.marca) filter.marca = req.query.marca;
+  if (typeof req.query.marca === 'string' && req.query.marca)
+    filter.marca = req.query.marca;
 
   // Apenas produtos com stock
   if (req.query.emStock === 'true' || req.query.emStock === '1') {
@@ -122,7 +128,9 @@ export const compareProducts = asyncHandler(async (req, res) => {
     throw new Error('Um ou mais produtos não existem');
   }
 
-  const categorias = new Set(products.map((p) => String(p.categoria._id)));
+  const categorias = new Set(
+    products.map((p) => String(p.categoria?._id ?? p.categoria))
+  );
   if (categorias.size > 1) {
     res.status(400);
     throw new Error('Só é possível comparar produtos da mesma categoria');
@@ -147,6 +155,7 @@ export const createProduct = asyncHandler(async (req, res) => {
     res.status(409);
     throw new Error('Já existe um produto com este EAN');
   }
+  await garantirCategoria(data.categoria, res);
 
   const product = await Product.create(data);
   res.status(201).json({ success: true, product });
@@ -161,10 +170,21 @@ export const updateProduct = asyncHandler(async (req, res) => {
   }
 
   const data = parseProductBody(req, { partial: true });
+  if (data.categoria !== undefined) await garantirCategoria(data.categoria, res);
   Object.assign(product, data);
   await product.save();
   res.json({ success: true, product });
 });
+
+/** Valida que a categoria existe (evita referências órfãs). */
+async function garantirCategoria(categoria, res) {
+  const ok =
+    mongoose.isValidObjectId(categoria) && (await Category.exists({ _id: categoria }));
+  if (!ok) {
+    res.status(400);
+    throw new Error('Categoria inexistente');
+  }
+}
 
 /** DELETE /api/products/:id — remove produto (loja). */
 export const deleteProduct = asyncHandler(async (req, res) => {

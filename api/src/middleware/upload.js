@@ -12,10 +12,18 @@ const storage = multer.diskStorage({
     cb(null, `${randomUUID()}${path.extname(file.originalname).toLowerCase()}`),
 });
 
-// Só aceita imagens
+// Só aceita imagens rasterizadas seguras. SVG é recusado de propósito —
+// pode conter <script> e seria servido de /uploads (XSS armazenado).
+const TIPOS_PERMITIDOS = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'image/avif',
+]);
 function fileFilter(_req, file, cb) {
-  if (file.mimetype.startsWith('image/')) return cb(null, true);
-  cb(new Error('Apenas ficheiros de imagem são permitidos'));
+  if (TIPOS_PERMITIDOS.has(file.mimetype)) return cb(null, true);
+  cb(new Error('Tipo de imagem não permitido (usa JPG, PNG, WebP ou GIF)'));
 }
 
 const upload = multer({
