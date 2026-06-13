@@ -35,6 +35,7 @@
               <th>Cliente</th>
               <th>Entrega</th>
               <th>Estado</th>
+              <th>Pagamento</th>
               <th class="text-end">Total</th>
               <th class="text-end">Ação</th>
             </tr>
@@ -47,6 +48,17 @@
                 <td class="small">{{ metodos[o.metodoEntrega] }}</td>
                 <td>
                   <span class="badge text-bg-{{ colors[o.estado] }}">{{ labels[o.estado] }}</span>
+                </td>
+                <td>
+                  @if (o.pago) {
+                    <span class="badge text-bg-success"
+                      ><i class="bi bi-check-circle"></i> Pago</span
+                    >
+                  } @else if (o.metodoPagamento === 'entrega') {
+                    <span class="badge text-bg-secondary">Na entrega</span>
+                  } @else {
+                    <span class="badge text-bg-light text-dark border">Por pagar</span>
+                  }
                 </td>
                 <td class="text-end fw-semibold">{{ o.total | number: '1.2-2' }} €</td>
                 <td class="text-end text-nowrap">
