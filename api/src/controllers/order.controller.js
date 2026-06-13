@@ -81,31 +81,51 @@ export const createOrder = asyncHandler(async (req, res) => {
     });
   }
 
-  // Cupão de desconto (opcional) — validado antes de mexer no stock
+  // Cupão de desconto (opcional) — validado antes de mexer no stock.
+  // O incremento de usos só acontece depois do stock garantido (ver abaixo).
   let desconto = 0;
   let codigoAplicado = '';
+  let couponDoc = null;
   if (codigoCupao) {
-    const coupon = await Coupon.findOne({
+    couponDoc = await Coupon.findOne({
       codigo: String(codigoCupao).toUpperCase().trim(),
     });
-    if (!coupon) {
+    if (!couponDoc) {
       res.status(404);
       throw new Error('Cupão inexistente');
     }
-    const motivo = coupon.motivoInvalido(subtotal);
+    const motivo = couponDoc.motivoInvalido(subtotal);
     if (motivo) {
       res.status(422);
       throw new Error(motivo);
     }
-    desconto = coupon.desconto(subtotal);
-    codigoAplicado = coupon.codigo;
-    coupon.usos += 1;
-    await coupon.save();
+    desconto = couponDoc.desconto(subtotal);
+    codigoAplicado = couponDoc.codigo;
   }
 
-  // Descontar o stock
+  // Descontar o stock de forma ATÓMICA (condição stock >= qtd no próprio update),
+  // com rollback se algum item entretanto ficar sem stock — evita overselling.
+  const descontados = [];
   for (const item of orderItens) {
-    await Product.updateOne({ _id: item.produto }, { $inc: { stock: -item.quantidade } });
+    const r = await Product.updateOne(
+      { _id: item.produto, stock: { $gte: item.quantidade } },
+      { $inc: { stock: -item.quantidade } }
+    );
+    if (r.modifiedCount === 1) {
+      descontados.push(item);
+    } else {
+      for (const d of descontados) {
+        await Product.updateOne({ _id: d.produto }, { $inc: { stock: d.quantidade } });
+      }
+      res.status(409);
+      throw new Error(`Sem stock suficiente para "${item.nome}"`);
+    }
+  }
+
+  // Stock garantido: agora sim conta o uso do cupão.
+  if (couponDoc) {
+    couponDoc.usos += 1;
+    await couponDoc.save();
   }
 
   const custoEntrega = metodo.custo;
@@ -185,14 +205,17 @@ export const listOrders = asyncHandler(async (req, res) => {
   res.json({ success: true, count: orders.length, orders });
 });
 
+// Transições válidas que a loja pode aplicar (sequenciais — sem saltar nem regredir)
+const TRANSICOES_LOJA = new Map([
+  ['pendente', ['confirmada']],
+  ['confirmada', ['em_preparacao']],
+  ['em_preparacao', ['em_entrega']],
+  ['em_entrega', ['entregue']],
+]);
+
 /** PATCH /api/orders/:id/estado — a loja avança o estado. */
 export const updateStatus = asyncHandler(async (req, res) => {
   const { estado } = req.body;
-  const permitidos = ['confirmada', 'em_preparacao', 'em_entrega', 'entregue'];
-  if (!permitidos.includes(estado)) {
-    res.status(400);
-    throw new Error('Transição de estado inválida');
-  }
   const order = await Order.findById(req.params.id);
   if (!order) {
     res.status(404);
@@ -201,6 +224,11 @@ export const updateStatus = asyncHandler(async (req, res) => {
   if (order.estado === 'cancelada' || order.estado === 'entregue') {
     res.status(409);
     throw new Error('A encomenda já está fechada');
+  }
+  // Só permite avançar para o estado seguinte na sequência
+  if (!(TRANSICOES_LOJA.get(order.estado) ?? []).includes(estado)) {
+    res.status(409);
+    throw new Error('Transição de estado inválida');
   }
   setEstado(order, estado);
   await order.save();
@@ -232,16 +260,25 @@ export const acceptDelivery = asyncHandler(async (req, res) => {
     throw new Error('Já tens uma entrega em curso. Conclui-a primeiro.');
   }
 
-  const order = await Order.findById(req.params.id);
-  const aceitavel = ['confirmada', 'em_preparacao'].includes(order?.estado);
-  if (!order || order.metodoEntrega !== 'estafeta' || !aceitavel || order.estafeta) {
+  // Reivindica a encomenda de forma ATÓMICA: só um estafeta a consegue apanhar
+  // (a condição estafeta:null + estado garante que não há dupla atribuição).
+  const order = await Order.findOneAndUpdate(
+    {
+      _id: req.params.id,
+      metodoEntrega: 'estafeta',
+      estado: { $in: ['confirmada', 'em_preparacao'] },
+      estafeta: null,
+    },
+    {
+      $set: { estafeta: req.user._id, estado: 'em_entrega' },
+      $push: { historico: { estado: 'em_entrega' } },
+    },
+    { new: true }
+  );
+  if (!order) {
     res.status(409);
     throw new Error('Entrega indisponível');
   }
-
-  order.estafeta = req.user._id;
-  setEstado(order, 'em_entrega');
-  await order.save();
   notifyOrderStatus(order);
   res.json({ success: true, order });
 });
