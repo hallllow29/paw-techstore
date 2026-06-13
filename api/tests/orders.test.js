@@ -8,6 +8,7 @@ import { User } from '../src/models/user.model.js';
 import { Category } from '../src/models/category.model.js';
 import { Product } from '../src/models/product.model.js';
 import { Order } from '../src/models/order.model.js';
+import { Coupon } from '../src/models/coupon.model.js';
 
 const app = createApp();
 let mongo;
@@ -228,6 +229,27 @@ test('loja cria cupão e cliente aplica-o no checkout', async () => {
   assert.equal(order.status, 201);
   assert.equal(order.body.order.desconto, 10);
   assert.equal(order.body.order.total, 90); // 100 - 10 + 0
+});
+
+test('cancelar uma encomenda repõe o uso do cupão', async () => {
+  await request(app)
+    .post('/api/coupons')
+    .set(auth(tokens.loja))
+    .send({ codigo: 'CANCELA5', tipo: 'valor', valor: 5 });
+  const ord = await request(app)
+    .post('/api/orders')
+    .set(auth(tokens.cliente))
+    .send({
+      metodoEntrega: 'levantamento_loja',
+      itens: [{ produto: produto._id, quantidade: 1 }],
+      cupao: 'CANCELA5',
+    });
+  assert.equal((await Coupon.findOne({ codigo: 'CANCELA5' })).usos, 1);
+
+  await request(app)
+    .patch(`/api/orders/${ord.body.order._id}/cancelar`)
+    .set(auth(tokens.cliente));
+  assert.equal((await Coupon.findOne({ codigo: 'CANCELA5' })).usos, 0);
 });
 
 test('cliente avalia uma encomenda entregue (e não duplica)', async () => {

@@ -182,14 +182,31 @@ export const cancelOrder = asyncHandler(async (req, res) => {
     throw new Error('Já não é possível cancelar esta encomenda');
   }
 
-  // Repor o stock
+  // Cancela de forma ATÓMICA: só transita se o estado ainda for o que validámos
+  // (evita que dois cancelamentos concorrentes reponham o stock em duplicado).
+  const cancelada = await Order.findOneAndUpdate(
+    { _id: order._id, estado: order.estado },
+    { $set: { estado: 'cancelada' }, $push: { historico: { estado: 'cancelada' } } },
+    { new: true }
+  );
+  if (!cancelada) {
+    res.status(409);
+    throw new Error('Já não é possível cancelar esta encomenda');
+  }
+
+  // Repor o stock e o uso do cupão (apenas uma vez, garantido pelo claim acima)
   for (const item of order.itens) {
     await Product.updateOne({ _id: item.produto }, { $inc: { stock: item.quantidade } });
   }
-  setEstado(order, 'cancelada');
-  await order.save();
-  notifyOrderStatus(order);
-  res.json({ success: true, order });
+  if (order.cupao) {
+    await Coupon.updateOne(
+      { codigo: order.cupao, usos: { $gt: 0 } },
+      { $inc: { usos: -1 } }
+    );
+  }
+
+  notifyOrderStatus(cancelada);
+  res.json({ success: true, order: cancelada });
 });
 
 // ──────────────────────────── LOJA ─────────────────────────────

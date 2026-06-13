@@ -95,6 +95,10 @@ async function ownOrder(req, res) {
     res.status(409);
     throw new Error('Encomenda já paga');
   }
+  if (order.estado === 'cancelada' || order.estado === 'entregue') {
+    res.status(409);
+    throw new Error('A encomenda já está fechada');
+  }
   return order;
 }
 

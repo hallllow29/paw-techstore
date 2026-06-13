@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
 import { Product } from '../models/product.model.js';
 import { Category } from '../models/category.model.js';
+import { ProductReview } from '../models/productReview.model.js';
+import { User } from '../models/user.model.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { toPublicPath } from '../middleware/upload.js';
 
@@ -40,8 +42,8 @@ export const listProducts = asyncHandler(async (req, res) => {
   }
 
   // Intervalo de preço (ignora valores não numéricos — evita CastError 500)
-  const min = req.query.minPreco ? Number(req.query.minPreco) : NaN;
-  const max = req.query.maxPreco ? Number(req.query.maxPreco) : NaN;
+  const min = req.query.minPreco ? Number(req.query.minPreco) : Number.NaN;
+  const max = req.query.maxPreco ? Number(req.query.maxPreco) : Number.NaN;
   if (Number.isFinite(min) || Number.isFinite(max)) {
     filter.preco = {};
     if (Number.isFinite(min)) filter.preco.$gte = min;
@@ -81,7 +83,10 @@ export const listProducts = asyncHandler(async (req, res) => {
 /** GET /api/products/marcas — marcas distintas (para os filtros). */
 export const listMarcas = asyncHandler(async (_req, res) => {
   const marcas = await Product.distinct('marca', { ativo: true });
-  res.json({ success: true, marcas: marcas.filter(Boolean).sort() });
+  res.json({
+    success: true,
+    marcas: marcas.filter(Boolean).sort((a, b) => a.localeCompare(b)),
+  });
 });
 
 /** GET /api/products/:idOrSlug — detalhe de um produto (público). */
@@ -193,6 +198,12 @@ export const deleteProduct = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error('Produto não encontrado');
   }
+  // Cascata: remove avaliações do produto e tira-o dos favoritos dos utilizadores
+  await ProductReview.deleteMany({ produto: product._id });
+  await User.updateMany(
+    { favoritos: product._id },
+    { $pull: { favoritos: product._id } }
+  );
   res.json({ success: true, message: 'Produto removido' });
 });
 

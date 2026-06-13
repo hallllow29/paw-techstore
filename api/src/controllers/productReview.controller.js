@@ -66,13 +66,23 @@ export const createProductReview = asyncHandler(async (req, res) => {
     throw new Error('Já avaliaste este produto');
   }
 
-  const review = await ProductReview.create({
-    produto: product._id,
-    cliente: req.user._id,
-    nome: req.user.nome,
-    rating,
-    comentario,
-  });
+  let review;
+  try {
+    review = await ProductReview.create({
+      produto: product._id,
+      cliente: req.user._id,
+      nome: req.user.nome,
+      rating,
+      comentario,
+    });
+  } catch (err) {
+    // Corrida: índice único (produto, cliente) → 409 em vez de 500.
+    if (err.code === 11000) {
+      res.status(409);
+      throw new Error('Já avaliaste este produto');
+    }
+    throw err;
+  }
   const resumo = await ProductReview.recalcular(product._id);
 
   res.status(201).json({ success: true, review, ...resumo });

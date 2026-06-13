@@ -81,6 +81,10 @@ export const changePassword = asyncHandler(async (req, res) => {
   const { currentPassword, newPassword } = req.body;
 
   const user = await User.findById(req.user._id).select('+password');
+  if (!user) {
+    res.status(404);
+    throw new Error('Utilizador não encontrado');
+  }
   if (!(await user.comparePassword(currentPassword))) {
     res.status(401);
     throw new Error('Password atual incorreta');
@@ -96,6 +100,10 @@ export const changePassword = asyncHandler(async (req, res) => {
 export const updateProfile = asyncHandler(async (req, res) => {
   const { nome, morada, telefone } = req.body;
   const user = await User.findById(req.user._id);
+  if (!user) {
+    res.status(404);
+    throw new Error('Utilizador não encontrado');
+  }
   if (nome !== undefined) user.nome = nome;
   if (morada !== undefined) user.morada = morada;
   if (telefone !== undefined) user.telefone = telefone;
@@ -110,6 +118,10 @@ export const updateAvatar = asyncHandler(async (req, res) => {
     throw new Error('Nenhuma imagem enviada');
   }
   const user = await User.findById(req.user._id);
+  if (!user) {
+    res.status(404);
+    throw new Error('Utilizador não encontrado');
+  }
   user.avatar = toPublicPath(req.file);
   await user.save();
   res.json({ success: true, user });
