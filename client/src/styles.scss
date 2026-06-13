@@ -27,6 +27,21 @@ body {
   color: #1f2937;
 }
 
+/* Transição suave ao alternar entre tema claro e escuro */
+body,
+.card,
+.dropdown-menu,
+.offcanvas,
+.list-group-item,
+.form-control,
+.form-select,
+.table {
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    color 0.2s ease;
+}
+
 /* ─── Marca / texto ─── */
 .navbar-brand {
   font-weight: 800;
