@@ -6,6 +6,7 @@ import { CartService } from './core/services/cart.service';
 import { CategoryService } from './core/services/category.service';
 import { NotificationService } from './core/services/notification.service';
 import { ThemeService } from './core/services/theme.service';
+import { ToastService } from './core/services/toast.service';
 import { Category } from './core/models/catalog.model';
 import { categoryIcon } from './core/category-icon';
 import { imageUrl } from './core/config';
@@ -23,10 +24,12 @@ export class App {
   protected readonly cart = inject(CartService);
   protected readonly notif = inject(NotificationService);
   protected readonly theme = inject(ThemeService);
+  private readonly toast = inject(ToastService);
   private readonly categoriesSvc = inject(CategoryService);
   private readonly router = inject(Router);
 
   readonly categorias = signal<Category[]>([]);
+  readonly aReenviar = signal(false);
   readonly iconCategoria = categoryIcon;
   readonly img = imageUrl;
 
@@ -42,6 +45,21 @@ export class App {
         this.notif.carregar();
         void this.notif.conectar();
       }
+    });
+  }
+
+  /** Reenvia o email de confirmação da conta. */
+  reenviarConfirmacao(): void {
+    this.aReenviar.set(true);
+    this.auth.resendVerification().subscribe({
+      next: (r) => {
+        this.toast.success(r.message);
+        this.aReenviar.set(false);
+      },
+      error: () => {
+        this.toast.error('Não foi possível reenviar. Tenta novamente mais tarde.');
+        this.aReenviar.set(false);
+      },
     });
   }
 

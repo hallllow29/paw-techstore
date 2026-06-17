@@ -81,6 +81,29 @@ export class AuthService {
       .pipe(tap((res) => this.setSession(res)));
   }
 
+  /** Confirma o email a partir do token do link. Atualiza a sessão se for o próprio. */
+  verifyEmail(token: string): Observable<{ success: boolean; message: string; user: User }> {
+    return this.http
+      .post<{
+        success: boolean;
+        message: string;
+        user: User;
+      }>(`${API_URL}/auth/email/verify`, { token })
+      .pipe(
+        tap((res) => {
+          if (this._user()?._id === res.user._id) this._user.set(res.user);
+        }),
+      );
+  }
+
+  /** Reenvia o email de confirmação (utilizador autenticado). */
+  resendVerification(): Observable<{ success: boolean; message: string }> {
+    return this.http.post<{ success: boolean; message: string }>(
+      `${API_URL}/auth/email/resend`,
+      {},
+    );
+  }
+
   changePassword(currentPassword: string, newPassword: string): Observable<unknown> {
     return this.http.patch(`${API_URL}/auth/password`, { currentPassword, newPassword });
   }

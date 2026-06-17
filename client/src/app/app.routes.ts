@@ -19,6 +19,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/recuperar/recuperar').then((m) => m.Recuperar),
   },
   {
+    path: 'confirmar-email',
+    loadComponent: () =>
+      import('./features/auth/confirm-email/confirm-email').then((m) => m.ConfirmEmail),
+  },
+  {
     path: 'produtos',
     loadComponent: () =>
       import('./features/catalog/product-list/product-list').then((m) => m.ProductList),

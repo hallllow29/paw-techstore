@@ -11,6 +11,7 @@ export interface User {
   status: UserStatus;
   moradas?: string[];
   avatar?: string;
+  emailVerificado?: boolean;
   createdAt?: string;
 }
 

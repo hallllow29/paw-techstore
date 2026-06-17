@@ -314,6 +314,29 @@
   </div>
 }
 
+@if (auth.isAuthenticated() && auth.user()?.emailVerificado === false) {
+  <div
+    class="alert alert-info text-center mb-0 rounded-0 py-2 small d-flex align-items-center justify-content-center gap-2 flex-wrap"
+  >
+    <span
+      ><i class="bi bi-envelope-exclamation"></i> Confirma o teu email para garantir o acesso
+      completo à conta.</span
+    >
+    <button
+      class="btn btn-sm btn-brand py-0"
+      type="button"
+      (click)="reenviarConfirmacao()"
+      [disabled]="aReenviar()"
+    >
+      @if (aReenviar()) {
+        <span class="spinner-border spinner-border-sm"></span> A enviar…
+      } @else {
+        Reenviar email
+      }
+    </button>
+  </div>
+}
+
 <main>
   <router-outlet />
 </main>
