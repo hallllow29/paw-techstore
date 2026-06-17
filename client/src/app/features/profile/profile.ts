@@ -3,6 +3,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
 import { AddressInput } from '../../shared/address-input/address-input';
 import { imageUrl } from '../../core/config';
+import { PASSWORD_PATTERN } from '../../core/password-strength';
 
 @Component({
   selector: 'app-profile',
@@ -30,7 +31,10 @@ export class Profile implements OnInit {
 
   readonly passwordForm = this.fb.nonNullable.group({
     currentPassword: ['', Validators.required],
-    newPassword: ['', [Validators.required, Validators.minLength(6)]],
+    newPassword: [
+      '',
+      [Validators.required, Validators.minLength(8), Validators.pattern(PASSWORD_PATTERN)],
+    ],
     confirmar: ['', Validators.required],
   });
 

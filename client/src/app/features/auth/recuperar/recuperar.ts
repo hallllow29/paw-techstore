@@ -3,6 +3,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { PASSWORD_PATTERN } from '../../../core/password-strength';
 
 @Component({
   selector: 'app-recuperar',
@@ -24,7 +25,10 @@ export class Recuperar {
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
     code: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]],
-    newPassword: ['', [Validators.required, Validators.minLength(6)]],
+    newPassword: [
+      '',
+      [Validators.required, Validators.minLength(8), Validators.pattern(PASSWORD_PATTERN)],
+    ],
   });
 
   pedirCodigo(): void {

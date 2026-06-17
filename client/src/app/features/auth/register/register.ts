@@ -1,9 +1,11 @@
 import { Component, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { AddressInput } from '../../../shared/address-input/address-input';
+import { PASSWORD_PATTERN, forcaPassword, ForcaPassword } from '../../../core/password-strength';
 
 @Component({
   selector: 'app-register',
@@ -18,15 +20,26 @@ export class Register {
 
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+  readonly forca = signal<ForcaPassword>(forcaPassword(''));
 
   readonly form = this.fb.nonNullable.group({
     nome: ['', [Validators.required]],
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
+    password: [
+      '',
+      [Validators.required, Validators.minLength(8), Validators.pattern(PASSWORD_PATTERN)],
+    ],
     morada: ['', [Validators.required]],
     telefone: ['', [Validators.required]],
     role: ['cliente' as 'cliente' | 'estafeta', [Validators.required]],
   });
+
+  constructor() {
+    // Atualiza o medidor de força à medida que a password muda
+    this.form.controls.password.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe((v) => this.forca.set(forcaPassword(v ?? '')));
+  }
 
   submit(): void {
     if (this.form.invalid) return;
