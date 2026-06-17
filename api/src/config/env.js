@@ -44,6 +44,12 @@ export const env = {
   // Pagamentos Stripe (opcional). Sem chave, o pagamento online fica desativado.
   stripeSecretKey: process.env.STRIPE_SECRET_KEY ?? '',
 
+  // PayPal (opcional). Com Client ID + Secret (sandbox developer.paypal.com),
+  // o checkout PayPal fica real; sem eles, corre em modo simulado.
+  paypalClientId: process.env.PAYPAL_CLIENT_ID ?? '',
+  paypalSecret: process.env.PAYPAL_SECRET ?? '',
+  paypalMode: process.env.PAYPAL_MODE ?? 'sandbox', // 'sandbox' | 'live'
+
   // SMS (opcional). Sem provider configurado, o canal SMS corre em modo simulado.
   smsProvider: process.env.SMS_PROVIDER ?? '', // ex.: 'twilio'
   smsFrom: process.env.SMS_FROM ?? 'ElSircarios',
@@ -52,6 +58,7 @@ export const env = {
 };
 
 export const stripeEnabled = Boolean(env.stripeSecretKey);
+export const paypalEnabled = Boolean(env.paypalClientId && env.paypalSecret);
 export const smsEnabled = Boolean(env.smsProvider);
 
 export const isProd = env.nodeEnv === 'production';

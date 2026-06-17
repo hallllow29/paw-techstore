@@ -63,6 +63,7 @@ const orderSchema = new mongoose.Schema(
     metodoPagamento: { type: String, enum: PAYMENT_METHODS, default: 'entrega' },
     pago: { type: Boolean, default: false },
     stripeSessionId: { type: String, default: '' },
+    paypalOrderId: { type: String, default: '' },
     // Referência Multibanco (gerada quando o método é multibanco)
     multibanco: {
       entidade: { type: String, default: '' },

@@ -6,6 +6,9 @@ import {
   payMbway,
   confirmMultibanco,
   payCartao,
+  payPaypal,
+  createPaypalCheckout,
+  confirmPaypal,
 } from '../controllers/payment.controller.js';
 import { auth, authorize } from '../middleware/auth.js';
 
@@ -88,5 +91,44 @@ router.post('/multibanco/:orderId/confirmar', authorize('cliente'), confirmMulti
  *       200: { description: Pago }
  */
 router.post('/cartao/:orderId', authorize('cliente'), payCartao);
+
+/**
+ * @openapi
+ * /api/payments/paypal/confirm:
+ *   post:
+ *     tags: [Pagamentos]
+ *     summary: Captura a ordem PayPal no regresso (sandbox/real)
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200: { description: "{ pago: boolean }" }
+ */
+router.post('/paypal/confirm', authorize('cliente'), confirmPaypal);
+
+/**
+ * @openapi
+ * /api/payments/paypal/{orderId}/create:
+ *   post:
+ *     tags: [Pagamentos]
+ *     summary: Cria uma ordem PayPal real (sandbox) e devolve a URL de aprovação
+ *     security: [{ bearerAuth: [] }]
+ *     parameters: [{ in: path, name: orderId, required: true, schema: { type: string } }]
+ *     responses:
+ *       200: { description: "URL de aprovação PayPal" }
+ *       503: { description: PayPal não configurado }
+ */
+router.post('/paypal/:orderId/create', authorize('cliente'), createPaypalCheckout);
+
+/**
+ * @openapi
+ * /api/payments/paypal/{orderId}:
+ *   post:
+ *     tags: [Pagamentos]
+ *     summary: Pagamento por PayPal (simulado, quando o PayPal não está configurado)
+ *     security: [{ bearerAuth: [] }]
+ *     parameters: [{ in: path, name: orderId, required: true, schema: { type: string } }]
+ *     responses:
+ *       200: { description: Pago }
+ */
+router.post('/paypal/:orderId', authorize('cliente'), payPaypal);
 
 export default router;

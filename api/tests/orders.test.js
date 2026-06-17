@@ -342,6 +342,24 @@ test('pagamento MB WAY marca a encomenda como paga', async () => {
   assert.equal(pay.body.pago, true);
 });
 
+test('pagamento PayPal simulado marca a encomenda como paga', async () => {
+  const r = await request(app)
+    .post('/api/orders')
+    .set(auth(tokens.cliente))
+    .send({
+      metodoEntrega: 'levantamento_loja',
+      metodoPagamento: 'paypal',
+      itens: [{ produto: produto._id, quantidade: 1 }],
+    });
+  assert.equal(r.body.order.metodoPagamento, 'paypal');
+
+  const pay = await request(app)
+    .post(`/api/payments/paypal/${r.body.order._id}`)
+    .set(auth(tokens.cliente));
+  assert.equal(pay.status, 200);
+  assert.equal(pay.body.pago, true);
+});
+
 test('cliente avalia um produto que comprou (média atualiza, não duplica)', async () => {
   const r = await request(app)
     .post('/api/orders')
