@@ -7,8 +7,8 @@ import { API_URL } from '../config';
 export class PaymentService {
   private readonly http = inject(HttpClient);
 
-  config(): Observable<{ enabled: boolean }> {
-    return this.http.get<{ enabled: boolean }>(`${API_URL}/payments/config`);
+  config(): Observable<{ enabled: boolean; paypal: boolean }> {
+    return this.http.get<{ enabled: boolean; paypal: boolean }>(`${API_URL}/payments/config`);
   }
 
   checkout(orderId: string): Observable<{ url: string }> {
@@ -32,5 +32,22 @@ export class PaymentService {
 
   cartao(orderId: string): Observable<{ pago: boolean }> {
     return this.http.post<{ pago: boolean }>(`${API_URL}/payments/cartao/${orderId}`, {});
+  }
+
+  /** PayPal simulado (quando não há credenciais configuradas). */
+  paypal(orderId: string): Observable<{ pago: boolean }> {
+    return this.http.post<{ pago: boolean }>(`${API_URL}/payments/paypal/${orderId}`, {});
+  }
+
+  /** Cria uma ordem PayPal real (sandbox) e devolve a URL de aprovação. */
+  createPaypal(orderId: string): Observable<{ url: string }> {
+    return this.http.post<{ url: string }>(`${API_URL}/payments/paypal/${orderId}/create`, {});
+  }
+
+  /** Captura a ordem PayPal no regresso. */
+  confirmPaypal(paypalOrderId: string): Observable<{ pago: boolean }> {
+    return this.http.post<{ pago: boolean }>(`${API_URL}/payments/paypal/confirm`, {
+      paypalOrderId,
+    });
   }
 }

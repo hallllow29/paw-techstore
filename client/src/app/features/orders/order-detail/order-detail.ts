@@ -31,6 +31,7 @@ export class OrderDetail implements OnInit {
   protected readonly auth = inject(AuthService);
 
   readonly stripeAtivo = signal(false);
+  readonly paypalAtivo = signal(false);
   readonly pagando = signal(false);
 
   readonly order = signal<Order | null>(null);
@@ -85,18 +86,33 @@ export class OrderDetail implements OnInit {
         return 'Confirmar pagamento MB WAY';
       case 'multibanco':
         return 'Já efetuei o pagamento';
+      case 'paypal':
+        return 'Pagar com PayPal';
       default:
         return 'Pagar';
     }
   });
 
   ngOnInit(): void {
-    this.payments.config().subscribe((c) => this.stripeAtivo.set(c.enabled));
-    const sessionId = this.route.snapshot.queryParamMap.get('session_id');
+    this.payments.config().subscribe((c) => {
+      this.stripeAtivo.set(c.enabled);
+      this.paypalAtivo.set(c.paypal);
+    });
+    const params = this.route.snapshot.queryParamMap;
+    const sessionId = params.get('session_id'); // regresso do Stripe
+    const paypalToken = params.get('token'); // regresso do PayPal (?token=<orderId>&PayerID=...)
     if (sessionId) {
       this.payments.confirm(sessionId).subscribe({
         next: (res) => {
           if (res.pago) this.toast.success('Pagamento confirmado!');
+          this.load();
+        },
+        error: () => this.load(),
+      });
+    } else if (paypalToken) {
+      this.payments.confirmPaypal(paypalToken).subscribe({
+        next: (res) => {
+          if (res.pago) this.toast.success('Pagamento PayPal confirmado!');
           this.load();
         },
         error: () => this.load(),
@@ -141,6 +157,16 @@ export class OrderDetail implements OnInit {
         break;
       case 'multibanco':
         this.payments.confirmarMultibanco(o._id).subscribe({ next: concluido, error: falha });
+        break;
+      case 'paypal':
+        if (this.paypalAtivo()) {
+          this.payments.createPaypal(o._id).subscribe({
+            next: (res) => (globalThis.location.href = res.url),
+            error: falha,
+          });
+        } else {
+          this.payments.paypal(o._id).subscribe({ next: concluido, error: falha });
+        }
         break;
       default:
         this.pagando.set(false);

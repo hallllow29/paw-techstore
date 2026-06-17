@@ -1,12 +1,13 @@
 import { User } from './user.model';
 
 export type DeliveryMethod = 'levantamento_loja' | 'estafeta' | 'transportadora';
-export type PaymentMethod = 'mbway' | 'multibanco' | 'cartao' | 'entrega';
+export type PaymentMethod = 'mbway' | 'multibanco' | 'cartao' | 'paypal' | 'entrega';
 
 export const PAYMENT_LABELS: Record<PaymentMethod, string> = {
   mbway: 'MB WAY',
   multibanco: 'Multibanco',
   cartao: 'Cartão',
+  paypal: 'PayPal',
   entrega: 'Pagar na entrega',
 };
 

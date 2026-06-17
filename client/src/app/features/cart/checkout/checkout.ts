@@ -56,6 +56,7 @@ export class Checkout implements OnInit {
   // Pagamento
   readonly pagamento = signal<PaymentMethod>('mbway');
   readonly stripeAtivo = signal(false);
+  readonly paypalAtivo = signal(false);
   protected telefoneMbway = '';
   protected cartaoNumero = '';
   protected cartaoValidade = '';
@@ -90,7 +91,10 @@ export class Checkout implements OnInit {
       if (ativos.length) this.selecionado.set(ativos[0].metodo);
     });
     this.store.couriers().subscribe((c) => this.estafetas.set(c));
-    this.payments.config().subscribe((c) => this.stripeAtivo.set(c.enabled));
+    this.payments.config().subscribe((c) => {
+      this.stripeAtivo.set(c.enabled);
+      this.paypalAtivo.set(c.paypal);
+    });
   }
 
   aplicarCupao(): void {
@@ -193,6 +197,19 @@ export class Checkout implements OnInit {
         } else {
           this.payments.cartao(orderId).subscribe({
             next: () => irParaEncomenda('Pagamento por cartão confirmado'),
+            error: falhaPagamento,
+          });
+        }
+        break;
+      case 'paypal':
+        if (this.paypalAtivo()) {
+          this.payments.createPaypal(orderId).subscribe({
+            next: (r) => (globalThis.location.href = r.url),
+            error: falhaPagamento,
+          });
+        } else {
+          this.payments.paypal(orderId).subscribe({
+            next: () => irParaEncomenda('Pagamento PayPal confirmado'),
             error: falhaPagamento,
           });
         }
