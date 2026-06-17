@@ -4,6 +4,21 @@
       <h1 class="h4 mb-1">Entrar</h1>
       <p class="text-muted small mb-3">Acede à tua conta ElSircários Tech Store.</p>
 
+      @if (naoConfirmado()) {
+        <div class="alert alert-warning py-2 small">
+          <i class="bi bi-envelope-exclamation"></i> {{ error() }}
+          @if (emailParaReenvio()) {
+            <button
+              type="button"
+              class="btn btn-sm btn-brand w-100 mt-2"
+              (click)="reenviarConfirmacao()"
+            >
+              <i class="bi bi-arrow-repeat"></i> Reenviar email de confirmação
+            </button>
+          }
+        </div>
+      }
+
       <fieldset class="border-0 p-0 m-0 mb-4">
         <legend class="visually-hidden">Método de login</legend>
         <div class="btn-group w-100">
@@ -55,7 +70,7 @@
             <a routerLink="/recuperar" class="small text-decoration-none">Esqueci-me da password</a>
           </div>
 
-          @if (error()) {
+          @if (error() && !naoConfirmado()) {
             <div class="alert alert-danger py-2 small">{{ error() }}</div>
           }
 
@@ -69,18 +84,6 @@
         </form>
       } @else {
         <form [formGroup]="otpForm" novalidate>
-          <div class="mb-3">
-            <label class="form-label" for="otp-email">Email</label>
-            <input
-              id="otp-email"
-              type="email"
-              class="form-control"
-              formControlName="email"
-              autocomplete="email"
-              [readonly]="otpEnviado()"
-            />
-          </div>
-
           @if (!otpEnviado()) {
             <fieldset class="border-0 p-0 m-0 mb-2">
               <legend class="visually-hidden">Como receber o código</legend>
@@ -90,7 +93,7 @@
                   class="btn"
                   [class.btn-brand]="canal() === 'email'"
                   [class.btn-outline-secondary]="canal() !== 'email'"
-                  (click)="canal.set('email')"
+                  (click)="setCanal('email')"
                 >
                   <i class="bi bi-envelope"></i> Email
                 </button>
@@ -99,20 +102,49 @@
                   class="btn"
                   [class.btn-brand]="canal() === 'sms'"
                   [class.btn-outline-secondary]="canal() !== 'sms'"
-                  (click)="canal.set('sms')"
+                  (click)="setCanal('sms')"
                 >
                   <i class="bi bi-chat-dots"></i> SMS
                 </button>
               </div>
             </fieldset>
+          }
+
+          <div class="mb-3">
+            @if (canal() === 'sms') {
+              <label class="form-label" for="otp-id">Telemóvel</label>
+              <input
+                id="otp-id"
+                type="tel"
+                inputmode="tel"
+                class="form-control"
+                formControlName="identificador"
+                placeholder="Ex.: 912345678"
+                autocomplete="tel"
+                [readonly]="otpEnviado()"
+              />
+            } @else {
+              <label class="form-label" for="otp-id">Email</label>
+              <input
+                id="otp-id"
+                type="email"
+                class="form-control"
+                formControlName="identificador"
+                autocomplete="email"
+                [readonly]="otpEnviado()"
+              />
+            }
+          </div>
+
+          @if (!otpEnviado()) {
             <p class="text-muted small">
               @if (canal() === 'sms') {
-                Enviamos um código de 6 dígitos por SMS para o telemóvel da tua conta de cliente.
+                Enviamos um código de 6 dígitos por SMS para esse telemóvel (conta de cliente).
               } @else {
                 Enviamos um código de 6 dígitos para o email. Disponível para contas de cliente.
               }
             </p>
-            @if (error()) {
+            @if (error() && !naoConfirmado()) {
               <div class="alert alert-danger py-2 small">{{ error() }}</div>
             }
             <button
@@ -151,7 +183,7 @@
               </div>
             }
 
-            @if (error()) {
+            @if (error() && !naoConfirmado()) {
               <div class="alert alert-danger py-2 small">{{ error() }}</div>
             }
 
@@ -170,9 +202,9 @@
             <button
               type="button"
               class="btn btn-link w-100 mt-1 text-muted"
-              (click)="trocarEmail()"
+              (click)="trocarIdentificador()"
             >
-              Usar outro email / reenviar código
+              Usar outro contacto / reenviar código
             </button>
           }
         </form>

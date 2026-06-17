@@ -35,8 +35,10 @@ export class Register {
 
     this.auth.register(this.form.getRawValue()).subscribe({
       next: () => {
-        this.toast.success('Conta criada! Enviámos um email para confirmares a tua conta.');
-        this.router.navigate(['/']);
+        this.toast.success(
+          'Conta criada! Confirma o teu email (enviámos-te um link) para poderes entrar.',
+        );
+        this.router.navigate(['/login']);
       },
       error: (err) => {
         this.error.set(err?.error?.message ?? 'Falha no registo');

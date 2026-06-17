@@ -27,10 +27,12 @@ export class AuthService {
     return localStorage.getItem(TOKEN_KEY);
   }
 
-  register(data: RegisterData): Observable<AuthResponse> {
-    return this.http
-      .post<AuthResponse>(`${API_URL}/auth/register`, data)
-      .pipe(tap((res) => this.setSession(res)));
+  /** Regista a conta. NÃO inicia sessão — exige confirmação de email primeiro. */
+  register(data: RegisterData): Observable<{ success: boolean; message: string; user: User }> {
+    return this.http.post<{ success: boolean; message: string; user: User }>(
+      `${API_URL}/auth/register`,
+      data,
+    );
   }
 
   login(email: string, password: string): Observable<AuthResponse> {
@@ -45,21 +47,32 @@ export class AuthService {
       .pipe(tap((res) => this._user.set(res.user)));
   }
 
-  /** Pede um código de acesso (login sem password, clientes) por email ou SMS. */
+  /**
+   * Pede um código de acesso (clientes). No canal SMS o identificador é o
+   * telemóvel; no email, é o email.
+   */
   requestOtp(
-    email: string,
+    identificador: string,
     canal: 'email' | 'sms' = 'email',
   ): Observable<{ message: string; devCode?: string }> {
-    return this.http.post<{ message: string; devCode?: string }>(`${API_URL}/auth/otp/request`, {
-      email,
-      canal,
-    });
+    const body =
+      canal === 'sms' ? { telefone: identificador, canal } : { email: identificador, canal };
+    return this.http.post<{ message: string; devCode?: string }>(
+      `${API_URL}/auth/otp/request`,
+      body,
+    );
   }
 
-  /** Valida o código e inicia a sessão. */
-  verifyOtp(email: string, code: string): Observable<AuthResponse> {
+  /** Valida o código (por email ou telemóvel) e inicia a sessão. */
+  verifyOtp(
+    identificador: string,
+    code: string,
+    canal: 'email' | 'sms' = 'email',
+  ): Observable<AuthResponse> {
+    const body =
+      canal === 'sms' ? { telefone: identificador, code } : { email: identificador, code };
     return this.http
-      .post<AuthResponse>(`${API_URL}/auth/otp/verify`, { email, code })
+      .post<AuthResponse>(`${API_URL}/auth/otp/verify`, body)
       .pipe(tap((res) => this.setSession(res)));
   }
 
@@ -96,12 +109,11 @@ export class AuthService {
       );
   }
 
-  /** Reenvia o email de confirmação (utilizador autenticado). */
-  resendVerification(): Observable<{ success: boolean; message: string }> {
-    return this.http.post<{ success: boolean; message: string }>(
-      `${API_URL}/auth/email/resend`,
-      {},
-    );
+  /** Reenvia o email de confirmação (público, por email). */
+  resendVerification(email: string): Observable<{ success: boolean; message: string }> {
+    return this.http.post<{ success: boolean; message: string }>(`${API_URL}/auth/email/resend`, {
+      email,
+    });
   }
 
   changePassword(currentPassword: string, newPassword: string): Observable<unknown> {
