@@ -28,6 +28,7 @@ import {
   forgotPasswordRules,
   resetPasswordRules,
   emailVerifyRules,
+  resendVerificationRules,
 } from '../validators/auth.validator.js';
 
 const router = Router();
@@ -69,7 +70,7 @@ const authLimiter =
  *               telefone: { type: string }
  *               role: { type: string, enum: [cliente, estafeta] }
  *     responses:
- *       201: { description: Conta criada (devolve token + user) }
+ *       201: { description: "Conta criada (sem login — exige confirmação de email)" }
  *       409: { description: Email já registado }
  *       422: { description: Dados inválidos }
  */
@@ -216,13 +217,26 @@ router.post('/email/verify', authLimiter, emailVerifyRules, validate, verifyEmai
  * /api/auth/email/resend:
  *   post:
  *     tags: [Auth]
- *     summary: Reenvia o email de confirmação (autenticado)
- *     security: [{ bearerAuth: [] }]
+ *     summary: Reenvia o email de confirmação (público, por email)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email: { type: string, format: email }
  *     responses:
- *       200: { description: Email reenviado (ou já confirmado) }
- *       401: { description: Não autenticado }
+ *       200: { description: "Resposta genérica (não revela se a conta existe)" }
  */
-router.post('/email/resend', authLimiter, auth, resendVerification);
+router.post(
+  '/email/resend',
+  authLimiter,
+  resendVerificationRules,
+  validate,
+  resendVerification
+);
 
 /**
  * @openapi

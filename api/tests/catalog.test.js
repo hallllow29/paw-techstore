@@ -74,8 +74,9 @@ before(async () => {
     email: 'loja@t.pt',
     password: 'loja1234',
     morada: 'x',
-    telefone: '9',
+    telefone: '9loja',
     role: 'loja',
+    emailVerificado: true,
   });
   const login = await request(app)
     .post('/api/auth/login')

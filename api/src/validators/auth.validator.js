@@ -21,12 +21,23 @@ export const loginRules = [
 ];
 
 export const otpRequestRules = [
-  body('email').isEmail().withMessage('Email inválido').normalizeEmail(),
   body('canal').optional().isIn(['email', 'sms']).withMessage('Canal inválido'),
+  // Canal SMS identifica-se pelo telemóvel; os restantes pelo email.
+  body('email')
+    .if(body('canal').not().equals('sms'))
+    .isEmail()
+    .withMessage('Email inválido')
+    .normalizeEmail(),
+  body('telefone')
+    .if(body('canal').equals('sms'))
+    .trim()
+    .notEmpty()
+    .withMessage('Indica o número de telemóvel da conta'),
 ];
 
 export const otpVerifyRules = [
-  body('email').isEmail().withMessage('Email inválido').normalizeEmail(),
+  body('email').optional().isEmail().withMessage('Email inválido').normalizeEmail(),
+  body('telefone').optional().trim().notEmpty(),
   body('code')
     .trim()
     .isLength({ min: 6, max: 6 })
@@ -60,6 +71,10 @@ export const emailVerifyRules = [
     .trim()
     .isLength({ min: 32, max: 128 })
     .withMessage('Token inválido'),
+];
+
+export const resendVerificationRules = [
+  body('email').isEmail().withMessage('Email inválido').normalizeEmail(),
 ];
 
 export const changePasswordRules = [

@@ -81,12 +81,17 @@ export const register = asyncHandler(async (req, res) => {
     status,
   });
 
-  // Envia o email de confirmação (best-effort — não bloqueia o registo)
+  // Envia o email de confirmação. A conta só fica validada após confirmar —
+  // não há auto-login (o utilizador tem de clicar no link primeiro).
   const emailToken = await enviarConfirmacaoEmail(user);
 
-  const token = signToken(user);
-  const payload = { success: true, token, user };
-  // Só em testes devolvemos o token do email (em produção iria por email).
+  const payload = {
+    success: true,
+    user,
+    message:
+      'Conta criada! Enviámos um link para confirmares o teu email — confirma para poderes entrar.',
+  };
+  // Só em testes devolvemos o token do email (em produção iria só por email).
   if (env.nodeEnv === 'test') payload.devEmailToken = emailToken;
   res.status(201).json(payload);
 });
@@ -112,21 +117,23 @@ export const verifyEmail = asyncHandler(async (req, res) => {
   res.json({ success: true, message: 'Email confirmado com sucesso', user });
 });
 
-/** POST /api/auth/email/resend — reenvia o email de confirmação (autenticado). */
+/** POST /api/auth/email/resend — reenvia o email de confirmação (público, por email). */
 export const resendVerification = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id);
-  if (!user) {
-    res.status(404);
-    throw new Error('Utilizador não encontrado');
-  }
-  if (user.emailVerificado) {
-    return res.json({ success: true, message: 'O teu email já está confirmado.' });
+  const { email } = req.body;
+  // Resposta genérica — não revela se a conta existe nem o seu estado.
+  const generic = {
+    success: true,
+    message: 'Se existir uma conta por confirmar com esse email, reenviámos o link.',
+  };
+
+  const user = await User.findOne({ email });
+  if (!user || user.emailVerificado || STATUS_BLOQUEADO.has(user.status)) {
+    return res.json(generic);
   }
 
   const emailToken = await enviarConfirmacaoEmail(user);
-  const payload = { success: true, message: 'Email de confirmação reenviado.' };
-  if (env.nodeEnv === 'test') payload.devEmailToken = emailToken;
-  res.json(payload);
+  if (env.nodeEnv === 'test') return res.json({ ...generic, devEmailToken: emailToken });
+  return res.json(generic);
 });
 
 /** POST /api/auth/login — autentica e devolve um JWT. */
@@ -147,6 +154,14 @@ export const login = asyncHandler(async (req, res) => {
   if (user.status === 'banido') {
     res.status(403);
     throw new Error('Conta suspensa. Contacta o administrador.');
+  }
+  // Conta não validada enquanto o email não for confirmado.
+  if (!user.emailVerificado) {
+    return res.status(403).json({
+      success: false,
+      naoConfirmado: true,
+      message: 'Confirma o teu email antes de entrares. Verifica a tua caixa de entrada.',
+    });
   }
 
   const token = signToken(user);
@@ -209,17 +224,20 @@ export const updateAvatar = asyncHandler(async (req, res) => {
   res.json({ success: true, user });
 });
 
-/** POST /api/auth/otp/request — envia um código de acesso por email (só clientes). */
+/** POST /api/auth/otp/request — envia um código de acesso (email ou SMS, só clientes). */
 export const requestOtp = asyncHandler(async (req, res) => {
-  const { email, canal } = req.body;
+  const { email, telefone, canal } = req.body;
   const porSms = canal === 'sms';
-  const user = await User.findOne({ email });
+  // No canal SMS o cliente identifica-se pelo telemóvel; no email, pelo email.
+  const user = porSms
+    ? await User.findOne({ telefone, role: 'cliente' })
+    : await User.findOne({ email });
 
   // Resposta genérica para não revelar se a conta existe.
   const generic = {
     success: true,
     message: porSms
-      ? 'Se existir uma conta de cliente com esse email, enviámos um código por SMS.'
+      ? 'Se existir uma conta de cliente com esse telemóvel, enviámos um código por SMS.'
       : 'Se existir uma conta de cliente com esse email, enviámos um código.',
   };
 
@@ -256,8 +274,10 @@ export const requestOtp = asyncHandler(async (req, res) => {
 
 /** POST /api/auth/otp/verify — valida o código e devolve um JWT. */
 export const verifyOtp = asyncHandler(async (req, res) => {
-  const { email, code } = req.body;
-  const user = await User.findOne({ email }).select(
+  const { email, telefone, code } = req.body;
+  // Identifica a conta pelo telemóvel (SMS) ou pelo email, conforme o canal usado.
+  const query = telefone ? { telefone, role: 'cliente' } : { email };
+  const user = await User.findOne(query).select(
     '+otpHash +otpExpiresAt +otpAttempts +otpPurpose'
   );
 
@@ -280,6 +300,15 @@ export const verifyOtp = asyncHandler(async (req, res) => {
     }
     res.status(401);
     throw new Error('Código inválido ou expirado');
+  }
+
+  // Conta não validada enquanto o email não for confirmado (não consome o OTP).
+  if (!user.emailVerificado) {
+    return res.status(403).json({
+      success: false,
+      naoConfirmado: true,
+      message: 'Confirma o teu email antes de entrares. Verifica a tua caixa de entrada.',
+    });
   }
 
   // Sucesso: limpar o OTP (não pode ser reutilizado) e emitir o token.

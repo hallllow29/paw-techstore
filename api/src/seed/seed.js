@@ -47,12 +47,13 @@ try {
   ]);
 
   // ── Utilizadores ── (contas de demonstração já com email confirmado)
-  for (const u of users) {
+  // Telemóveis distintos: o login por SMS identifica a conta pelo número.
+  for (const [i, u] of users.entries()) {
     await User.create({
       ...u,
       password: PWD,
       morada: 'Rua de Exemplo, 123, Porto',
-      telefone: '910000000',
+      telefone: `91000000${i}`,
       emailVerificado: true,
     });
   }

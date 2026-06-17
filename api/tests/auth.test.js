@@ -27,13 +27,21 @@ const cliente = {
   telefone: '910000000',
 };
 
-test('registo de cliente devolve 201 + token', async () => {
+test('registo de cliente devolve 201 (sem login — exige confirmar email)', async () => {
   const res = await request(app).post('/api/auth/register').send(cliente);
   assert.equal(res.status, 201);
-  assert.ok(res.body.token);
+  assert.equal(res.body.token, undefined); // sem auto-login
   assert.equal(res.body.user.role, 'cliente');
   assert.equal(res.body.user.status, 'ativo');
+  assert.equal(res.body.user.emailVerificado, false);
   assert.equal(res.body.user.password, undefined); // nunca devolver password
+  assert.ok(res.body.devEmailToken);
+  // Confirma o email para que os testes de login seguintes funcionem
+  const conf = await request(app)
+    .post('/api/auth/email/verify')
+    .send({ token: res.body.devEmailToken });
+  assert.equal(conf.status, 200);
+  assert.equal(conf.body.user.emailVerificado, true);
 });
 
 test('registo com email duplicado devolve 409', async () => {
@@ -91,6 +99,7 @@ test('admin aprova um estafeta pendente', async () => {
     morada: 'Loja',
     telefone: '910999999',
     role: 'admin',
+    emailVerificado: true,
   });
   const login = await request(app)
     .post('/api/auth/login')
@@ -163,20 +172,6 @@ test('OTP: o mesmo código não pode ser reutilizado', async () => {
   assert.equal(dois.status, 401);
 });
 
-test('OTP: canal SMS gera código e valida na mesma', async () => {
-  const pedir = await request(app)
-    .post('/api/auth/otp/request')
-    .send({ email: cliente.email, canal: 'sms' });
-  assert.equal(pedir.status, 200);
-  assert.match(String(pedir.body.devCode), /^\d{6}$/);
-
-  const certo = await request(app)
-    .post('/api/auth/otp/verify')
-    .send({ email: cliente.email, code: pedir.body.devCode });
-  assert.equal(certo.status, 200);
-  assert.ok(certo.body.token);
-});
-
 test('OTP: canal inválido devolve 422', async () => {
   const res = await request(app)
     .post('/api/auth/otp/request')
@@ -215,9 +210,13 @@ test('cliente atualiza o próprio perfil', async () => {
 
 test('recuperar password: forgot envia código e reset define nova password', async () => {
   const email = 'reset@example.com';
-  await request(app)
+  const reg = await request(app)
     .post('/api/auth/register')
     .send({ ...cliente, email, password: 'velha123' });
+  // Confirma o email (o login final exige conta validada)
+  await request(app)
+    .post('/api/auth/email/verify')
+    .send({ token: reg.body.devEmailToken });
 
   const forgot = await request(app).post('/api/auth/password/forgot').send({ email });
   assert.equal(forgot.status, 200);
@@ -275,16 +274,13 @@ test('confirmação de email: registo gera token, confirma e não reutiliza', as
   assert.equal(repetir.status, 400);
 });
 
-test('confirmação de email: reenvio (autenticado) gera novo token válido', async () => {
+test('confirmação de email: reenvio público gera novo token válido', async () => {
   const email = 'reenvio@example.com';
-  const reg = await request(app)
+  await request(app)
     .post('/api/auth/register')
     .send({ ...cliente, email });
-  const token = reg.body.token;
 
-  const reenviar = await request(app)
-    .post('/api/auth/email/resend')
-    .set('Authorization', `Bearer ${token}`);
+  const reenviar = await request(app).post('/api/auth/email/resend').send({ email });
   assert.equal(reenviar.status, 200);
   assert.ok(reenviar.body.devEmailToken);
 
@@ -294,15 +290,61 @@ test('confirmação de email: reenvio (autenticado) gera novo token válido', as
   assert.equal(confirma.status, 200);
   assert.equal(confirma.body.user.emailVerificado, true);
 
-  // já confirmado: reenviar responde 200 sem novo token
-  const jaConfirmado = await request(app)
-    .post('/api/auth/email/resend')
-    .set('Authorization', `Bearer ${token}`);
+  // já confirmado: reenviar responde 200 genérico sem novo token
+  const jaConfirmado = await request(app).post('/api/auth/email/resend').send({ email });
   assert.equal(jaConfirmado.status, 200);
   assert.equal(jaConfirmado.body.devEmailToken, undefined);
 });
 
-test('email/resend sem autenticação devolve 401', async () => {
-  const res = await request(app).post('/api/auth/email/resend');
-  assert.equal(res.status, 401);
+test('email/resend para email inexistente devolve 200 genérico (sem token)', async () => {
+  const res = await request(app)
+    .post('/api/auth/email/resend')
+    .send({ email: 'naoexiste@example.com' });
+  assert.equal(res.status, 200);
+  assert.equal(res.body.devEmailToken, undefined);
+});
+
+test('login bloqueado enquanto o email não estiver confirmado', async () => {
+  const email = 'gate@example.com';
+  const reg = await request(app)
+    .post('/api/auth/register')
+    .send({ ...cliente, email });
+
+  const bloqueado = await request(app)
+    .post('/api/auth/login')
+    .send({ email, password: cliente.password });
+  assert.equal(bloqueado.status, 403);
+  assert.equal(bloqueado.body.naoConfirmado, true);
+
+  // Depois de confirmar, já entra
+  await request(app)
+    .post('/api/auth/email/verify')
+    .send({ token: reg.body.devEmailToken });
+  const ok = await request(app)
+    .post('/api/auth/login')
+    .send({ email, password: cliente.password });
+  assert.equal(ok.status, 200);
+  assert.ok(ok.body.token);
+});
+
+test('OTP por SMS identifica a conta pelo telemóvel', async () => {
+  // cria um cliente confirmado com telemóvel único
+  const reg = await request(app)
+    .post('/api/auth/register')
+    .send({ ...cliente, email: 'sms@example.com', telefone: '912345678' });
+  await request(app)
+    .post('/api/auth/email/verify')
+    .send({ token: reg.body.devEmailToken });
+
+  const pedir = await request(app)
+    .post('/api/auth/otp/request')
+    .send({ telefone: '912345678', canal: 'sms' });
+  assert.equal(pedir.status, 200);
+  assert.match(String(pedir.body.devCode), /^\d{6}$/);
+
+  const certo = await request(app)
+    .post('/api/auth/otp/verify')
+    .send({ telefone: '912345678', code: pedir.body.devCode });
+  assert.equal(certo.status, 200);
+  assert.ok(certo.body.token);
 });

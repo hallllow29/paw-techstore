@@ -22,8 +22,9 @@ async function novoUser(role) {
     email,
     password: 'pass1234',
     morada: 'Rua 1',
-    telefone: '9',
+    telefone: `9${role}`,
     role,
+    emailVerificado: true,
   });
   const res = await request(app)
     .post('/api/auth/login')
@@ -288,9 +289,10 @@ test('estafeta pendente não pode operar entregas', async () => {
     email: 'pend@t.pt',
     password: 'pass1234',
     morada: 'x',
-    telefone: '9',
+    telefone: '9pend',
     role: 'estafeta',
     status: 'pendente',
+    emailVerificado: true,
   });
   const login = await request(app)
     .post('/api/auth/login')
