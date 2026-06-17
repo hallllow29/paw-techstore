@@ -164,8 +164,9 @@ export const createPaypalCheckout = asyncHandler(async (req, res) => {
   const { id, approveUrl } = await createPaypalOrder({
     total: order.total,
     ref,
-    // No regresso, o PayPal acrescenta ?token=<paypalOrderId>&PayerID=...
-    returnUrl: `${env.clientUrl}/encomendas/${order._id}`,
+    // Regresso para uma página pública (sem guard) que captura o pagamento.
+    // O PayPal acrescenta ?token=<paypalOrderId>&PayerID=...
+    returnUrl: `${env.clientUrl}/pagamento/paypal`,
     cancelUrl: `${env.clientUrl}/encomendas/${order._id}`,
   });
   order.metodoPagamento = 'paypal';
@@ -174,7 +175,11 @@ export const createPaypalCheckout = asyncHandler(async (req, res) => {
   res.json({ success: true, url: approveUrl });
 });
 
-/** POST /api/payments/paypal/confirm — captura a ordem PayPal no regresso. */
+/**
+ * POST /api/payments/paypal/confirm — captura a ordem PayPal no regresso.
+ * Pública: identificada pelo id da ordem PayPal (devolvido pelo PayPal no URL).
+ * A captura é idempotente e só finaliza um pagamento já aprovado pelo comprador.
+ */
 export const confirmPaypal = asyncHandler(async (req, res) => {
   if (!paypalAtivo()) {
     res.status(503);
@@ -190,10 +195,6 @@ export const confirmPaypal = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error('Encomenda não encontrada');
   }
-  if (String(order.cliente) !== String(req.user._id)) {
-    res.status(403);
-    throw new Error('Sem permissão');
-  }
   if (!order.pago) {
     const { ok } = await capturePaypalOrder(paypalOrderId);
     if (ok) {
@@ -201,5 +202,5 @@ export const confirmPaypal = asyncHandler(async (req, res) => {
       await order.save();
     }
   }
-  res.json({ success: true, pago: order.pago });
+  res.json({ success: true, pago: order.pago, orderId: String(order._id) });
 });

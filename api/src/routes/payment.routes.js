@@ -13,6 +13,21 @@ import {
 import { auth, authorize } from '../middleware/auth.js';
 
 const router = Router();
+
+/**
+ * @openapi
+ * /api/payments/paypal/confirm:
+ *   post:
+ *     tags: [Pagamentos]
+ *     summary: Captura a ordem PayPal no regresso (público — identificado pelo id da ordem)
+ *     responses:
+ *       200: { description: "{ pago: boolean, orderId: string }" }
+ */
+// Pública (sem auth): a aprovação já foi feita pelo comprador no PayPal e a
+// captura é idempotente — só finaliza um pagamento já aprovado. Assim funciona
+// mesmo que a sessão do cliente não sobreviva ao redirect externo.
+router.post('/paypal/confirm', confirmPaypal);
+
 router.use(auth);
 
 /**
@@ -91,18 +106,6 @@ router.post('/multibanco/:orderId/confirmar', authorize('cliente'), confirmMulti
  *       200: { description: Pago }
  */
 router.post('/cartao/:orderId', authorize('cliente'), payCartao);
-
-/**
- * @openapi
- * /api/payments/paypal/confirm:
- *   post:
- *     tags: [Pagamentos]
- *     summary: Captura a ordem PayPal no regresso (sandbox/real)
- *     security: [{ bearerAuth: [] }]
- *     responses:
- *       200: { description: "{ pago: boolean }" }
- */
-router.post('/paypal/confirm', authorize('cliente'), confirmPaypal);
 
 /**
  * @openapi
