@@ -98,21 +98,12 @@ export class OrderDetail implements OnInit {
       this.stripeAtivo.set(c.enabled);
       this.paypalAtivo.set(c.paypal);
     });
-    const params = this.route.snapshot.queryParamMap;
-    const sessionId = params.get('session_id'); // regresso do Stripe
-    const paypalToken = params.get('token'); // regresso do PayPal (?token=<orderId>&PayerID=...)
+    // Regresso do Stripe (o PayPal usa a página pública /pagamento/paypal).
+    const sessionId = this.route.snapshot.queryParamMap.get('session_id');
     if (sessionId) {
       this.payments.confirm(sessionId).subscribe({
         next: (res) => {
           if (res.pago) this.toast.success('Pagamento confirmado!');
-          this.load();
-        },
-        error: () => this.load(),
-      });
-    } else if (paypalToken) {
-      this.payments.confirmPaypal(paypalToken).subscribe({
-        next: (res) => {
-          if (res.pago) this.toast.success('Pagamento PayPal confirmado!');
           this.load();
         },
         error: () => this.load(),

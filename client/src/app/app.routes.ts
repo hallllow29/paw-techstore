@@ -24,6 +24,11 @@ export const routes: Routes = [
       import('./features/auth/confirm-email/confirm-email').then((m) => m.ConfirmEmail),
   },
   {
+    path: 'pagamento/paypal',
+    loadComponent: () =>
+      import('./features/payments/paypal-return/paypal-return').then((m) => m.PaypalReturn),
+  },
+  {
     path: 'produtos',
     loadComponent: () =>
       import('./features/catalog/product-list/product-list').then((m) => m.ProductList),

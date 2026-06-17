@@ -44,10 +44,11 @@ export class PaymentService {
     return this.http.post<{ url: string }>(`${API_URL}/payments/paypal/${orderId}/create`, {});
   }
 
-  /** Captura a ordem PayPal no regresso. */
-  confirmPaypal(paypalOrderId: string): Observable<{ pago: boolean }> {
-    return this.http.post<{ pago: boolean }>(`${API_URL}/payments/paypal/confirm`, {
-      paypalOrderId,
-    });
+  /** Captura a ordem PayPal no regresso (público). Devolve o id da encomenda. */
+  confirmPaypal(paypalOrderId: string): Observable<{ pago: boolean; orderId: string }> {
+    return this.http.post<{ pago: boolean; orderId: string }>(
+      `${API_URL}/payments/paypal/confirm`,
+      { paypalOrderId },
+    );
   }
 }
