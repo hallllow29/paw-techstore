@@ -244,3 +244,65 @@ test('recuperar password: forgot envia código e reset define nova password', as
     .send({ email, password: 'velha123' });
   assert.equal(bad.status, 401);
 });
+
+test('confirmação de email: registo gera token, confirma e não reutiliza', async () => {
+  const email = 'confirma@example.com';
+  const reg = await request(app)
+    .post('/api/auth/register')
+    .send({ ...cliente, email });
+  assert.equal(reg.status, 201);
+  assert.equal(reg.body.user.emailVerificado, false);
+  assert.ok(reg.body.devEmailToken);
+
+  // token inválido → 400
+  const mau = await request(app)
+    .post('/api/auth/email/verify')
+    .send({ token: 'a'.repeat(64) });
+  assert.equal(mau.status, 400);
+
+  // token correto → 200 e email confirmado (hash nunca sai na resposta)
+  const ok = await request(app)
+    .post('/api/auth/email/verify')
+    .send({ token: reg.body.devEmailToken });
+  assert.equal(ok.status, 200);
+  assert.equal(ok.body.user.emailVerificado, true);
+  assert.equal(ok.body.user.emailTokenHash, undefined);
+
+  // reutilizar o mesmo token → 400 (não pode ser usado duas vezes)
+  const repetir = await request(app)
+    .post('/api/auth/email/verify')
+    .send({ token: reg.body.devEmailToken });
+  assert.equal(repetir.status, 400);
+});
+
+test('confirmação de email: reenvio (autenticado) gera novo token válido', async () => {
+  const email = 'reenvio@example.com';
+  const reg = await request(app)
+    .post('/api/auth/register')
+    .send({ ...cliente, email });
+  const token = reg.body.token;
+
+  const reenviar = await request(app)
+    .post('/api/auth/email/resend')
+    .set('Authorization', `Bearer ${token}`);
+  assert.equal(reenviar.status, 200);
+  assert.ok(reenviar.body.devEmailToken);
+
+  const confirma = await request(app)
+    .post('/api/auth/email/verify')
+    .send({ token: reenviar.body.devEmailToken });
+  assert.equal(confirma.status, 200);
+  assert.equal(confirma.body.user.emailVerificado, true);
+
+  // já confirmado: reenviar responde 200 sem novo token
+  const jaConfirmado = await request(app)
+    .post('/api/auth/email/resend')
+    .set('Authorization', `Bearer ${token}`);
+  assert.equal(jaConfirmado.status, 200);
+  assert.equal(jaConfirmado.body.devEmailToken, undefined);
+});
+
+test('email/resend sem autenticação devolve 401', async () => {
+  const res = await request(app).post('/api/auth/email/resend');
+  assert.equal(res.status, 401);
+});

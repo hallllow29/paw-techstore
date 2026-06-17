@@ -48,6 +48,10 @@ const userSchema = new mongoose.Schema(
     moradas: [{ type: String, trim: true }],
     // Foto de perfil (caminho servido em /uploads)
     avatar: { type: String, default: '' },
+    // Confirmação de email (link enviado no registo). Token guardado como hash.
+    emailVerificado: { type: Boolean, default: false },
+    emailTokenHash: { type: String, select: false },
+    emailTokenExpiresAt: { type: Date, select: false },
     // Login por código no email (OTP) — alternativa à password, só para clientes
     otpHash: { type: String, select: false },
     otpExpiresAt: { type: Date, select: false },
@@ -78,6 +82,8 @@ userSchema.set('toJSON', {
     delete ret.otpExpiresAt;
     delete ret.otpAttempts;
     delete ret.otpPurpose;
+    delete ret.emailTokenHash;
+    delete ret.emailTokenExpiresAt;
     return ret;
   },
 });

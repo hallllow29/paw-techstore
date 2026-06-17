@@ -53,6 +53,15 @@ export const resetPasswordRules = [
     .withMessage('A nova password deve ter pelo menos 6 caracteres'),
 ];
 
+export const emailVerifyRules = [
+  body('token')
+    .isString()
+    .withMessage('Token inválido')
+    .trim()
+    .isLength({ min: 32, max: 128 })
+    .withMessage('Token inválido'),
+];
+
 export const changePasswordRules = [
   body('currentPassword').notEmpty().withMessage('Password atual obrigatória'),
   body('newPassword')

@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { randomInt } from 'node:crypto';
+import { randomInt, randomBytes, createHash } from 'node:crypto';
 import { User } from '../models/user.model.js';
 import { signToken } from '../utils/jwt.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
@@ -11,9 +11,42 @@ import { env } from '../config/env.js';
 const OTP_TTL_MIN = 10; // validade do código
 const OTP_MAX_ATTEMPTS = 5; // tentativas antes de obrigar a pedir novo
 const STATUS_BLOQUEADO = new Set(['rejeitado', 'banido']); // sem acesso por OTP/reset
+const EMAIL_TOKEN_TTL_H = 24; // validade do link de confirmação de email
 
 function gerarCodigoOtp() {
   return String(randomInt(100000, 1000000)); // sempre 6 dígitos
+}
+
+const hashToken = (token) => createHash('sha256').update(token).digest('hex');
+
+function verifyEmailHtml(nome, link) {
+  return `<div style="font-family:system-ui,sans-serif;max-width:480px">
+    <h2 style="color:#2563eb;margin:0 0 8px">ElSircários Tech Store</h2>
+    <p>Olá ${nome}, bem-vindo(a)! Confirma o teu email para ativares todas as funcionalidades da conta:</p>
+    <p style="margin:20px 0"><a href="${link}" style="background:#2563eb;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600">Confirmar email</a></p>
+    <p style="color:#666;font-size:13px">Ou copia este endereço para o navegador:<br><span style="word-break:break-all">${link}</span></p>
+    <p style="color:#666;font-size:13px">O link é válido por ${EMAIL_TOKEN_TTL_H} horas. Se não foste tu a criar a conta, ignora este email.</p>
+  </div>`;
+}
+
+/**
+ * Gera um novo token de confirmação, guarda o hash no utilizador e envia o
+ * email com o link. Best-effort no envio (não bloqueia o registo).
+ * Devolve o token em claro (só usado em ambiente de testes).
+ */
+async function enviarConfirmacaoEmail(user) {
+  const token = randomBytes(32).toString('hex');
+  user.emailTokenHash = hashToken(token);
+  user.emailTokenExpiresAt = new Date(Date.now() + EMAIL_TOKEN_TTL_H * 60 * 60 * 1000);
+  await user.save();
+
+  const link = `${env.clientUrl}/confirmar-email?token=${token}`;
+  await sendMail({
+    to: user.email,
+    subject: 'Confirma o teu email — ElSircários Tech Store',
+    html: verifyEmailHtml(user.nome, link),
+  });
+  return token;
 }
 
 function otpEmailHtml(nome, codigo, acao = 'entrares na ElSircários Tech Store') {
@@ -47,9 +80,53 @@ export const register = asyncHandler(async (req, res) => {
     role: finalRole,
     status,
   });
-  const token = signToken(user);
 
-  res.status(201).json({ success: true, token, user });
+  // Envia o email de confirmação (best-effort — não bloqueia o registo)
+  const emailToken = await enviarConfirmacaoEmail(user);
+
+  const token = signToken(user);
+  const payload = { success: true, token, user };
+  // Só em testes devolvemos o token do email (em produção iria por email).
+  if (env.nodeEnv === 'test') payload.devEmailToken = emailToken;
+  res.status(201).json(payload);
+});
+
+/** POST /api/auth/email/verify — confirma o email a partir do token do link. */
+export const verifyEmail = asyncHandler(async (req, res) => {
+  const { token } = req.body;
+  const user = await User.findOne({
+    emailTokenHash: hashToken(String(token)),
+    emailTokenExpiresAt: { $gt: new Date() },
+  }).select('+emailTokenHash +emailTokenExpiresAt');
+
+  if (!user) {
+    res.status(400);
+    throw new Error('Link de confirmação inválido ou expirado');
+  }
+
+  user.emailVerificado = true;
+  user.emailTokenHash = null;
+  user.emailTokenExpiresAt = null;
+  await user.save();
+
+  res.json({ success: true, message: 'Email confirmado com sucesso', user });
+});
+
+/** POST /api/auth/email/resend — reenvia o email de confirmação (autenticado). */
+export const resendVerification = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    res.status(404);
+    throw new Error('Utilizador não encontrado');
+  }
+  if (user.emailVerificado) {
+    return res.json({ success: true, message: 'O teu email já está confirmado.' });
+  }
+
+  const emailToken = await enviarConfirmacaoEmail(user);
+  const payload = { success: true, message: 'Email de confirmação reenviado.' };
+  if (env.nodeEnv === 'test') payload.devEmailToken = emailToken;
+  res.json(payload);
 });
 
 /** POST /api/auth/login — autentica e devolve um JWT. */

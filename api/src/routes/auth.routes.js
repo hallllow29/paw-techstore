@@ -11,6 +11,8 @@ import {
   verifyOtp,
   forgotPassword,
   resetPassword,
+  verifyEmail,
+  resendVerification,
 } from '../controllers/auth.controller.js';
 import { auth } from '../middleware/auth.js';
 import { uploadAvatar } from '../middleware/upload.js';
@@ -25,6 +27,7 @@ import {
   otpVerifyRules,
   forgotPasswordRules,
   resetPasswordRules,
+  emailVerifyRules,
 } from '../validators/auth.validator.js';
 
 const router = Router();
@@ -186,6 +189,40 @@ router.post(
  *       401: { description: Código inválido ou expirado }
  */
 router.post('/password/reset', authLimiter, resetPasswordRules, validate, resetPassword);
+
+/**
+ * @openapi
+ * /api/auth/email/verify:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Confirma o email a partir do token enviado no registo
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [token]
+ *             properties:
+ *               token: { type: string }
+ *     responses:
+ *       200: { description: Email confirmado }
+ *       400: { description: Link inválido ou expirado }
+ */
+router.post('/email/verify', authLimiter, emailVerifyRules, validate, verifyEmail);
+
+/**
+ * @openapi
+ * /api/auth/email/resend:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Reenvia o email de confirmação (autenticado)
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200: { description: Email reenviado (ou já confirmado) }
+ *       401: { description: Não autenticado }
+ */
+router.post('/email/resend', authLimiter, auth, resendVerification);
 
 /**
  * @openapi
