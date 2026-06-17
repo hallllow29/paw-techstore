@@ -1,11 +1,19 @@
 import { body } from 'express-validator';
 
+// Política de password: >= 8 caracteres, com pelo menos uma letra e um número.
+const passwordForte = (campo) =>
+  body(campo)
+    .isLength({ min: 8 })
+    .withMessage('A password deve ter pelo menos 8 caracteres')
+    .matches(/[A-Za-z]/)
+    .withMessage('A password deve conter pelo menos uma letra')
+    .matches(/\d/)
+    .withMessage('A password deve conter pelo menos um número');
+
 export const registerRules = [
   body('nome').trim().notEmpty().withMessage('Nome obrigatório'),
   body('email').isEmail().withMessage('Email inválido').normalizeEmail(),
-  body('password')
-    .isLength({ min: 6 })
-    .withMessage('Password deve ter pelo menos 6 caracteres'),
+  passwordForte('password'),
   body('morada').trim().notEmpty().withMessage('Morada obrigatória'),
   body('telefone').trim().notEmpty().withMessage('Telefone obrigatório'),
   // Auto-registo só permite cliente ou estafeta (loja/admin são criados por seed)
@@ -59,9 +67,7 @@ export const resetPasswordRules = [
     .withMessage('O código tem 6 dígitos')
     .isNumeric()
     .withMessage('Código inválido'),
-  body('newPassword')
-    .isLength({ min: 6 })
-    .withMessage('A nova password deve ter pelo menos 6 caracteres'),
+  passwordForte('newPassword'),
 ];
 
 export const emailVerifyRules = [
@@ -79,9 +85,7 @@ export const resendVerificationRules = [
 
 export const changePasswordRules = [
   body('currentPassword').notEmpty().withMessage('Password atual obrigatória'),
-  body('newPassword')
-    .isLength({ min: 6 })
-    .withMessage('Nova password deve ter pelo menos 6 caracteres'),
+  passwordForte('newPassword'),
 ];
 
 export const profileRules = [

@@ -212,7 +212,7 @@ test('recuperar password: forgot envia código e reset define nova password', as
   const email = 'reset@example.com';
   const reg = await request(app)
     .post('/api/auth/register')
-    .send({ ...cliente, email, password: 'velha123' });
+    .send({ ...cliente, email, password: 'velha1234' });
   // Confirma o email (o login final exige conta validada)
   await request(app)
     .post('/api/auth/email/verify')
@@ -240,7 +240,7 @@ test('recuperar password: forgot envia código e reset define nova password', as
 
   const bad = await request(app)
     .post('/api/auth/login')
-    .send({ email, password: 'velha123' });
+    .send({ email, password: 'velha1234' });
   assert.equal(bad.status, 401);
 });
 
