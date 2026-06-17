@@ -446,6 +446,7 @@ body,
 
 /* ─── Cartões de produto (hover) ─── */
 .product-card {
+  overflow: hidden;
   transition:
     transform 0.15s ease,
     box-shadow 0.15s ease;
@@ -453,6 +454,27 @@ body,
 .product-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 16px 30px rgba(2, 12, 32, 0.12) !important;
+}
+
+/* Moldura da imagem do produto (estilo montra premium) */
+.product-media {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 180px;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(160deg, #f8fafc 0%, #eef2f7 100%);
+  border-bottom: 1px solid #eef1f6;
+  overflow: hidden;
+}
+.product-media img {
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+.product-card:hover .product-media img {
+  transform: scale(1.05);
 }
 
 /* ─── Lista de categorias no offcanvas ─── */
@@ -731,6 +753,10 @@ body,
   .cart-thumb {
     background: #16243c;
     border-color: #233149;
+  }
+  .product-media {
+    background: linear-gradient(160deg, #16243c 0%, #0e1626 100%);
+    border-bottom-color: #233149;
   }
   .qty-stepper {
     border-color: #2a3756;
