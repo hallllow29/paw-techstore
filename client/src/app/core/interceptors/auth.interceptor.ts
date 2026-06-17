@@ -2,7 +2,7 @@ import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
-import { API_ORIGIN, TOKEN_KEY } from '../config';
+import { API_ORIGIN, readToken } from '../config';
 import { AuthService } from '../services/auth.service';
 
 /**
@@ -13,9 +13,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const auth = inject(AuthService);
 
-  // Lê direto do storage para evitar dependência circular na construção do service.
-  // Só anexa o JWT a pedidos para a nossa API (não a serviços externos como o mapa).
-  const token = localStorage.getItem(TOKEN_KEY);
+  // Lê direto do storage (com fallback a cookie) para evitar dependência
+  // circular na construção do service. Só anexa o JWT a pedidos para a nossa API.
+  const token = readToken();
   const request =
     token && req.url.startsWith(API_ORIGIN)
       ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })

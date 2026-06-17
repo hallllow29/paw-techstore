@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
-import { API_URL, TOKEN_KEY } from '../config';
+import { API_URL, readToken, storeToken, clearToken } from '../config';
 import { AuthResponse, RegisterData, Role, User } from '../models/user.model';
 import { CartService } from './cart.service';
 
@@ -24,7 +24,7 @@ export class AuthService {
   }
 
   get token(): string | null {
-    return localStorage.getItem(TOKEN_KEY);
+    return readToken();
   }
 
   /** Regista a conta. NÃO inicia sessão — exige confirmação de email primeiro. */
@@ -140,7 +140,7 @@ export class AuthService {
   }
 
   logout(): void {
-    localStorage.removeItem(TOKEN_KEY);
+    clearToken();
     this._user.set(null);
     // O carrinho não deve sobreviver à sessão (nem ficar visível ao próximo
     // utilizador numa máquina partilhada).
@@ -153,7 +153,7 @@ export class AuthService {
   }
 
   private setSession(res: AuthResponse): void {
-    localStorage.setItem(TOKEN_KEY, res.token);
+    storeToken(res.token);
     this._user.set(res.user);
   }
 }
