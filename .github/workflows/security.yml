@@ -10,6 +10,7 @@ on:
 permissions:
   contents: read
   security-events: write # para upload de SARIF (GitHub Security tab)
+  actions: read # Semgrep lê o workflow-run (telemetria/status report)
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -51,7 +52,7 @@ jobs:
         run: semgrep scan --config auto --sarif --output semgrep.sarif
         continue-on-error: true
       - name: Upload SARIF para GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         continue-on-error: true # repo privado sem Advanced Security: não bloqueia
         with:
@@ -141,6 +142,7 @@ jobs:
           target: "http://localhost:3000"
           cmd_options: "-a"
           fail_action: false
+          allow_issue_writing: false # não cria issue (token sem issues:write); relatório fica como artefacto
       - name: Parar a stack
         if: always()
         run: docker compose down -v
