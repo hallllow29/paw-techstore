@@ -9,6 +9,12 @@ RUN npm ci --omit=dev
 
 COPY . .
 
+# Corre como utilizador NÃO-ROOT (mitiga "container as root" / AVD-DS-0002).
+# O utilizador 'node' já existe na imagem oficial; a pasta de uploads (escrita
+# em runtime) passa a pertencer-lhe para o processo poder gravar lá.
+RUN mkdir -p uploads && chown -R node:node uploads
+USER node
+
 EXPOSE 3000
 
 # Healthcheck usa a rota /api/health

@@ -6,9 +6,9 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-# Serve os ficheiros estáticos com nginx
-FROM nginx:alpine
+# Serve os ficheiros estáticos com nginx NÃO-ROOT (mitiga AVD-DS-0002).
+# A imagem 'nginx-unprivileged' corre como uid 101 (nginx) e escuta na 8080.
+FROM nginxinc/nginx-unprivileged:alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist/client/browser /usr/share/nginx/html
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+EXPOSE 8080
