@@ -13,6 +13,13 @@ export interface CreateOrderPayload {
   cupao?: string;
 }
 
+export interface Courier {
+  _id: string;
+  nome: string;
+  disponivel: boolean;
+  ocupado: boolean;
+}
+
 interface OrderResponse {
   success: boolean;
   order: Order;
@@ -49,6 +56,14 @@ export class OrderService {
   setEstado(id: string, estado: string) {
     return this.http.patch<OrderResponse>(`${API_URL}/orders/${id}/estado`, { estado });
   }
+  /** Estafetas e a sua disponibilidade (para a loja atribuir). */
+  couriers(): Observable<{ estafetas: Courier[] }> {
+    return this.http.get<{ estafetas: Courier[] }>(`${API_URL}/orders/entregas/estafetas`);
+  }
+  /** A loja atribui a entrega a um estafeta. */
+  assign(id: string, estafetaId: string) {
+    return this.http.patch<OrderResponse>(`${API_URL}/orders/${id}/atribuir`, { estafetaId });
+  }
 
   // Estafeta
   available(): Observable<OrderListResponse> {
@@ -62,5 +77,12 @@ export class OrderService {
   }
   deliver(id: string) {
     return this.http.patch<OrderResponse>(`${API_URL}/orders/${id}/entregue`, {});
+  }
+  /** Liga/desliga a disponibilidade do estafeta. */
+  setDisponibilidade(disponivel: boolean) {
+    return this.http.patch<{ success: boolean; disponivel: boolean }>(
+      `${API_URL}/orders/entregas/disponibilidade`,
+      { disponivel },
+    );
   }
 }

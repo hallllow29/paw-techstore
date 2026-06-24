@@ -26,6 +26,28 @@ export class Deliveries implements OnInit {
   // Estafeta ainda não aprovado pelo admin
   readonly contaPendente = computed(() => this.auth.user()?.status !== 'ativo');
 
+  // Disponibilidade para receber entregas (pode desligar para uma folga)
+  readonly disponivel = signal<boolean>(this.auth.user()?.disponivel ?? true);
+  readonly aSalvarDisp = signal(false);
+
+  alternarDisponibilidade(): void {
+    const novo = !this.disponivel();
+    this.aSalvarDisp.set(true);
+    this.orders.setDisponibilidade(novo).subscribe({
+      next: () => {
+        this.disponivel.set(novo);
+        this.aSalvarDisp.set(false);
+        this.toast.success(
+          novo ? 'Estás disponível para entregas' : 'Ficaste indisponível (folga)',
+        );
+      },
+      error: () => {
+        this.aSalvarDisp.set(false);
+        this.toast.error('Não foi possível atualizar a disponibilidade');
+      },
+    });
+  }
+
   /** Partilha a localização real (GPS) durante a entrega. */
   partilhar(o: Order): void {
     if (!navigator.geolocation) {

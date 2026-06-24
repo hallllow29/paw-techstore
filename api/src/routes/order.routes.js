@@ -10,6 +10,9 @@ import {
   markDelivered,
   myDeliveries,
   getOrder,
+  listCouriers,
+  assignDelivery,
+  setDisponibilidade,
 } from '../controllers/order.controller.js';
 import { auth, authorize } from '../middleware/auth.js';
 import { requireActive } from '../middleware/requireActive.js';
@@ -60,6 +63,13 @@ router.get(
   availableDeliveries
 );
 router.get('/entregas/minhas', authorize('estafeta'), myDeliveries);
+router.get('/entregas/estafetas', authorize('loja', 'admin'), listCouriers);
+router.patch(
+  '/entregas/disponibilidade',
+  authorize('estafeta'),
+  requireActive,
+  setDisponibilidade
+);
 
 /**
  * @openapi
@@ -77,6 +87,7 @@ router.patch('/:id/cancelar', authorize('cliente'), cancelOrder);
 router.patch('/:id/estado', authorize('loja', 'admin'), updateStatus);
 router.patch('/:id/aceitar', authorize('estafeta'), requireActive, acceptDelivery);
 router.patch('/:id/entregue', authorize('estafeta'), requireActive, markDelivered);
+router.patch('/:id/atribuir', authorize('loja', 'admin'), assignDelivery);
 
 /**
  * @openapi

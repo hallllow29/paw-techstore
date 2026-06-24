@@ -57,7 +57,9 @@
                   } @else if (o.metodoPagamento === 'entrega') {
                     <span class="badge text-bg-secondary">Na entrega</span>
                   } @else {
-                    <span class="badge text-bg-light text-dark border">Por pagar</span>
+                    <span class="badge bg-secondary-subtle text-secondary-emphasis border"
+                      >Por pagar</span
+                    >
                   }
                 </td>
                 <td class="text-end fw-semibold">{{ o.total | number: '1.2-2' }} €</td>
@@ -70,7 +72,25 @@
                       → {{ labels[prox] }}
                     </button>
                   } @else if (o.estado === 'em_preparacao' && o.metodoEntrega === 'estafeta') {
-                    <span class="small text-muted">aguarda estafeta</span>
+                    <div class="input-group input-group-sm justify-content-end mt-1">
+                      <select
+                        class="form-select form-select-sm"
+                        style="max-width: 160px"
+                        (change)="setEstafeta(o._id, $any($event.target).value)"
+                        aria-label="Escolher estafeta"
+                      >
+                        <option value="">Escolher estafeta…</option>
+                        @for (e of couriers(); track e._id) {
+                          <option [value]="e._id" [disabled]="!e.disponivel">
+                            {{ e.nome
+                            }}{{ e.disponivel ? '' : e.ocupado ? ' (ocupado)' : ' (indisp.)' }}
+                          </option>
+                        }
+                      </select>
+                      <button class="btn btn-brand" type="button" (click)="atribuir(o)">
+                        Atribuir
+                      </button>
+                    </div>
                   }
                 </td>
               </tr>

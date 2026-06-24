@@ -77,22 +77,60 @@ export async function notifyOrderStatus(order) {
   }
 }
 
+/** Notifica todas as contas de loja (best-effort). */
+async function notifyLojas({ titulo, mensagem, link = '/loja/encomendas' }) {
+  const lojas = await User.find({ role: 'loja' }).select('_id');
+  await Promise.all(
+    lojas.map((l) => notify(l._id, { tipo: 'encomenda', titulo, mensagem, link }))
+  );
+}
+
+const ref6 = (order) => String(order._id).slice(-6).toUpperCase();
+
 /** Notifica a loja de uma nova encomenda recebida. */
 export async function notifyNewOrder(order) {
   try {
-    const ref = String(order._id).slice(-6).toUpperCase();
-    const lojas = await User.find({ role: 'loja' }).select('_id');
-    await Promise.all(
-      lojas.map((l) =>
-        notify(l._id, {
-          tipo: 'encomenda',
-          titulo: `Nova encomenda #${ref}`,
-          mensagem: `Recebeste uma nova encomenda de ${order.total.toFixed(2)} €.`,
-          link: '/loja/encomendas',
-        })
-      )
-    );
+    await notifyLojas({
+      titulo: `Nova encomenda #${ref6(order)}`,
+      mensagem: `Recebeste uma nova encomenda de ${order.total.toFixed(2)} €.`,
+    });
   } catch (err) {
     logger.warn(`Notificação de nova encomenda falhou: ${err.message}`);
+  }
+}
+
+/** Notifica a loja (e o estafeta atribuído, se houver) do cancelamento. */
+export async function notifyOrderCancelled(order) {
+  try {
+    const ref = ref6(order);
+    await notifyLojas({
+      titulo: `Encomenda #${ref} cancelada`,
+      mensagem: `O cliente cancelou a encomenda de ${order.total.toFixed(2)} €.`,
+    });
+    if (order.estafeta) {
+      await notify(order.estafeta, {
+        tipo: 'encomenda',
+        titulo: `Entrega #${ref} cancelada`,
+        mensagem: 'A entrega que tinhas foi cancelada pelo cliente.',
+        link: '/estafeta/entregas',
+      });
+    }
+  } catch (err) {
+    logger.warn(`Notificação de cancelamento falhou: ${err.message}`);
+  }
+}
+
+/** Notifica o estafeta de que lhe foi atribuída uma entrega. */
+export async function notifyEstafetaAtribuido(order) {
+  try {
+    if (!order.estafeta) return;
+    await notify(order.estafeta, {
+      tipo: 'encomenda',
+      titulo: `Nova entrega #${ref6(order)}`,
+      mensagem: `Foi-te atribuída uma entrega para ${order.morada}.`,
+      link: '/estafeta/entregas',
+    });
+  } catch (err) {
+    logger.warn(`Notificação de atribuição falhou: ${err.message}`);
   }
 }

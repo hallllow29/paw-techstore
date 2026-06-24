@@ -6,7 +6,12 @@ import { User } from '../models/user.model.js';
 import { randomInt } from 'node:crypto';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { CANCEL_WINDOW_MIN, PAYMENT_METHODS } from '../utils/constants.js';
-import { notifyOrderStatus, notifyNewOrder } from '../services/notifications.js';
+import {
+  notifyOrderStatus,
+  notifyNewOrder,
+  notifyOrderCancelled,
+  notifyEstafetaAtribuido,
+} from '../services/notifications.js';
 
 const round2 = (n) => Math.round(n * 100) / 100;
 
@@ -205,7 +210,8 @@ export const cancelOrder = asyncHandler(async (req, res) => {
     );
   }
 
-  notifyOrderStatus(cancelada);
+  notifyOrderStatus(cancelada); // cliente
+  notifyOrderCancelled(cancelada); // loja (e estafeta atribuído, se houver)
   res.json({ success: true, order: cancelada });
 });
 
@@ -253,7 +259,87 @@ export const updateStatus = asyncHandler(async (req, res) => {
   res.json({ success: true, order });
 });
 
+/** Conjunto dos estafetas atualmente com entrega em curso (ocupados). */
+async function estafetasOcupados() {
+  const ids = await Order.distinct('estafeta', {
+    estado: 'em_entrega',
+    estafeta: { $ne: null },
+  });
+  return new Set(ids.map(String));
+}
+
+/** GET /api/orders/entregas/estafetas — estafetas e disponibilidade (loja). */
+export const listCouriers = asyncHandler(async (_req, res) => {
+  const estafetas = await User.find({ role: 'estafeta', status: 'ativo' }).select(
+    'nome disponivel'
+  );
+  const ocupados = await estafetasOcupados();
+  const lista = estafetas.map((e) => {
+    const ocupado = ocupados.has(String(e._id));
+    return {
+      _id: e._id,
+      nome: e.nome,
+      ocupado,
+      // Atribuível = marcado disponível e sem entrega em curso
+      disponivel: e.disponivel && !ocupado,
+    };
+  });
+  res.json({ success: true, estafetas: lista });
+});
+
+/** PATCH /api/orders/:id/atribuir — a loja atribui a entrega a um estafeta. */
+export const assignDelivery = asyncHandler(async (req, res) => {
+  const { estafetaId } = req.body;
+  const estafeta = await User.findOne({
+    _id: estafetaId,
+    role: 'estafeta',
+    status: 'ativo',
+  });
+  if (!estafeta) {
+    res.status(404);
+    throw new Error('Estafeta não encontrado');
+  }
+  if (!estafeta.disponivel) {
+    res.status(409);
+    throw new Error('Esse estafeta está indisponível');
+  }
+  if (await Order.exists({ estafeta: estafetaId, estado: 'em_entrega' })) {
+    res.status(409);
+    throw new Error('Esse estafeta já tem uma entrega em curso');
+  }
+
+  // Atribuição ATÓMICA: só se for entrega por estafeta, ainda sem estafeta e
+  // num estado válido (confirmada/em_preparacao).
+  const order = await Order.findOneAndUpdate(
+    {
+      _id: req.params.id,
+      metodoEntrega: 'estafeta',
+      estado: { $in: ['confirmada', 'em_preparacao'] },
+      estafeta: null,
+    },
+    {
+      $set: { estafeta: estafetaId, estado: 'em_entrega' },
+      $push: { historico: { estado: 'em_entrega' } },
+    },
+    { new: true }
+  );
+  if (!order) {
+    res.status(409);
+    throw new Error('Esta encomenda não pode ser atribuída');
+  }
+  notifyOrderStatus(order); // cliente: vai a caminho
+  notifyEstafetaAtribuido(order); // estafeta: tens nova entrega
+  res.json({ success: true, order });
+});
+
 // ─────────────────────────── ESTAFETA ──────────────────────────
+
+/** PATCH /api/orders/entregas/disponibilidade — estafeta liga/desliga disponibilidade. */
+export const setDisponibilidade = asyncHandler(async (req, res) => {
+  const disponivel = Boolean(req.body.disponivel);
+  await User.updateOne({ _id: req.user._id }, { $set: { disponivel } });
+  res.json({ success: true, disponivel });
+});
 
 /** GET /api/orders/entregas/disponiveis — entregas por estafeta prontas (estafeta). */
 export const availableDeliveries = asyncHandler(async (_req, res) => {

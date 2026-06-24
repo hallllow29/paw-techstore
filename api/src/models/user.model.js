@@ -42,6 +42,8 @@ const userSchema = new mongoose.Schema(
     role: { type: String, enum: ROLES, default: 'cliente' },
     // Estafetas entram 'pendente' até o admin aprovar; restantes 'ativo'
     status: { type: String, enum: USER_STATUS, default: 'ativo' },
+    // Disponibilidade do estafeta para receber entregas (pode desligar p/ folga)
+    disponivel: { type: Boolean, default: true },
     // Produtos marcados como favoritos (wishlist)
     favoritos: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
     // Moradas de entrega guardadas (além da morada principal)

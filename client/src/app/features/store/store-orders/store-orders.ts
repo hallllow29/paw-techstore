@@ -1,7 +1,8 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { OrderService } from '../../../core/services/order.service';
+import { OrderService, Courier } from '../../../core/services/order.service';
+import { ToastService } from '../../../core/services/toast.service';
 import {
   METHOD_LABELS,
   Order,
@@ -17,8 +18,11 @@ import {
 })
 export class StoreOrders implements OnInit {
   private readonly orders = inject(OrderService);
+  private readonly toast = inject(ToastService);
 
   readonly items = signal<Order[]>([]);
+  readonly couriers = signal<Courier[]>([]);
+  private readonly sel: Record<string, string> = {};
   readonly loading = signal(true);
   readonly filtro = signal('');
   readonly estados: OrderState[] = [
@@ -35,6 +39,7 @@ export class StoreOrders implements OnInit {
 
   ngOnInit(): void {
     this.load();
+    this.carregarEstafetas();
   }
 
   load(): void {
@@ -45,6 +50,31 @@ export class StoreOrders implements OnInit {
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
+    });
+  }
+
+  private carregarEstafetas(): void {
+    this.orders.couriers().subscribe((r) => this.couriers.set(r.estafetas));
+  }
+
+  setEstafeta(orderId: string, estafetaId: string): void {
+    this.sel[orderId] = estafetaId;
+  }
+
+  /** A loja atribui a entrega ao estafeta escolhido. */
+  atribuir(o: Order): void {
+    const estafetaId = this.sel[o._id];
+    if (!estafetaId) {
+      this.toast.info('Escolhe um estafeta primeiro');
+      return;
+    }
+    this.orders.assign(o._id, estafetaId).subscribe({
+      next: () => {
+        this.toast.success('Entrega atribuída ao estafeta');
+        this.load();
+        this.carregarEstafetas();
+      },
+      error: (err) => this.toast.error(err?.error?.message ?? 'Não foi possível atribuir'),
     });
   }
 

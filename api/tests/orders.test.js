@@ -427,3 +427,63 @@ test('notificações: nova encomenda notifica o cliente e marca-se como lida', a
     .set(auth(tokens.cliente));
   assert.equal(mark.status, 200);
 });
+
+test('estafeta liga/desliga a disponibilidade', async () => {
+  const off = await request(app)
+    .patch('/api/orders/entregas/disponibilidade')
+    .set(auth(tokens.estafeta))
+    .send({ disponivel: false });
+  assert.equal(off.status, 200);
+  assert.equal(off.body.disponivel, false);
+
+  const on = await request(app)
+    .patch('/api/orders/entregas/disponibilidade')
+    .set(auth(tokens.estafeta))
+    .send({ disponivel: true });
+  assert.equal(on.body.disponivel, true);
+});
+
+test('loja atribui a entrega a um estafeta disponível', async () => {
+  // estafeta dedicado e livre (o tokens.estafeta pode estar ocupado de testes anteriores)
+  await User.create({
+    nome: 'EstafetaLivre',
+    email: 'livre@t.pt',
+    password: 'pass1234',
+    morada: 'x',
+    telefone: '9livre',
+    role: 'estafeta',
+    emailVerificado: true,
+  });
+
+  const criar = await request(app)
+    .post('/api/orders')
+    .set(auth(tokens.cliente))
+    .send({
+      metodoEntrega: 'estafeta',
+      metodoPagamento: 'entrega',
+      itens: [{ produto: produto._id, quantidade: 1 }],
+    });
+  const id = criar.body.order._id;
+
+  // loja confirma a encomenda (pendente -> confirmada)
+  await request(app)
+    .patch(`/api/orders/${id}/estado`)
+    .set(auth(tokens.loja))
+    .send({ estado: 'confirmada' });
+
+  // loja vê os estafetas e escolhe um disponível
+  const couriers = await request(app)
+    .get('/api/orders/entregas/estafetas')
+    .set(auth(tokens.loja));
+  assert.equal(couriers.status, 200);
+  const estafeta = couriers.body.estafetas.find((e) => e.disponivel);
+  assert.ok(estafeta);
+
+  const atribuir = await request(app)
+    .patch(`/api/orders/${id}/atribuir`)
+    .set(auth(tokens.loja))
+    .send({ estafetaId: estafeta._id });
+  assert.equal(atribuir.status, 200);
+  assert.equal(atribuir.body.order.estado, 'em_entrega');
+  assert.equal(String(atribuir.body.order.estafeta), String(estafeta._id));
+});

@@ -12,6 +12,7 @@ export interface User {
   moradas?: string[];
   avatar?: string;
   emailVerificado?: boolean;
+  disponivel?: boolean;
   createdAt?: string;
 }
 
