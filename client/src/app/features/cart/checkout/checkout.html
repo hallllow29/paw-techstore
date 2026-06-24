@@ -1,5 +1,5 @@
 <div class="container py-4" style="max-width: 720px">
-  <h1 class="h4 mb-3">Finalizar compra</h1>
+  <h1 class="h4 mb-3"><i class="bi bi-bag-check text-brand"></i> Finalizar compra</h1>
 
   <div class="card shadow-sm border-0 mb-3">
     <div class="card-body">
@@ -115,6 +115,7 @@
             class="form-control form-control-sm"
             style="max-width: 220px"
             placeholder="Telemóvel (9xx xxx xxx)"
+            aria-label="Telemóvel para MB WAY"
             [(ngModel)]="telefoneMbway"
           />
           <small class="text-muted">Vais receber um pedido de pagamento na app MB WAY.</small>
@@ -165,6 +166,7 @@
                 type="text"
                 class="form-control form-control-sm"
                 placeholder="Número do cartão"
+                aria-label="Número do cartão"
                 [(ngModel)]="cartaoNumero"
               />
             </div>
@@ -173,6 +175,7 @@
                 type="text"
                 class="form-control form-control-sm"
                 placeholder="MM/AA"
+                aria-label="Validade do cartão"
                 [(ngModel)]="cartaoValidade"
               />
             </div>
@@ -181,6 +184,7 @@
                 type="text"
                 class="form-control form-control-sm"
                 placeholder="CVC"
+                aria-label="CVC do cartão"
                 [(ngModel)]="cartaoCvc"
               />
             </div>
@@ -241,6 +245,7 @@
             type="text"
             class="form-control text-uppercase"
             placeholder="Código"
+            aria-label="Código do cupão"
             [(ngModel)]="codigoCupao"
           />
           <button class="btn btn-outline-secondary" type="button" (click)="aplicarCupao()">

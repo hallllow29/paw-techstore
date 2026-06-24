@@ -141,7 +141,7 @@
               <h3 class="h6 mb-2" style="min-height: 2.5rem">{{ p.nome }}</h3>
               @if (p.numAvaliacoes) {
                 <div class="mb-1" style="font-size: 0.8rem">
-                  <app-stars [value]="p.ratingMedia ?? 0" [count]="p.numAvaliacoes ?? 0" />
+                  <app-stars [value]="p.ratingMedia ?? 0" [count]="p.numAvaliacoes" />
                 </div>
               }
               <div class="mt-auto d-flex align-items-baseline gap-2">
