@@ -4,119 +4,127 @@
   } @else if (erro() || !order()) {
     <div class="alert alert-warning">Não foi possível carregar a fatura.</div>
   } @else if (order(); as o) {
-    <!-- Ações (não imprimem) -->
-    <div class="d-flex justify-content-between align-items-center mb-3 no-print">
-      <a [routerLink]="['/encomendas', o._id]" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-arrow-left"></i> Voltar à encomenda
-      </a>
-      <button class="btn btn-brand btn-sm" (click)="imprimir()">
-        <i class="bi bi-printer"></i> Imprimir
-      </button>
-    </div>
+    @if (!o.pago) {
+      <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i> A fatura só fica disponível depois de a encomenda
+        estar paga.
+        <a [routerLink]="['/encomendas', o._id]" class="alert-link ms-1">Ver encomenda</a>
+      </div>
+    } @else {
+      <!-- Ações (não imprimem) -->
+      <div class="d-flex justify-content-between align-items-center mb-3 no-print">
+        <a [routerLink]="['/encomendas', o._id]" class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-arrow-left"></i> Voltar à encomenda
+        </a>
+        <button class="btn btn-brand btn-sm" (click)="imprimir()">
+          <i class="bi bi-printer"></i> Imprimir
+        </button>
+      </div>
 
-    <div class="card border-0 shadow-sm fatura" style="border-top: 3px solid #2563eb">
-      <div class="card-body p-4 p-md-5">
-        <!-- Cabeçalho (cor sólida — imprime bem, ao contrário do gradiente) -->
-        <div class="d-flex justify-content-between align-items-start mb-4">
-          <div class="d-flex align-items-center gap-2">
-            <img src="/logo-mark.png" alt="" width="44" height="44" />
-            <div>
-              <div class="h4 mb-0 fw-bold" style="color: #2563eb">ElSircários Tech Store</div>
-              <div class="small text-muted">Material informático</div>
-            </div>
-          </div>
-          <div class="text-end">
-            <div class="h3 mb-0 fw-bold text-uppercase" style="letter-spacing: 1px">Fatura</div>
-            <div class="small text-muted">Nº {{ ref() }}</div>
-            <div class="small text-muted">{{ o.createdAt | date: 'dd/MM/yyyy HH:mm' }}</div>
-          </div>
-        </div>
-
-        <!-- Cliente + entrega -->
-        <div class="row g-3 mb-4">
-          <div class="col-sm-6">
-            <div class="text-muted small text-uppercase fw-semibold mb-1">Cliente</div>
-            @if (cliente(); as c) {
-              <div class="fw-semibold">{{ c.nome }}</div>
-              <div class="small text-muted">{{ c.email }}</div>
-            } @else {
-              <div class="fw-semibold">Cliente</div>
-            }
-            @if (o.nif) {
-              <div class="small text-muted">NIF: {{ o.nif }}</div>
-            }
-          </div>
-          <div class="col-sm-6 text-sm-end">
-            <div class="text-muted small text-uppercase fw-semibold mb-1">Entrega</div>
-            <div>{{ metodos[o.metodoEntrega] }}</div>
-            <div class="small text-muted">{{ o.morada }}</div>
-          </div>
-        </div>
-
-        <!-- Itens -->
-        <div class="table-responsive">
-          <table class="table align-middle">
-            <thead class="table-light">
-              <tr>
-                <th>Artigo</th>
-                <th class="text-center">Qtd</th>
-                <th class="text-end">Preço</th>
-                <th class="text-end">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (item of o.itens; track item.produto) {
-                <tr>
-                  <td>{{ item.nome }}</td>
-                  <td class="text-center">{{ item.quantidade }}</td>
-                  <td class="text-end">{{ item.preco | number: '1.2-2' }} €</td>
-                  <td class="text-end">{{ item.preco * item.quantidade | number: '1.2-2' }} €</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Totais -->
-        <div class="row justify-content-end">
-          <div class="col-sm-6">
-            <div class="d-flex justify-content-between py-1">
-              <span class="text-muted">Subtotal</span>
-              <span>{{ o.subtotal | number: '1.2-2' }} €</span>
-            </div>
-            @if (o.desconto && o.desconto > 0) {
-              <div class="d-flex justify-content-between py-1 text-success">
-                <span>Desconto{{ o.cupao ? ' (' + o.cupao + ')' : '' }}</span>
-                <span>− {{ o.desconto | number: '1.2-2' }} €</span>
+      <div class="card border-0 shadow-sm fatura" style="border-top: 3px solid #2563eb">
+        <div class="card-body p-4 p-md-5">
+          <!-- Cabeçalho (cor sólida — imprime bem, ao contrário do gradiente) -->
+          <div class="d-flex justify-content-between align-items-start mb-4">
+            <div class="d-flex align-items-center gap-2">
+              <img src="/logo-mark.png" alt="" width="44" height="44" />
+              <div>
+                <div class="h4 mb-0 fw-bold" style="color: #2563eb">ElSircários Tech Store</div>
+                <div class="small text-muted">Material informático</div>
               </div>
-            }
-            <div class="d-flex justify-content-between py-1">
-              <span class="text-muted">Envio</span>
-              <span>{{ o.custoEntrega | number: '1.2-2' }} €</span>
             </div>
-            <hr class="my-2" />
-            <div class="d-flex justify-content-between fw-bold fs-5">
-              <span>Total</span>
-              <span>{{ o.total | number: '1.2-2' }} €</span>
+            <div class="text-end">
+              <div class="h3 mb-0 fw-bold text-uppercase" style="letter-spacing: 1px">Fatura</div>
+              <div class="small text-muted">Nº {{ ref() }}</div>
+              <div class="small text-muted">{{ o.createdAt | date: 'dd/MM/yyyy HH:mm' }}</div>
             </div>
           </div>
-        </div>
 
-        <!-- Pagamento -->
-        <div class="mt-4 small text-muted">
-          Pagamento: <strong>{{ pagamentos[o.metodoPagamento ?? 'entrega'] }}</strong>
-          @if (o.pago) {
-            <span class="badge text-bg-success ms-1">Pago</span>
-          } @else {
-            <span class="badge bg-secondary-subtle text-secondary-emphasis border ms-1"
-              >Por pagar</span
-            >
-          }
-        </div>
-        <div class="text-center small text-muted mt-4">
-          Obrigado pela tua compra! — ElSircários Tech Store
+          <!-- Cliente + entrega -->
+          <div class="row g-3 mb-4">
+            <div class="col-sm-6">
+              <div class="text-muted small text-uppercase fw-semibold mb-1">Cliente</div>
+              @if (cliente(); as c) {
+                <div class="fw-semibold">{{ c.nome }}</div>
+                <div class="small text-muted">{{ c.email }}</div>
+              } @else {
+                <div class="fw-semibold">Cliente</div>
+              }
+              @if (o.nif) {
+                <div class="small text-muted">NIF: {{ o.nif }}</div>
+              }
+            </div>
+            <div class="col-sm-6 text-sm-end">
+              <div class="text-muted small text-uppercase fw-semibold mb-1">Entrega</div>
+              <div>{{ metodos[o.metodoEntrega] }}</div>
+              <div class="small text-muted">{{ o.morada }}</div>
+            </div>
+          </div>
+
+          <!-- Itens -->
+          <div class="table-responsive">
+            <table class="table align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Artigo</th>
+                  <th class="text-center">Qtd</th>
+                  <th class="text-end">Preço</th>
+                  <th class="text-end">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of o.itens; track item.produto) {
+                  <tr>
+                    <td>{{ item.nome }}</td>
+                    <td class="text-center">{{ item.quantidade }}</td>
+                    <td class="text-end">{{ item.preco | number: '1.2-2' }} €</td>
+                    <td class="text-end">{{ item.preco * item.quantidade | number: '1.2-2' }} €</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Totais -->
+          <div class="row justify-content-end">
+            <div class="col-sm-6">
+              <div class="d-flex justify-content-between py-1">
+                <span class="text-muted">Subtotal</span>
+                <span>{{ o.subtotal | number: '1.2-2' }} €</span>
+              </div>
+              @if (o.desconto && o.desconto > 0) {
+                <div class="d-flex justify-content-between py-1 text-success">
+                  <span>Desconto{{ o.cupao ? ' (' + o.cupao + ')' : '' }}</span>
+                  <span>− {{ o.desconto | number: '1.2-2' }} €</span>
+                </div>
+              }
+              <div class="d-flex justify-content-between py-1">
+                <span class="text-muted">Envio</span>
+                <span>{{ o.custoEntrega | number: '1.2-2' }} €</span>
+              </div>
+              <hr class="my-2" />
+              <div class="d-flex justify-content-between fw-bold fs-5">
+                <span>Total</span>
+                <span>{{ o.total | number: '1.2-2' }} €</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pagamento -->
+          <div class="mt-4 small text-muted">
+            Pagamento: <strong>{{ pagamentos[o.metodoPagamento ?? 'entrega'] }}</strong>
+            @if (o.pago) {
+              <span class="badge text-bg-success ms-1">Pago</span>
+            } @else {
+              <span class="badge bg-secondary-subtle text-secondary-emphasis border ms-1"
+                >Por pagar</span
+              >
+            }
+          </div>
+          <div class="text-center small text-muted mt-4">
+            Obrigado pela tua compra! — ElSircários Tech Store
+          </div>
         </div>
       </div>
-    </div>
+    }
   }
 </div>

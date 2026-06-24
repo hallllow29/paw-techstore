@@ -23,12 +23,14 @@
       {{ o.createdAt | date: 'dd/MM/yy HH:mm' }}
     </p>
 
-    <a
-      [routerLink]="['/encomendas', o._id, 'fatura']"
-      class="btn btn-outline-secondary btn-sm mb-3"
-    >
-      <i class="bi bi-printer"></i> Fatura
-    </a>
+    @if (o.pago) {
+      <a
+        [routerLink]="['/encomendas', o._id, 'fatura']"
+        class="btn btn-outline-secondary btn-sm mb-3"
+      >
+        <i class="bi bi-printer"></i> Fatura
+      </a>
+    }
 
     @if (o.estado === 'em_entrega') {
       <div class="card shadow-sm border-0 mb-3">
