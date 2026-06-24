@@ -35,8 +35,9 @@ export class ThemeService {
   }
 
   private aplicar(t: Theme): void {
-    // dataset.bsTheme <-> atributo data-bs-theme (lido nativamente pelo Bootstrap)
-    this.doc.documentElement.dataset.bsTheme = t;
+    // dataset['bsTheme'] <-> atributo data-bs-theme (lido nativamente pelo
+    // Bootstrap). Acesso por chave: o DOMStringMap usa index signature.
+    this.doc.documentElement.dataset['bsTheme'] = t;
   }
 
   private inicial(): Theme {
