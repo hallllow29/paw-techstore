@@ -141,7 +141,7 @@
                 </div>
                 <div class="text-end">
                   <div class="fw-semibold">{{ eur(o.total) }}</div>
-                  <span class="badge text-bg-light text-dark border">{{
+                  <span class="badge bg-secondary-subtle text-secondary-emphasis border">{{
                     estadoLabel(o.estado)
                   }}</span>
                 </div>
@@ -171,9 +171,10 @@
                   <div class="fw-semibold text-truncate">{{ u.nome }}</div>
                   <div class="small text-muted text-truncate">{{ u.email }}</div>
                 </div>
-                <span class="badge text-bg-light text-dark border text-uppercase">{{
-                  u.role
-                }}</span>
+                <span
+                  class="badge bg-secondary-subtle text-secondary-emphasis border text-uppercase"
+                  >{{ u.role }}</span
+                >
               </li>
             } @empty {
               <li class="list-group-item text-muted small bg-transparent">Sem registos.</li>

@@ -27,7 +27,7 @@
           @if (o.pago) {
             <span class="badge text-bg-success"><i class="bi bi-check-circle"></i> Pago</span>
           } @else if (o.metodoPagamento !== 'entrega') {
-            <span class="badge text-bg-light text-dark border">Por pagar</span>
+            <span class="badge bg-secondary-subtle text-secondary-emphasis border">Por pagar</span>
           }
           <div class="fw-bold fs-5">{{ o.total | number: '1.2-2' }} €</div>
           <i class="bi bi-chevron-right text-muted"></i>
