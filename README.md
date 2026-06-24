@@ -7,6 +7,36 @@ Plataforma de e-commerce para uma loja de **material informático**.
 Trabalho prático de **Programação em Ambiente Web (PAW)** — Avaliação de Recurso.
 
 Stack: **MongoDB · Express · Angular · Node (MEAN)** · JWT · Swagger.
+Produto: **ElSircários Tech Store**.
+
+## Funcionalidades
+
+### Cliente
+
+- Registo com **confirmação de email obrigatória**; login por password **ou OTP** (código por email/SMS)
+- Catálogo com pesquisa, filtros (categoria, marca, preço, stock), autocomplete e comparador
+- Carrinho, checkout com moradas guardadas, cupões de desconto e favoritos
+- Pagamento: **PayPal** (sandbox real), cartão (Stripe opcional), MB WAY, Multibanco, à entrega
+- Acompanhamento da encomenda em tempo real (mapa do estafeta) e avaliações de produto/entrega
+
+### Loja
+
+- Gestão de produtos (CRUD com imagens), categorias, cupões e definições da loja
+- Gestão de encomendas (máquina de estados) e **painel de análise** (receita, ticket médio, top produtos, alertas de stock)
+
+### Estafeta
+
+- Aceitar e concluir entregas; envio da posição em tempo real (Socket.IO)
+
+### Admin
+
+- **Observabilidade** da plataforma (KPIs, tendências, distribuições, recentes)
+- Gestão de utilizadores: aprovar/rejeitar estafetas e **suspender/reativar** contas
+
+### Transversal
+
+- Tema **claro/escuro**, notificações em tempo real (com som), design responsivo
+- Segurança: JWT + bcrypt, rate-limiting, validação (express-validator), política de password forte, Swagger
 
 ## Estrutura do monorepo
 
@@ -49,6 +79,19 @@ Define `MONGODB_URI` no `.env`:
 - Atlas: `mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/paw-techstore`
 - Docker/local: `mongodb://127.0.0.1:27017/paw-techstore`
 
+### Variáveis opcionais
+
+Tudo funciona em **modo simulado** sem configuração. Preenche o `.env` só para
+ativar integrações reais (ver `api/.env.example`):
+
+| Variável                                 | Para quê                                                            |
+| ---------------------------------------- | ------------------------------------------------------------------- |
+| `SMTP_HOST/PORT/USER/PASS`, `MAIL_FROM`  | Email real (ex.: Brevo, Gmail). Sem isto, preview Ethereal nos logs |
+| `PAYPAL_CLIENT_ID/SECRET`, `PAYPAL_MODE` | Checkout PayPal real (sandbox). Sem isto, PayPal fica simulado      |
+| `STRIPE_SECRET_KEY`                      | Cartão via Stripe. Sem isto, cartão fica simulado                   |
+| `SMS_PROVIDER`, `SMS_*`                  | SMS real. Sem isto, OTP por SMS fica simulado (código nos logs)     |
+| `JWT_SECRET`, `JWT_EXPIRES_IN`           | Segredo e validade do token JWT                                     |
+
 ## Como correr
 
 ### Opção A — Docker (tudo de uma vez, offline)
@@ -76,6 +119,21 @@ cd client && npm install && npm start   # http://localhost:4200
 cd api && npm run seed
 ```
 
+### Contas de demonstração
+
+Todas com a password **`demo1234`**:
+
+| Papel    | Email              |
+| -------- | ------------------ |
+| Admin    | `admin@paw.pt`     |
+| Loja     | `loja@paw.pt`      |
+| Estafeta | `estafeta1@paw.pt` |
+| Cliente  | `ana@paw.pt`       |
+| Cliente  | `rui@paw.pt`       |
+
+> Os clientes também podem entrar por **código OTP**. Em desenvolvimento (sem
+> SMTP/SMS real) o código aparece nos **logs da API**.
+
 ## Scripts úteis (API)
 
 | Comando                 | Faz                                 |
@@ -87,6 +145,18 @@ cd api && npm run seed
 | `npm run lint`          | ESLint (inclui regras de segurança) |
 | `npm run format`        | Prettier                            |
 | `npm run seed`          | Popula a BD                         |
+
+## Testes
+
+```bash
+cd api && npm test               # API — node:test + mongodb-memory-server (51 testes)
+cd api && npm run test:coverage  # API — cobertura (c8 / lcov)
+cd client && npm test            # Cliente — Vitest (serviços, guards, utils)
+```
+
+Cobrem autenticação (registo/login/OTP/confirmação de email), encomendas
+(stock atómico, estados, cancelamento), pagamentos, avaliações e notificações
+no backend; e sessão, carrinho, tema, força de password e guards no frontend.
 
 ## Qualidade & Segurança (DevSecOps)
 
