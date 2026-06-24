@@ -15,12 +15,17 @@
           type="search"
           class="form-control"
           placeholder="Pesquisar por nome, EAN ou marca…"
+          aria-label="Pesquisar produtos"
           [formControl]="search"
         />
       </div>
     </div>
     <div class="col-6 col-md-3">
-      <select class="form-select" (change)="onCategoria($any($event.target).value)">
+      <select
+        class="form-select"
+        aria-label="Filtrar por categoria"
+        (change)="onCategoria($any($event.target).value)"
+      >
         <option value="">Todas as categorias</option>
         @for (c of categories(); track c._id) {
           <option [value]="c._id">{{ c.nome }}</option>
@@ -28,7 +33,11 @@
       </select>
     </div>
     <div class="col-6 col-md-3">
-      <select class="form-select" (change)="onSort($any($event.target).value)">
+      <select
+        class="form-select"
+        aria-label="Ordenar produtos"
+        (change)="onSort($any($event.target).value)"
+      >
         <option value="recentes">Mais recentes</option>
         <option value="preco">Preço ↑</option>
         <option value="-preco">Preço ↓</option>

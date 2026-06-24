@@ -13,10 +13,11 @@
   <div class="card border-0 shadow-sm mb-3">
     <div class="card-body row g-2 align-items-end">
       <div class="col-12 col-md">
-        <label class="form-label small text-muted mb-1">Pesquisar</label>
+        <label class="form-label small text-muted mb-1" for="u-pesquisa">Pesquisar</label>
         <div class="input-group input-group-sm">
           <span class="input-group-text"><i class="bi bi-search"></i></span>
           <input
+            id="u-pesquisa"
             type="search"
             class="form-control"
             placeholder="Nome ou email…"
@@ -26,8 +27,12 @@
         </div>
       </div>
       <div class="col-6 col-md-3">
-        <label class="form-label small text-muted mb-1">Papel</label>
-        <select class="form-select form-select-sm" (change)="setRole($any($event.target).value)">
+        <label class="form-label small text-muted mb-1" for="u-papel">Papel</label>
+        <select
+          id="u-papel"
+          class="form-select form-select-sm"
+          (change)="setRole($any($event.target).value)"
+        >
           <option value="">Todos</option>
           @for (r of roles; track r) {
             <option [value]="r">{{ roleLabel(r) }}</option>
@@ -35,8 +40,12 @@
         </select>
       </div>
       <div class="col-6 col-md-3">
-        <label class="form-label small text-muted mb-1">Estado</label>
-        <select class="form-select form-select-sm" (change)="setStatus($any($event.target).value)">
+        <label class="form-label small text-muted mb-1" for="u-estado">Estado</label>
+        <select
+          id="u-estado"
+          class="form-select form-select-sm"
+          (change)="setStatus($any($event.target).value)"
+        >
           <option value="">Todos</option>
           @for (s of estados; track s) {
             <option [value]="s">{{ statusLabel(s) }}</option>
