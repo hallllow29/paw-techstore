@@ -487,3 +487,41 @@ test('loja atribui a entrega a um estafeta disponível', async () => {
   assert.equal(atribuir.body.order.estado, 'em_entrega');
   assert.equal(String(atribuir.body.order.estafeta), String(estafeta._id));
 });
+
+test('analytics da loja devolve KPIs (loja); recusa cliente (403)', async () => {
+  const ok = await request(app).get('/api/analytics/loja').set(auth(tokens.loja));
+  assert.equal(ok.status, 200);
+  assert.ok(ok.body.kpis);
+  assert.ok('receita' in ok.body.kpis);
+
+  const neg = await request(app).get('/api/analytics/loja').set(auth(tokens.cliente));
+  assert.equal(neg.status, 403);
+});
+
+test('loja nao pode atribuir a um estafeta ocupado (409)', async () => {
+  const criar = await request(app)
+    .post('/api/orders')
+    .set(auth(tokens.cliente))
+    .send({
+      metodoEntrega: 'estafeta',
+      metodoPagamento: 'entrega',
+      itens: [{ produto: produto._id, quantidade: 1 }],
+    });
+  const id = criar.body.order._id;
+  await request(app)
+    .patch(`/api/orders/${id}/estado`)
+    .set(auth(tokens.loja))
+    .send({ estado: 'confirmada' });
+
+  const couriers = await request(app)
+    .get('/api/orders/entregas/estafetas')
+    .set(auth(tokens.loja));
+  const ocupado = couriers.body.estafetas.find((e) => e.ocupado);
+  assert.ok(ocupado);
+
+  const r = await request(app)
+    .patch(`/api/orders/${id}/atribuir`)
+    .set(auth(tokens.loja))
+    .send({ estafetaId: ocupado._id });
+  assert.equal(r.status, 409);
+});

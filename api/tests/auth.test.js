@@ -348,3 +348,84 @@ test('OTP por SMS identifica a conta pelo telemóvel', async () => {
   assert.equal(certo.status, 200);
   assert.ok(certo.body.token);
 });
+
+test('admin suspende uma conta: login bloqueado; reativar repoe o acesso', async () => {
+  const email = 'suspenso@example.com';
+  const reg = await request(app)
+    .post('/api/auth/register')
+    .send({ ...cliente, email });
+  await request(app)
+    .post('/api/auth/email/verify')
+    .send({ token: reg.body.devEmailToken });
+  const userId = reg.body.user._id;
+
+  const adminTok = (
+    await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'admin@example.com', password: 'admin123' })
+  ).body.token;
+
+  // entra antes de suspender
+  const antes = await request(app)
+    .post('/api/auth/login')
+    .send({ email, password: cliente.password });
+  assert.equal(antes.status, 200);
+
+  // suspender
+  const ban = await request(app)
+    .patch(`/api/users/${userId}/banir`)
+    .set('Authorization', `Bearer ${adminTok}`);
+  assert.equal(ban.status, 200);
+
+  const bloqueado = await request(app)
+    .post('/api/auth/login')
+    .send({ email, password: cliente.password });
+  assert.equal(bloqueado.status, 403);
+
+  // reativar
+  await request(app)
+    .patch(`/api/users/${userId}/desbanir`)
+    .set('Authorization', `Bearer ${adminTok}`);
+  const depois = await request(app)
+    .post('/api/auth/login')
+    .send({ email, password: cliente.password });
+  assert.equal(depois.status, 200);
+});
+
+test('admin nao se pode suspender a si proprio (403)', async () => {
+  const adminTok = (
+    await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'admin@example.com', password: 'admin123' })
+  ).body.token;
+  const me = (
+    await request(app).get('/api/auth/me').set('Authorization', `Bearer ${adminTok}`)
+  ).body.user;
+  const r = await request(app)
+    .patch(`/api/users/${me._id}/banir`)
+    .set('Authorization', `Bearer ${adminTok}`);
+  assert.equal(r.status, 403);
+});
+
+test('analytics/admin: 200 com KPIs para admin, 403 para cliente', async () => {
+  const adminTok = (
+    await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'admin@example.com', password: 'admin123' })
+  ).body.token;
+  const ok = await request(app)
+    .get('/api/analytics/admin')
+    .set('Authorization', `Bearer ${adminTok}`);
+  assert.equal(ok.status, 200);
+  assert.ok(ok.body.kpis);
+
+  const cliTok = (
+    await request(app)
+      .post('/api/auth/login')
+      .send({ email: cliente.email, password: cliente.password })
+  ).body.token;
+  const neg = await request(app)
+    .get('/api/analytics/admin')
+    .set('Authorization', `Bearer ${cliTok}`);
+  assert.equal(neg.status, 403);
+});
