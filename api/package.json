@@ -34,7 +34,7 @@
     "multer": "^2.0.0",
     "nodemailer": "^9.0.1",
     "socket.io": "^4.8.3",
-    "stripe": "^22.2.0",
+    "stripe": "^22.2.3",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
   },
