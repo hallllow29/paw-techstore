@@ -162,6 +162,21 @@ a {
   }
 }
 
+/* ─── Impressão (fatura) — esconde a "cromagem" da app ─── */
+@media print {
+  header.sticky-top,
+  app-toasts,
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
+  .fatura {
+    box-shadow: none !important;
+  }
+}
+
 /* Transição suave ao alternar entre tema claro e escuro */
 body,
 .card,

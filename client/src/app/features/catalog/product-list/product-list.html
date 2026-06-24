@@ -110,7 +110,20 @@
 
   <!-- Grelha -->
   @if (loading()) {
-    <div class="text-center py-5"><span class="spinner-border text-secondary"></span></div>
+    <div class="row g-3">
+      @for (s of skeletons; track $index) {
+        <div class="col-6 col-lg-3">
+          <div class="card h-100 shadow-sm border-0">
+            <div class="skeleton" style="height: 180px"></div>
+            <div class="card-body">
+              <div class="skeleton mb-2" style="height: 12px; width: 40%"></div>
+              <div class="skeleton mb-2" style="height: 16px; width: 85%"></div>
+              <div class="skeleton" style="height: 22px; width: 50%"></div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
   } @else if (items().length === 0) {
     <div class="alert alert-info">Nenhum produto encontrado com estes filtros.</div>
   } @else {

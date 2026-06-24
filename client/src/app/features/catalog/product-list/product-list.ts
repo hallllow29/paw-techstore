@@ -31,6 +31,7 @@ export class ProductList implements OnInit {
   readonly marcas = signal<string[]>([]);
   readonly pagination = signal<Pagination | null>(null);
   readonly loading = signal(false);
+  readonly skeletons = Array.from({ length: 8 });
 
   // Estado de filtros/ordenação/página
   private categoria = '';

@@ -18,10 +18,17 @@
       </div>
     </div>
 
-    <p class="text-muted small mb-3">
+    <p class="text-muted small mb-2">
       <i class="bi bi-geo-alt"></i> {{ o.morada }} · <i class="bi bi-clock"></i>
       {{ o.createdAt | date: 'dd/MM/yy HH:mm' }}
     </p>
+
+    <a
+      [routerLink]="['/encomendas', o._id, 'fatura']"
+      class="btn btn-outline-secondary btn-sm mb-3"
+    >
+      <i class="bi bi-printer"></i> Fatura
+    </a>
 
     @if (o.estado === 'em_entrega') {
       <div class="card shadow-sm border-0 mb-3">

@@ -91,6 +91,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/orders/order-list/order-list').then((m) => m.OrderList),
   },
   {
+    path: 'encomendas/:id/fatura',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/orders/invoice/invoice').then((m) => m.Invoice),
+  },
+  {
     path: 'encomendas/:id',
     canActivate: [authGuard],
     loadComponent: () =>
