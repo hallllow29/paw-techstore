@@ -82,15 +82,26 @@ export const register = asyncHandler(async (req, res) => {
   // Estafetas precisam de aprovação do admin antes de operar
   const status = finalRole === 'estafeta' ? 'pendente' : 'ativo';
 
-  const user = await User.create({
-    nome,
-    email,
-    password,
-    morada,
-    telefone,
-    role: finalRole,
-    status,
-  });
+  let user;
+  try {
+    user = await User.create({
+      nome,
+      email,
+      password,
+      morada,
+      telefone,
+      role: finalRole,
+      status,
+    });
+  } catch (err) {
+    // Índice único da BD: protege contra registos concorrentes com o mesmo
+    // email que escapem à verificação acima (race condition) → 409 limpo.
+    if (err?.code === 11000) {
+      res.status(409);
+      throw new Error('Já existe uma conta com este email');
+    }
+    throw err;
+  }
 
   // Envia o email de confirmação. A conta só fica validada após confirmar —
   // não há auto-login (o utilizador tem de clicar no link primeiro).
