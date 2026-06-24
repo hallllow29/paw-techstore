@@ -51,12 +51,9 @@ jobs:
       - name: Semgrep scan
         run: semgrep scan --config auto --sarif --output semgrep.sarif
         continue-on-error: true
-      - name: Upload SARIF para GitHub Security
-        uses: github/codeql-action/upload-sarif@v4
-        if: always()
-        continue-on-error: true # repo privado sem Advanced Security: não bloqueia
-        with:
-          sarif_file: semgrep.sarif
+      # NOTA: o upload para o separador Security (codeql-action/upload-sarif)
+      # exige "Code scanning" ativado (repo público ou GitHub Advanced Security).
+      # Como o repo não o tem, ficamos só pelo artefacto descarregável.
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -135,14 +132,25 @@ jobs:
             if curl -sf http://localhost:3000/api/health; then echo "API pronta"; break; fi
             sleep 3
           done
+      # ZAP via Docker direto (a action zaproxy/action-baseline@v0.12.0 usa a
+      # API de artefactos antiga, já desligada pelo GitHub, e tenta criar
+      # issues). Aqui controlamos o scan e o upload do relatório nós próprios.
       - name: ZAP baseline scan
-        uses: zaproxy/action-baseline@v0.12.0
         continue-on-error: true
+        run: |
+          mkdir -p zap-out && chmod 777 zap-out
+          docker run --rm --network host \
+            -v "${{ github.workspace }}/zap-out:/zap/wrk:rw" \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py -t http://localhost:3000 -a \
+            -J zap_report.json -r zap_report.html || true
+      - name: Upload relatório ZAP
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          target: "http://localhost:3000"
-          cmd_options: "-a"
-          fail_action: false
-          allow_issue_writing: false # não cria issue (token sem issues:write); relatório fica como artefacto
+          name: zap-report
+          path: zap-out/
+          if-no-files-found: warn
       - name: Parar a stack
         if: always()
         run: docker compose down -v
