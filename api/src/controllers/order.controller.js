@@ -41,6 +41,7 @@ export const createOrder = asyncHandler(async (req, res) => {
     morada: moradaEscolhida,
     metodoPagamento: metodoPag,
     guardarMorada,
+    nif: nifBruto,
   } = req.body;
   if (!Array.isArray(itens) || itens.length === 0) {
     res.status(400);
@@ -49,6 +50,13 @@ export const createOrder = asyncHandler(async (req, res) => {
 
   const metodoPagamento = PAYMENT_METHODS.includes(metodoPag) ? metodoPag : 'entrega';
   const morada = (moradaEscolhida ?? '').trim() || req.user.morada;
+
+  // NIF para faturação (opcional; se indicado, 9 dígitos)
+  const nif = typeof nifBruto === 'string' ? nifBruto.trim() : '';
+  if (nif && !/^\d{9}$/.test(nif)) {
+    res.status(400);
+    throw new Error('NIF inválido (deve ter 9 dígitos)');
+  }
 
   const settings = await StoreSettings.getSettings();
   const metodo = settings.metodosEntrega.find(
@@ -145,6 +153,7 @@ export const createOrder = asyncHandler(async (req, res) => {
     total: round2(subtotal - desconto + custoEntrega),
     metodoEntrega,
     morada,
+    nif,
     metodoPagamento,
     multibanco,
   });

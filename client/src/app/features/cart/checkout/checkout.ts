@@ -46,6 +46,7 @@ export class Checkout implements OnInit {
   readonly moradaOpcao = signal<string>('');
   protected novaMorada = '';
   protected guardarMorada = false;
+  protected nif = '';
   /** Morada do perfil + moradas guardadas, sem duplicados. */
   readonly enderecos = computed(() => {
     const u = this.auth.user();
@@ -157,6 +158,7 @@ export class Checkout implements OnInit {
         morada,
         guardarMorada: ehNova && this.guardarMorada,
         cupao: this.cupaoAplicado() ?? undefined,
+        nif: this.nif.trim() || undefined,
       })
       .subscribe({
         next: (res) => {

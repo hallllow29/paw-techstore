@@ -11,6 +11,7 @@ export interface CreateOrderPayload {
   morada?: string;
   guardarMorada?: boolean;
   cupao?: string;
+  nif?: string;
 }
 
 export interface Courier {

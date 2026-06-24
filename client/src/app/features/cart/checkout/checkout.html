@@ -44,6 +44,19 @@
           </div>
         </div>
       }
+
+      <hr class="my-3" />
+      <label class="form-label small text-muted mb-1" for="nif">NIF (opcional, para fatura)</label>
+      <input
+        id="nif"
+        type="text"
+        inputmode="numeric"
+        maxlength="9"
+        class="form-control"
+        style="max-width: 220px"
+        placeholder="9 dígitos"
+        [(ngModel)]="nif"
+      />
     </div>
   </div>
 

@@ -58,6 +58,7 @@ export interface Order {
   total: number;
   metodoEntrega: DeliveryMethod;
   morada: string;
+  nif?: string;
   estado: OrderState;
   estafeta?: string | User | null;
   confirmadaEm?: string | null;

@@ -52,6 +52,7 @@ const orderSchema = new mongoose.Schema(
     total: { type: Number, required: true, min: 0 },
     metodoEntrega: { type: String, enum: DELIVERY_METHODS, required: true },
     morada: { type: String, default: '' }, // snapshot da morada de entrega
+    nif: { type: String, default: '' }, // NIF para faturação (opcional)
     estado: { type: String, enum: ORDER_STATES, default: 'pendente', index: true },
     estafeta: {
       type: mongoose.Schema.Types.ObjectId,
