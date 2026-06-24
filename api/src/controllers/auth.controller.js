@@ -7,6 +7,17 @@ import { sendMail } from '../services/mailer.js';
 import { sendSms } from '../services/sms.js';
 import { toPublicPath } from '../middleware/upload.js';
 import { env } from '../config/env.js';
+import { logger } from '../utils/logger.js';
+
+/**
+ * Em dev/teste regista o código no log do servidor (nunca em produção e nunca
+ * na resposta HTTP) — permite testar OTP/reposição mesmo sem entrega de email
+ * configurada. Não é vetor de account-takeover (os logs não são expostos).
+ */
+function logCodigoDev(rotulo, destino, codigo) {
+  if (env.nodeEnv !== 'production')
+    logger.info(`${rotulo} (dev) para ${destino}: ${codigo}`);
+}
 
 const OTP_TTL_MIN = 10; // validade do código
 const OTP_MAX_ATTEMPTS = 5; // tentativas antes de obrigar a pedir novo
@@ -252,6 +263,7 @@ export const requestOtp = asyncHandler(async (req, res) => {
   user.otpAttempts = 0;
   user.otpPurpose = 'login';
   await user.save();
+  logCodigoDev('Código OTP', user.email, codigo);
 
   if (porSms) {
     await sendSms({
@@ -340,6 +352,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
   user.otpAttempts = 0;
   user.otpPurpose = 'reset';
   await user.save();
+  logCodigoDev('Código de reposição', user.email, codigo);
 
   if (porSms) {
     await sendSms({
