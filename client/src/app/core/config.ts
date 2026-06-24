@@ -1,7 +1,16 @@
-/** Origem da API (sem /api) — usada para imagens servidas em /uploads. */
-export const API_ORIGIN = 'http://localhost:3000';
+/**
+ * Origem da API (sem /api), também usada para /uploads e Socket.IO.
+ * - Dev (ng serve em :4200): aponta direto para a API em :3000.
+ * - Produção (servido pelo nginx noutra porta): usa a MESMA origem da página
+ *   — o nginx faz proxy de /api, /uploads e /socket.io para a API. Assim não
+ *   há hosts hardcoded e o CSP pode ficar em 'self'.
+ */
+const ehDevServe = globalThis.location?.port === '4200';
+export const API_ORIGIN = ehDevServe
+  ? 'http://localhost:3000'
+  : (globalThis.location?.origin ?? '');
 
-/** URL base da API. Em produção/Docker pode ser sobreposto por proxy. */
+/** URL base da API. */
 export const API_URL = `${API_ORIGIN}/api`;
 
 export const TOKEN_KEY = 'paw_token';
