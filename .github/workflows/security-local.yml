@@ -23,7 +23,7 @@ jobs:
     name: Alimentar SonarQube + DefectDojo (local)
     runs-on: [self-hosted]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Orquestração local (scanners → SonarQube → DefectDojo)
         shell: powershell
