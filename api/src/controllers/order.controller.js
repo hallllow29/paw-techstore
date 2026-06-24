@@ -30,44 +30,11 @@ function setEstado(order, estado) {
   order.historico.push({ estado });
 }
 
-// ─────────────────────────── CLIENTE ───────────────────────────
-
-/** POST /api/orders — cria encomenda a partir do carrinho (cliente). */
-export const createOrder = asyncHandler(async (req, res) => {
-  const {
-    itens,
-    metodoEntrega,
-    cupao: codigoCupao,
-    morada: moradaEscolhida,
-    metodoPagamento: metodoPag,
-    guardarMorada,
-    nif: nifBruto,
-  } = req.body;
-  if (!Array.isArray(itens) || itens.length === 0) {
-    res.status(400);
-    throw new Error('O carrinho está vazio');
-  }
-
-  const metodoPagamento = PAYMENT_METHODS.includes(metodoPag) ? metodoPag : 'entrega';
-  const morada = (moradaEscolhida ?? '').trim() || req.user.morada;
-
-  // NIF para faturação (opcional; se indicado, 9 dígitos)
-  const nif = typeof nifBruto === 'string' ? nifBruto.trim() : '';
-  if (nif && !/^\d{9}$/.test(nif)) {
-    res.status(400);
-    throw new Error('NIF inválido (deve ter 9 dígitos)');
-  }
-
-  const settings = await StoreSettings.getSettings();
-  const metodo = settings.metodosEntrega.find(
-    (m) => m.metodo === metodoEntrega && m.ativo
-  );
-  if (!metodo) {
-    res.status(400);
-    throw new Error('Método de entrega indisponível');
-  }
-
-  // Validar stock e construir os itens (com snapshot de nome/preço)
+/**
+ * Valida cada item do carrinho (existência, quantidade, stock) e devolve o
+ * subtotal e os itens com snapshot de nome/preço. Lança 4xx em caso de erro.
+ */
+async function validarItens(itens, res) {
   let subtotal = 0;
   const orderItens = [];
   for (const item of itens) {
@@ -93,31 +60,40 @@ export const createOrder = asyncHandler(async (req, res) => {
       quantidade: qtd,
     });
   }
+  return { subtotal, orderItens };
+}
 
-  // Cupão de desconto (opcional) — validado antes de mexer no stock.
-  // O incremento de usos só acontece depois do stock garantido (ver abaixo).
-  let desconto = 0;
-  let codigoAplicado = '';
-  let couponDoc = null;
-  if (codigoCupao) {
-    couponDoc = await Coupon.findOne({
-      codigo: String(codigoCupao).toUpperCase().trim(),
-    });
-    if (!couponDoc) {
-      res.status(404);
-      throw new Error('Cupão inexistente');
-    }
-    const motivo = couponDoc.motivoInvalido(subtotal);
-    if (motivo) {
-      res.status(422);
-      throw new Error(motivo);
-    }
-    desconto = couponDoc.desconto(subtotal);
-    codigoAplicado = couponDoc.codigo;
+/**
+ * Valida e resolve o cupão (se houver). Devolve o desconto, o código aplicado
+ * e o documento do cupão (para incrementar os usos só após garantir o stock).
+ */
+async function resolverCupao(codigoCupao, subtotal, res) {
+  if (!codigoCupao) return { desconto: 0, codigoAplicado: '', couponDoc: null };
+
+  const couponDoc = await Coupon.findOne({
+    codigo: String(codigoCupao).toUpperCase().trim(),
+  });
+  if (!couponDoc) {
+    res.status(404);
+    throw new Error('Cupão inexistente');
   }
+  const motivo = couponDoc.motivoInvalido(subtotal);
+  if (motivo) {
+    res.status(422);
+    throw new Error(motivo);
+  }
+  return {
+    desconto: couponDoc.desconto(subtotal),
+    codigoAplicado: couponDoc.codigo,
+    couponDoc,
+  };
+}
 
-  // Descontar o stock de forma ATÓMICA (condição stock >= qtd no próprio update),
-  // com rollback se algum item entretanto ficar sem stock — evita overselling.
+/**
+ * Desconta o stock de forma ATÓMICA (condição stock >= qtd no próprio update),
+ * com rollback se algum item entretanto ficar sem stock — evita overselling.
+ */
+async function descontarStock(orderItens, res) {
   const descontados = [];
   for (const item of orderItens) {
     const r = await Product.updateOne(
@@ -134,8 +110,66 @@ export const createOrder = asyncHandler(async (req, res) => {
       throw new Error(`Sem stock suficiente para "${item.nome}"`);
     }
   }
+}
 
-  // Stock garantido: agora sim conta o uso do cupão.
+/** Valida o NIF (opcional; 9 dígitos se indicado) e devolve-o normalizado. */
+function validarNif(nifBruto, res) {
+  const nif = typeof nifBruto === 'string' ? nifBruto.trim() : '';
+  if (nif && !/^\d{9}$/.test(nif)) {
+    res.status(400);
+    throw new Error('NIF inválido (deve ter 9 dígitos)');
+  }
+  return nif;
+}
+
+/** Guarda a morada no perfil do cliente, se pedido e ainda não existir. */
+async function guardarNovaMorada(req, morada, guardar) {
+  if (guardar && morada !== req.user.morada && !req.user.moradas.includes(morada)) {
+    await User.updateOne({ _id: req.user._id }, { $addToSet: { moradas: morada } });
+  }
+}
+
+// ─────────────────────────── CLIENTE ───────────────────────────
+
+/** POST /api/orders — cria encomenda a partir do carrinho (cliente). */
+export const createOrder = asyncHandler(async (req, res) => {
+  const {
+    itens,
+    metodoEntrega,
+    cupao: codigoCupao,
+    morada: moradaEscolhida,
+    metodoPagamento: metodoPag,
+    guardarMorada,
+    nif: nifBruto,
+  } = req.body;
+  if (!Array.isArray(itens) || itens.length === 0) {
+    res.status(400);
+    throw new Error('O carrinho está vazio');
+  }
+
+  const metodoPagamento = PAYMENT_METHODS.includes(metodoPag) ? metodoPag : 'entrega';
+  const morada = (moradaEscolhida ?? '').trim() || req.user.morada;
+
+  const nif = validarNif(nifBruto, res);
+
+  const settings = await StoreSettings.getSettings();
+  const metodo = settings.metodosEntrega.find(
+    (m) => m.metodo === metodoEntrega && m.ativo
+  );
+  if (!metodo) {
+    res.status(400);
+    throw new Error('Método de entrega indisponível');
+  }
+
+  const { subtotal, orderItens } = await validarItens(itens, res);
+  const { desconto, codigoAplicado, couponDoc } = await resolverCupao(
+    codigoCupao,
+    subtotal,
+    res
+  );
+
+  // Stock atómico (com rollback); só depois de garantido conta o uso do cupão.
+  await descontarStock(orderItens, res);
   if (couponDoc) {
     couponDoc.usos += 1;
     await couponDoc.save();
@@ -158,10 +192,7 @@ export const createOrder = asyncHandler(async (req, res) => {
     multibanco,
   });
 
-  // Guardar a nova morada no perfil, se pedido e ainda não existir
-  if (guardarMorada && morada !== req.user.morada && !req.user.moradas.includes(morada)) {
-    await User.updateOne({ _id: req.user._id }, { $addToSet: { moradas: morada } });
-  }
+  await guardarNovaMorada(req, morada, guardarMorada);
 
   notifyOrderStatus(order); // notifica o cliente (in-app + email)
   notifyNewOrder(order); // notifica a loja da nova encomenda

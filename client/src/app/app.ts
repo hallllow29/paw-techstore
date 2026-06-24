@@ -40,7 +40,9 @@ export class App {
     effect(() => {
       if (this.auth.isAuthenticated()) {
         this.notif.carregar();
-        void this.notif.conectar();
+        this.notif.conectar().catch(() => {
+          /* ligação em tempo real é best-effort; falha não bloqueia a app */
+        });
       }
     });
   }

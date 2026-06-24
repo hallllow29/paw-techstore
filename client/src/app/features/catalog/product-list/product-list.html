@@ -21,9 +21,10 @@
       </div>
     </div>
     <div class="col-6 col-md-3">
+      <label for="filtro-categoria" class="visually-hidden">Filtrar por categoria</label>
       <select
+        id="filtro-categoria"
         class="form-select"
-        aria-label="Filtrar por categoria"
         (change)="onCategoria($any($event.target).value)"
       >
         <option value="">Todas as categorias</option>

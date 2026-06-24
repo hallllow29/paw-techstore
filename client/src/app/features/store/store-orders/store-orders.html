@@ -73,11 +73,14 @@
                     </button>
                   } @else if (o.estado === 'em_preparacao' && o.metodoEntrega === 'estafeta') {
                     <div class="input-group input-group-sm justify-content-end mt-1">
+                      <label [attr.for]="'sel-estafeta-' + o._id" class="visually-hidden"
+                        >Escolher estafeta</label
+                      >
                       <select
+                        [attr.id]="'sel-estafeta-' + o._id"
                         class="form-select form-select-sm"
                         style="max-width: 160px"
                         (change)="setEstafeta(o._id, $any($event.target).value)"
-                        aria-label="Escolher estafeta"
                       >
                         <option value="">Escolher estafeta…</option>
                         @for (e of couriers(); track e._id) {
