@@ -429,3 +429,26 @@ test('analytics/admin: 200 com KPIs para admin, 403 para cliente', async () => {
     .set('Authorization', `Bearer ${cliTok}`);
   assert.equal(neg.status, 403);
 });
+
+test('bloqueia a conta após várias tentativas de login falhadas', async () => {
+  await User.create({
+    nome: 'Lock',
+    email: 'lock@example.com',
+    password: 'certa1234',
+    morada: 'x',
+    telefone: '9lock',
+    emailVerificado: true,
+  });
+  const errada = () =>
+    request(app)
+      .post('/api/auth/login')
+      .send({ email: 'lock@example.com', password: 'errada999' });
+  for (let i = 0; i < 5; i++) {
+    assert.equal((await errada()).status, 401);
+  }
+  // Conta agora bloqueada: mesmo a password correta é recusada (429)
+  const bloqueado = await request(app)
+    .post('/api/auth/login')
+    .send({ email: 'lock@example.com', password: 'certa1234' });
+  assert.equal(bloqueado.status, 429);
+});

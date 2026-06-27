@@ -6,6 +6,7 @@ import {
   rejeitarEstafeta,
   banUser,
   unbanUser,
+  listAudit,
 } from '../controllers/user.controller.js';
 import { auth, authorize } from '../middleware/auth.js';
 
@@ -45,6 +46,18 @@ router.get('/', listUsers);
  *       200: { description: Lista de estafetas pendentes }
  */
 router.get('/estafetas/pendentes', listPendingEstafetas);
+
+/**
+ * @openapi
+ * /api/users/audit:
+ *   get:
+ *     tags: [Users]
+ *     summary: Registo de auditoria de ações sensíveis (admin)
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200: { description: Lista de eventos de auditoria }
+ */
+router.get('/audit', listAudit);
 
 /**
  * @openapi

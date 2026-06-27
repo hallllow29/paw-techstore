@@ -77,6 +77,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/admin/estafetas/estafetas').then((m) => m.Estafetas),
   },
   {
+    path: 'admin/auditoria',
+    canActivate: [authGuard, roleGuard(['admin'])],
+    loadComponent: () => import('./features/admin/audit/audit').then((m) => m.AdminAudit),
+  },
+  {
     path: 'carrinho',
     loadComponent: () => import('./features/cart/cart/cart').then((m) => m.Cart),
   },

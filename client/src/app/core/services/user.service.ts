@@ -10,6 +10,21 @@ interface UserListResponse {
   users: User[];
 }
 
+export interface AuditEntry {
+  _id: string;
+  atorNome: string;
+  acao: string;
+  alvo: string;
+  detalhe: string;
+  ip: string;
+  createdAt: string;
+}
+interface AuditResponse {
+  success: boolean;
+  count: number;
+  logs: AuditEntry[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class UserService {
   private readonly http = inject(HttpClient);
@@ -40,5 +55,10 @@ export class UserService {
 
   desbanir(id: string): Observable<unknown> {
     return this.http.patch(`${API_URL}/users/${id}/desbanir`, {});
+  }
+
+  /** Registo de auditoria de ações sensíveis (admin). */
+  audit(): Observable<AuditResponse> {
+    return this.http.get<AuditResponse>(`${API_URL}/users/audit`);
   }
 }

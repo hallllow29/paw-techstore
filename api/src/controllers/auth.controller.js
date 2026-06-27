@@ -8,6 +8,27 @@ import { sendSms } from '../services/sms.js';
 import { toPublicPath } from '../middleware/upload.js';
 import { env } from '../config/env.js';
 import { logger } from '../utils/logger.js';
+import { audit } from '../services/audit.js';
+
+// Bloqueio de conta por brute-force: ao fim de MAX_TENTATIVAS falhadas, a conta
+// fica bloqueada durante BLOQUEIO_MIN minutos (defesa em profundidade, a somar
+// ao rate limiting por IP das rotas de autenticação).
+const MAX_TENTATIVAS = 5;
+const BLOQUEIO_MIN = 15;
+
+/** Regista uma tentativa de login falhada e bloqueia a conta se exceder o limite. */
+async function registarFalhaLogin(req, user) {
+  user.loginFails = (user.loginFails ?? 0) + 1;
+  if (user.loginFails >= MAX_TENTATIVAS) {
+    user.lockUntil = new Date(Date.now() + BLOQUEIO_MIN * 60 * 1000);
+    user.loginFails = 0;
+    await audit(req, 'auth.conta.bloqueada', {
+      alvo: user.email,
+      detalhe: `${MAX_TENTATIVAS} tentativas falhadas; bloqueada ${BLOQUEIO_MIN} min`,
+    });
+  }
+  await user.save();
+}
 
 /**
  * Em dev/teste regista o código no log do servidor (nunca em produção e nunca
@@ -162,11 +183,29 @@ export const resendVerification = asyncHandler(async (req, res) => {
 export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
-  // password tem select:false → pedir explicitamente
-  const user = await User.findOne({ email }).select('+password');
+  // password/contadores têm select:false → pedir explicitamente
+  const user = await User.findOne({ email }).select('+password +loginFails +lockUntil');
+
+  // Conta temporariamente bloqueada por demasiadas tentativas falhadas
+  if (user?.lockUntil && user.lockUntil.getTime() > Date.now()) {
+    const mins = Math.ceil((user.lockUntil.getTime() - Date.now()) / 60000);
+    res.status(429);
+    throw new Error(
+      `Conta temporariamente bloqueada. Tenta novamente dentro de ${mins} min.`
+    );
+  }
+
   if (!user || !(await user.comparePassword(password))) {
+    if (user) await registarFalhaLogin(req, user);
     res.status(401);
     throw new Error('Credenciais inválidas');
+  }
+
+  // Login correto: limpa os contadores de falha/bloqueio
+  if (user.loginFails || user.lockUntil) {
+    user.loginFails = 0;
+    user.lockUntil = null;
+    await user.save();
   }
 
   if (user.status === 'rejeitado') {

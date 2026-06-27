@@ -59,6 +59,9 @@ const userSchema = new mongoose.Schema(
     otpExpiresAt: { type: Date, select: false },
     otpAttempts: { type: Number, default: 0, select: false },
     otpPurpose: { type: String, select: false }, // 'login' | 'reset'
+    // Proteção contra brute-force: tentativas falhadas e bloqueio temporário.
+    loginFails: { type: Number, default: 0, select: false },
+    lockUntil: { type: Date, default: null, select: false },
   },
   { timestamps: true }
 );
@@ -86,6 +89,8 @@ userSchema.set('toJSON', {
     delete ret.otpPurpose;
     delete ret.emailTokenHash;
     delete ret.emailTokenExpiresAt;
+    delete ret.loginFails;
+    delete ret.lockUntil;
     return ret;
   },
 });
