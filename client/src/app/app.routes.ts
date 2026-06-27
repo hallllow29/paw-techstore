@@ -139,6 +139,12 @@ export const routes: Routes = [
     loadComponent: () => import('./features/store/coupons/coupons').then((m) => m.Coupons),
   },
   {
+    path: 'loja/categorias',
+    canActivate: [authGuard, roleGuard(['loja', 'admin'])],
+    loadComponent: () =>
+      import('./features/store/category-manage/category-manage').then((m) => m.CategoryManage),
+  },
+  {
     path: 'loja/analise',
     canActivate: [authGuard, roleGuard(['loja', 'admin'])],
     loadComponent: () =>

@@ -208,3 +208,51 @@ test('criar produto com categoria inexistente devolve 400', async () => {
     .field('preco', '20');
   assert.equal(res.status, 400);
 });
+
+test('criar categoria exige autenticação de loja', async () => {
+  const res = await request(app).post('/api/categories').send({ nome: 'Sem auth' });
+  assert.equal(res.status, 401);
+});
+
+test('loja cria, renomeia e remove uma categoria', async () => {
+  const criada = await request(app)
+    .post('/api/categories')
+    .set('Authorization', `Bearer ${lojaToken}`)
+    .send({ nome: 'Acessórios' });
+  assert.equal(criada.status, 201);
+  assert.equal(criada.body.category.slug, 'acessorios');
+  const id = criada.body.category._id;
+
+  const renomeada = await request(app)
+    .put(`/api/categories/${id}`)
+    .set('Authorization', `Bearer ${lojaToken}`)
+    .send({ nome: 'Acessórios Gaming' });
+  assert.equal(renomeada.status, 200);
+  assert.equal(renomeada.body.category.nome, 'Acessórios Gaming');
+
+  const removida = await request(app)
+    .delete(`/api/categories/${id}`)
+    .set('Authorization', `Bearer ${lojaToken}`);
+  assert.equal(removida.status, 200);
+});
+
+test('não deixa remover categoria com subcategorias', async () => {
+  const res = await request(app)
+    .delete(`/api/categories/${cat.computadores._id}`)
+    .set('Authorization', `Bearer ${lojaToken}`);
+  assert.equal(res.status, 409);
+});
+
+test('não deixa remover categoria com produtos associados', async () => {
+  const res = await request(app)
+    .delete(`/api/categories/${cat.monitores._id}`)
+    .set('Authorization', `Bearer ${lojaToken}`);
+  assert.equal(res.status, 409);
+});
+
+test('remover categoria inexistente devolve 404', async () => {
+  const res = await request(app)
+    .delete('/api/categories/0123456789abcdef01234567')
+    .set('Authorization', `Bearer ${lojaToken}`);
+  assert.equal(res.status, 404);
+});

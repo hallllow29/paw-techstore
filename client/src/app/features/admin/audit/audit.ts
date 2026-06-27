@@ -1,11 +1,10 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { UserService, AuditEntry } from '../../../core/services/user.service';
 
 @Component({
   selector: 'app-admin-audit',
-  imports: [DatePipe, RouterLink],
+  imports: [DatePipe],
   templateUrl: './audit.html',
 })
 export class AdminAudit implements OnInit {
