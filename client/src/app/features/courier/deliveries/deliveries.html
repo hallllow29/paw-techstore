@@ -104,30 +104,64 @@
         } @else {
           @for (o of minhas(); track o._id) {
             <div class="card shadow-sm border-0 mb-2">
-              <div class="card-body py-2 d-flex justify-content-between align-items-center">
-                <div>
-                  <div class="fw-semibold">{{ clienteNome(o) }}</div>
-                  <div class="small text-muted">{{ morada(o) }}</div>
-                  <span class="badge text-bg-{{ colors[o.estado] }}">{{ labels[o.estado] }}</span>
-                  <span class="small text-muted ms-1">{{ o.createdAt | date: 'dd/MM HH:mm' }}</span>
+              <div class="card-body py-2">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <div class="fw-semibold">{{ clienteNome(o) }}</div>
+                    <div class="small text-muted">{{ morada(o) }}</div>
+                    <span class="badge text-bg-{{ colors[o.estado] }}">{{ labels[o.estado] }}</span>
+                    <span class="small text-muted ms-1">{{
+                      o.createdAt | date: 'dd/MM HH:mm'
+                    }}</span>
+                  </div>
+                  @if (o.estado === 'em_entrega') {
+                    <div class="text-end">
+                      @if (partilhando() === o._id) {
+                        <button
+                          class="btn btn-sm btn-outline-danger mb-1"
+                          (click)="pararPartilha()"
+                        >
+                          <i class="bi bi-stop-circle"></i> Parar
+                        </button>
+                      } @else {
+                        <button class="btn btn-sm btn-outline-primary mb-1" (click)="partilhar(o)">
+                          <i class="bi bi-geo-alt"></i> Partilhar GPS
+                        </button>
+                      }
+                      <br />
+                      <button class="btn btn-sm btn-outline-secondary mb-1" (click)="simular(o)">
+                        <i class="bi bi-play-circle"></i> Simular
+                      </button>
+                      <br />
+                      <button class="btn btn-sm btn-success" (click)="entregar(o)">Entregue</button>
+                      <br />
+                      <button class="btn btn-sm btn-outline-danger mt-1" (click)="pedirRecusa(o)">
+                        <i class="bi bi-x-circle"></i> Recusar
+                      </button>
+                    </div>
+                  }
                 </div>
-                @if (o.estado === 'em_entrega') {
-                  <div class="text-end">
-                    @if (partilhando() === o._id) {
-                      <button class="btn btn-sm btn-outline-danger mb-1" (click)="pararPartilha()">
-                        <i class="bi bi-stop-circle"></i> Parar
+                @if (recusandoId() === o._id) {
+                  <div class="mt-2">
+                    <textarea
+                      class="form-control form-control-sm"
+                      rows="2"
+                      placeholder="Motivo da recusa (ex.: veículo avariado, morada inacessível)"
+                      [(ngModel)]="motivoRecusa"
+                      aria-label="Motivo da recusa"
+                    ></textarea>
+                    <div class="text-end mt-1">
+                      <button class="btn btn-sm btn-link text-muted" (click)="cancelarRecusa()">
+                        Cancelar
                       </button>
-                    } @else {
-                      <button class="btn btn-sm btn-outline-primary mb-1" (click)="partilhar(o)">
-                        <i class="bi bi-geo-alt"></i> Partilhar GPS
+                      <button
+                        class="btn btn-sm btn-danger"
+                        [disabled]="!motivoRecusa.trim()"
+                        (click)="confirmarRecusa(o)"
+                      >
+                        Confirmar recusa
                       </button>
-                    }
-                    <br />
-                    <button class="btn btn-sm btn-outline-secondary mb-1" (click)="simular(o)">
-                      <i class="bi bi-play-circle"></i> Simular
-                    </button>
-                    <br />
-                    <button class="btn btn-sm btn-success" (click)="entregar(o)">Entregue</button>
+                    </div>
                   </div>
                 }
               </div>

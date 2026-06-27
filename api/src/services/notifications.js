@@ -120,6 +120,39 @@ export async function notifyOrderCancelled(order) {
   }
 }
 
+/** Notifica a loja (e o estafeta) de que o cliente confirmou a receção. */
+export async function notifyEntregaConfirmada(order) {
+  try {
+    const ref = ref6(order);
+    await notifyLojas({
+      titulo: `Entrega #${ref} confirmada`,
+      mensagem: 'O cliente confirmou a receção da encomenda.',
+    });
+    if (order.estafeta) {
+      await notify(order.estafeta, {
+        tipo: 'encomenda',
+        titulo: `Entrega #${ref} confirmada`,
+        mensagem: 'O cliente confirmou a receção da tua entrega.',
+        link: '/estafeta/entregas',
+      });
+    }
+  } catch (err) {
+    logger.warn(`Notificação de confirmação de entrega falhou: ${err.message}`);
+  }
+}
+
+/** Notifica a loja de que um estafeta recusou a entrega (para reatribuir). */
+export async function notifyEntregaRecusada(order, estafetaNome, motivo) {
+  try {
+    await notifyLojas({
+      titulo: `Entrega #${ref6(order)} recusada`,
+      mensagem: `${estafetaNome} recusou a entrega${motivo ? `: ${motivo}` : ''}. Escolhe outro estafeta.`,
+    });
+  } catch (err) {
+    logger.warn(`Notificação de recusa falhou: ${err.message}`);
+  }
+}
+
 /** Notifica o estafeta de que lhe foi atribuída uma entrega. */
 export async function notifyEstafetaAtribuido(order) {
   try {

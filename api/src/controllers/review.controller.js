@@ -19,6 +19,10 @@ export const createReview = asyncHandler(async (req, res) => {
     res.status(409);
     throw new Error('Só podes avaliar encomendas entregues');
   }
+  if (!order.entregaConfirmada) {
+    res.status(409);
+    throw new Error('Confirma primeiro a receção da encomenda');
+  }
   if (await Review.exists({ order: order._id })) {
     res.status(409);
     throw new Error('Esta encomenda já foi avaliada');

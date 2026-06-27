@@ -1,5 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { OrderService } from '../../../core/services/order.service';
 import { ToastService } from '../../../core/services/toast.service';
@@ -10,7 +11,7 @@ import { DeliveryMap } from '../../../shared/delivery-map/delivery-map';
 
 @Component({
   selector: 'app-deliveries',
-  imports: [DatePipe, DecimalPipe, DeliveryMap],
+  imports: [DatePipe, DecimalPipe, FormsModule, DeliveryMap],
   templateUrl: './deliveries.html',
 })
 export class Deliveries implements OnInit {
@@ -106,6 +107,8 @@ export class Deliveries implements OnInit {
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly mapaAberto = signal<string | null>(null);
+  readonly recusandoId = signal<string | null>(null);
+  protected motivoRecusa = '';
   readonly labels = STATE_LABELS;
   readonly colors = STATE_COLORS;
 
@@ -151,6 +154,25 @@ export class Deliveries implements OnInit {
     this.orders.deliver(o._id).subscribe(() => {
       this.toast.success('Entrega concluída!');
       this.load();
+    });
+  }
+
+  /** Abre o formulário de recusa para esta entrega. */
+  pedirRecusa(o: Order): void {
+    this.recusandoId.set(o._id);
+    this.motivoRecusa = '';
+  }
+  cancelarRecusa(): void {
+    this.recusandoId.set(null);
+  }
+  confirmarRecusa(o: Order): void {
+    this.orders.refuse(o._id, this.motivoRecusa.trim()).subscribe({
+      next: () => {
+        this.toast.info('Entrega recusada. A loja foi avisada para reatribuir.');
+        this.recusandoId.set(null);
+        this.load();
+      },
+      error: (err) => this.toast.error(err?.error?.message ?? 'Não foi possível recusar'),
     });
   }
 

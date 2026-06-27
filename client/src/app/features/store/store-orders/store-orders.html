@@ -19,6 +19,9 @@
         {{ labels[e] }}
       </button>
     }
+    <button class="btn btn-sm btn-outline-secondary ms-auto" (click)="load()">
+      <i class="bi bi-arrow-clockwise"></i> Atualizar
+    </button>
   </div>
 
   @if (loading()) {
@@ -72,6 +75,12 @@
                       → {{ labels[prox] }}
                     </button>
                   } @else if (o.estado === 'em_preparacao' && o.metodoEntrega === 'estafeta') {
+                    @if (o.ultimaRecusa?.motivo) {
+                      <div class="small text-danger text-end mt-1">
+                        <i class="bi bi-x-circle"></i> Estafeta recusou:
+                        {{ o.ultimaRecusa?.motivo }}
+                      </div>
+                    }
                     <div class="input-group input-group-sm justify-content-end mt-1">
                       <label [attr.for]="'sel-estafeta-' + o._id" class="visually-hidden"
                         >Escolher estafeta</label

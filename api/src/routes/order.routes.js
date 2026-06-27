@@ -8,6 +8,8 @@ import {
   availableDeliveries,
   acceptDelivery,
   markDelivered,
+  refuseDelivery,
+  confirmDelivery,
   myDeliveries,
   getOrder,
   listCouriers,
@@ -84,9 +86,11 @@ router.patch(
  *       403: { description: Fora da janela de cancelamento }
  */
 router.patch('/:id/cancelar', authorize('cliente'), cancelOrder);
+router.patch('/:id/confirmar', authorize('cliente'), confirmDelivery);
 router.patch('/:id/estado', authorize('loja', 'admin'), updateStatus);
 router.patch('/:id/aceitar', authorize('estafeta'), requireActive, acceptDelivery);
 router.patch('/:id/entregue', authorize('estafeta'), requireActive, markDelivered);
+router.patch('/:id/recusar', authorize('estafeta'), requireActive, refuseDelivery);
 router.patch('/:id/atribuir', authorize('loja', 'admin'), assignDelivery);
 
 /**

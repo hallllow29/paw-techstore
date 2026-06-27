@@ -269,6 +269,7 @@ test('cliente avalia uma encomenda entregue (e não duplica)', async () => {
       .send({ estado });
   }
 
+  // levantamento em loja: a loja marca entregue e a entrega fica logo confirmada
   const av = await request(app)
     .post('/api/reviews')
     .set(auth(tokens.cliente))
@@ -281,6 +282,154 @@ test('cliente avalia uma encomenda entregue (e não duplica)', async () => {
     .set(auth(tokens.cliente))
     .send({ orderId: id, ratingEncomenda: 3 });
   assert.equal(dup.status, 409);
+});
+
+test('entrega por estafeta: loja não fecha; estafeta entrega e cliente confirma', async () => {
+  // Estafeta dedicado (evita conflito com entregas em curso de outros testes)
+  await User.create({
+    nome: 'EstafetaConfirma',
+    email: 'estconf@t.pt',
+    password: 'pass1234',
+    morada: 'x',
+    telefone: '9estconf',
+    role: 'estafeta',
+    status: 'ativo',
+    emailVerificado: true,
+  });
+  const estToken = (
+    await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'estconf@t.pt', password: 'pass1234' })
+  ).body.token;
+
+  const r = await request(app)
+    .post('/api/orders')
+    .set(auth(tokens.cliente))
+    .send({
+      metodoEntrega: 'estafeta',
+      itens: [{ produto: produto._id, quantidade: 1 }],
+    });
+  const id = r.body.order._id;
+
+  // loja confirma e prepara
+  for (const estado of ['confirmada', 'em_preparacao']) {
+    await request(app)
+      .patch(`/api/orders/${id}/estado`)
+      .set(auth(tokens.loja))
+      .send({ estado });
+  }
+
+  // a LOJA não pode marcar entregue numa entrega por estafeta
+  const lojaEntregue = await request(app)
+    .patch(`/api/orders/${id}/estado`)
+    .set(auth(tokens.loja))
+    .send({ estado: 'entregue' });
+  assert.equal(lojaEntregue.status, 409);
+
+  // o estafeta aceita e regista a entrega (fica a aguardar confirmação do cliente)
+  await request(app).patch(`/api/orders/${id}/aceitar`).set(auth(estToken));
+  const ent = await request(app).patch(`/api/orders/${id}/entregue`).set(auth(estToken));
+  assert.equal(ent.body.order.estado, 'entregue');
+  assert.equal(ent.body.order.entregaConfirmada, false);
+
+  // antes de confirmar, o cliente não pode avaliar
+  const cedo = await request(app)
+    .post('/api/reviews')
+    .set(auth(tokens.cliente))
+    .send({ orderId: id, ratingEncomenda: 5 });
+  assert.equal(cedo.status, 409);
+
+  // o cliente confirma a receção
+  const conf = await request(app)
+    .patch(`/api/orders/${id}/confirmar`)
+    .set(auth(tokens.cliente));
+  assert.equal(conf.status, 200);
+  assert.equal(conf.body.order.entregaConfirmada, true);
+
+  // confirmar de novo -> 409
+  const dupConf = await request(app)
+    .patch(`/api/orders/${id}/confirmar`)
+    .set(auth(tokens.cliente));
+  assert.equal(dupConf.status, 409);
+
+  // agora já pode avaliar
+  const av = await request(app)
+    .post('/api/reviews')
+    .set(auth(tokens.cliente))
+    .send({ orderId: id, ratingEncomenda: 5, comentario: 'Top' });
+  assert.equal(av.status, 201);
+});
+
+test('estafeta recusa a entrega: volta à pool com motivo', async () => {
+  await User.create({
+    nome: 'EstafetaRecusa',
+    email: 'estrec@t.pt',
+    password: 'pass1234',
+    morada: 'x',
+    telefone: '9estrec',
+    role: 'estafeta',
+    status: 'ativo',
+    emailVerificado: true,
+  });
+  const estToken = (
+    await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'estrec@t.pt', password: 'pass1234' })
+  ).body.token;
+
+  const r = await request(app)
+    .post('/api/orders')
+    .set(auth(tokens.cliente))
+    .send({
+      metodoEntrega: 'estafeta',
+      itens: [{ produto: produto._id, quantidade: 1 }],
+    });
+  const id = r.body.order._id;
+  for (const estado of ['confirmada', 'em_preparacao']) {
+    await request(app)
+      .patch(`/api/orders/${id}/estado`)
+      .set(auth(tokens.loja))
+      .send({ estado });
+  }
+
+  await request(app).patch(`/api/orders/${id}/aceitar`).set(auth(estToken));
+  const rec = await request(app)
+    .patch(`/api/orders/${id}/recusar`)
+    .set(auth(estToken))
+    .send({ motivo: 'Veículo avariado' });
+  assert.equal(rec.status, 200);
+  assert.equal(rec.body.order.estado, 'em_preparacao');
+  assert.equal(rec.body.order.estafeta, null);
+  assert.equal(rec.body.order.ultimaRecusa.motivo, 'Veículo avariado');
+
+  // volta a estar disponível para reatribuição
+  const disp = await request(app)
+    .get('/api/orders/entregas/disponiveis')
+    .set(auth(estToken));
+  assert.ok(disp.body.orders.some((o) => o._id === id));
+});
+
+test('cliente cancela encomenda presa à espera de estafeta', async () => {
+  const r = await request(app)
+    .post('/api/orders')
+    .set(auth(tokens.cliente))
+    .send({
+      metodoEntrega: 'estafeta',
+      itens: [{ produto: produto._id, quantidade: 1 }],
+    });
+  const id = r.body.order._id;
+  for (const estado of ['confirmada', 'em_preparacao']) {
+    await request(app)
+      .patch(`/api/orders/${id}/estado`)
+      .set(auth(tokens.loja))
+      .send({ estado });
+  }
+  // preparada, por estafeta e sem ninguém a aceitar -> pode cancelar
+  const c = await request(app)
+    .patch(`/api/orders/${id}/cancelar`)
+    .set(auth(tokens.cliente));
+  assert.equal(c.status, 200);
+  assert.equal(c.body.order.estado, 'cancelada');
 });
 
 test('estafeta pendente não pode operar entregas', async () => {

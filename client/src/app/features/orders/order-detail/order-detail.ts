@@ -51,16 +51,42 @@ export class OrderDetail implements OnInit {
   readonly metodos = METHOD_LABELS;
   readonly pagamentos = PAYMENT_LABELS;
 
+  /** Preparada, por estafeta e ainda sem ninguém a aceitar (à espera de estafeta). */
+  readonly aguardaEstafeta = computed(() => {
+    const o = this.order();
+    return Boolean(
+      o?.metodoEntrega === 'estafeta' &&
+      !o.estafeta &&
+      (o.estado === 'confirmada' || o.estado === 'em_preparacao'),
+    );
+  });
+
   readonly podeCancelar = computed(() => {
     const o = this.order();
-    return (
-      o && this.auth.hasRole('cliente') && (o.estado === 'pendente' || o.estado === 'confirmada')
+    return Boolean(
+      o &&
+      this.auth.hasRole('cliente') &&
+      (o.estado === 'pendente' || o.estado === 'confirmada' || this.aguardaEstafeta()),
+    );
+  });
+
+  /** Entregue pelo estafeta, à espera da confirmação de receção do cliente. */
+  readonly podeConfirmar = computed(() => {
+    const o = this.order();
+    return Boolean(
+      o && this.auth.hasRole('cliente') && o.estado === 'entregue' && !o.entregaConfirmada,
     );
   });
 
   readonly podeAvaliar = computed(() => {
     const o = this.order();
-    return o && this.auth.hasRole('cliente') && o.estado === 'entregue' && !this.review();
+    return (
+      o &&
+      this.auth.hasRole('cliente') &&
+      o.estado === 'entregue' &&
+      o.entregaConfirmada &&
+      !this.review()
+    );
   });
 
   /** Encomenda ainda por liquidar (e que não é "pagar na entrega"). */
@@ -205,6 +231,19 @@ export class OrderDetail implements OnInit {
         },
         error: (err) => this.reviewError.set(err?.error?.message ?? 'Não foi possível avaliar'),
       });
+  }
+
+  confirmarRececao(): void {
+    const o = this.order();
+    if (!o) return;
+    this.error.set(null);
+    this.orders.confirmReceipt(o._id).subscribe({
+      next: (res) => {
+        this.order.set(res.order);
+        this.toast.success('Receção confirmada! Já podes avaliar a encomenda.');
+      },
+      error: (err) => this.error.set(err?.error?.message ?? 'Não foi possível confirmar a receção'),
+    });
   }
 
   cancelar(): void {

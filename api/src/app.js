@@ -24,11 +24,14 @@ export function createApp() {
   app.use(express.urlencoded({ extended: true, limit: '1mb' }));
   if (!isProd) app.use(morgan('dev'));
 
-  // Rate limiting global (mitiga abuso/brute-force; ZAP/SAST gostam de ver isto)
+  // Rate limiting global (mitiga abuso/brute-force; ZAP/SAST gostam de ver isto).
+  // Em produção um limite sensato; em desenvolvimento muito folgado, pois uma SPA
+  // com polling/navegação intensa esgota um limite baixo (o limiter estrito das
+  // rotas de auth mantem-se em ambos os casos).
   app.use(
     rateLimit({
       windowMs: 15 * 60 * 1000,
-      max: 300,
+      max: isProd ? 1000 : 100000,
       standardHeaders: true,
       legacyHeaders: false,
     })

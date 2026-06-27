@@ -61,6 +61,12 @@ const orderSchema = new mongoose.Schema(
       index: true,
     },
     confirmadaEm: { type: Date, default: null }, // marca o início da janela de cancelamento
+    // Confirmação de entrega: o estafeta reporta (entregaReportadaEm) e o cliente
+    // confirma a receção (entregaConfirmada). A entrega só fica "oficial" — e a
+    // avaliação só desbloqueia — depois da confirmação do cliente.
+    entregaReportadaEm: { type: Date, default: null },
+    entregaConfirmada: { type: Boolean, default: false },
+    entregaConfirmadaEm: { type: Date, default: null },
     metodoPagamento: { type: String, enum: PAYMENT_METHODS, default: 'entrega' },
     pago: { type: Boolean, default: false },
     stripeSessionId: { type: String, default: '' },
@@ -74,6 +80,12 @@ const orderSchema = new mongoose.Schema(
     ultimaPosicao: {
       lat: { type: Number, default: null },
       lng: { type: Number, default: null },
+      em: { type: Date, default: null },
+    },
+    // Última recusa de entrega por um estafeta (a loja vê o motivo e reatribui).
+    ultimaRecusa: {
+      estafeta: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+      motivo: { type: String, default: '' },
       em: { type: Date, default: null },
     },
     historico: { type: [historicoSchema], default: () => [{ estado: 'pendente' }] },

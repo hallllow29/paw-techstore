@@ -45,6 +45,10 @@ export class OrderService {
   cancel(id: string) {
     return this.http.patch<OrderResponse>(`${API_URL}/orders/${id}/cancelar`, {});
   }
+  /** Cliente confirma a receção da encomenda entregue. */
+  confirmReceipt(id: string) {
+    return this.http.patch<OrderResponse>(`${API_URL}/orders/${id}/confirmar`, {});
+  }
   get(id: string): Observable<OrderResponse> {
     return this.http.get<OrderResponse>(`${API_URL}/orders/${id}`);
   }
@@ -78,6 +82,10 @@ export class OrderService {
   }
   deliver(id: string) {
     return this.http.patch<OrderResponse>(`${API_URL}/orders/${id}/entregue`, {});
+  }
+  /** Estafeta recusa uma entrega (com motivo); volta à pool para reatribuir. */
+  refuse(id: string, motivo: string) {
+    return this.http.patch<OrderResponse>(`${API_URL}/orders/${id}/recusar`, { motivo });
   }
   /** Liga/desliga a disponibilidade do estafeta. */
   setDisponibilidade(disponivel: boolean) {

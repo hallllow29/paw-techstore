@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { OrderService, Courier } from '../../../core/services/order.service';
@@ -16,7 +16,7 @@ import {
   imports: [RouterLink, DatePipe, DecimalPipe],
   templateUrl: './store-orders.html',
 })
-export class StoreOrders implements OnInit {
+export class StoreOrders implements OnInit, OnDestroy {
   private readonly orders = inject(OrderService);
   private readonly toast = inject(ToastService);
 
@@ -37,9 +37,17 @@ export class StoreOrders implements OnInit {
   readonly colors = STATE_COLORS;
   readonly metodos = METHOD_LABELS;
 
+  /** Atualiza periodicamente para refletir ações do estafeta/cliente sem F5. */
+  private pollId?: ReturnType<typeof setInterval>;
+
   ngOnInit(): void {
     this.load();
     this.carregarEstafetas();
+    this.pollId = setInterval(() => this.load(), 15000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.pollId) clearInterval(this.pollId);
   }
 
   load(): void {
@@ -91,9 +99,11 @@ export class StoreOrders implements OnInit {
       case 'confirmada':
         return 'em_preparacao';
       case 'em_preparacao':
+        // Por estafeta: a loja atribui/aguarda o estafeta (não avança o estado aqui).
         return o.metodoEntrega === 'estafeta' ? null : 'em_entrega';
       case 'em_entrega':
-        return 'entregue';
+        // Por estafeta: é o estafeta que marca a entrega, não a loja.
+        return o.metodoEntrega === 'estafeta' ? null : 'entregue';
       default:
         return null;
     }

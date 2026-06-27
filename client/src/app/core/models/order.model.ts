@@ -62,10 +62,14 @@ export interface Order {
   estado: OrderState;
   estafeta?: string | User | null;
   confirmadaEm?: string | null;
+  entregaReportadaEm?: string | null;
+  entregaConfirmada?: boolean;
+  entregaConfirmadaEm?: string | null;
   metodoPagamento?: PaymentMethod;
   pago?: boolean;
   multibanco?: { entidade: string; referencia: string };
   ultimaPosicao?: { lat: number | null; lng: number | null; em: string | null };
+  ultimaRecusa?: { estafeta?: string | User | null; motivo: string; em: string | null };
   historico: { estado: OrderState; em: string }[];
   createdAt: string;
 }

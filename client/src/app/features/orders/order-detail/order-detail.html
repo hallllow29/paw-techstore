@@ -32,6 +32,16 @@
       </a>
     }
 
+    @if (aguardaEstafeta()) {
+      <div class="alert alert-info d-flex align-items-center gap-2">
+        <i class="bi bi-hourglass-split fs-5"></i>
+        <span>
+          A tua encomenda está pronta e <strong>à espera de um estafeta disponível</strong>. Assim
+          que um estafeta a aceitar, podes acompanhar a entrega aqui.
+        </span>
+      </div>
+    }
+
     @if (o.estado === 'em_entrega') {
       <div class="card shadow-sm border-0 mb-3">
         <div class="card-body">
@@ -109,6 +119,24 @@
         </ul>
       </div>
     </div>
+
+    <!-- Confirmação de receção (cliente) -->
+    @if (podeConfirmar()) {
+      <div class="card shadow-sm border-0 mb-3 border-start border-4 border-success">
+        <div class="card-body text-center">
+          <h2 class="h6">
+            <i class="bi bi-box-seam-fill text-success"></i> Já recebeste a tua encomenda?
+          </h2>
+          <p class="text-muted small mb-3">
+            O estafeta marcou a encomenda como entregue. Confirma a receção para concluir a entrega
+            e poderes avaliar.
+          </p>
+          <button class="btn btn-success" (click)="confirmarRececao()">
+            <i class="bi bi-check2-circle"></i> Confirmar receção
+          </button>
+        </div>
+      </div>
+    }
 
     <!-- Avaliação -->
     @if (review(); as r) {
@@ -256,7 +284,13 @@
       <button class="btn btn-outline-danger" (click)="cancelar()">
         <i class="bi bi-x-circle"></i> Cancelar encomenda
       </button>
-      <p class="small text-muted mt-1">Podes cancelar até 10 minutos após a confirmação.</p>
+      @if (aguardaEstafeta()) {
+        <p class="small text-muted mt-1">
+          Sem estafeta disponível? Podes cancelar a encomenda (o stock é reposto).
+        </p>
+      } @else {
+        <p class="small text-muted mt-1">Podes cancelar até 10 minutos após a confirmação.</p>
+      }
     }
   } @else {
     <div class="alert alert-warning">Encomenda não encontrada.</div>

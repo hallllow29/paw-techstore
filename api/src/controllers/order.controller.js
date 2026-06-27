@@ -11,6 +11,8 @@ import {
   notifyNewOrder,
   notifyOrderCancelled,
   notifyEstafetaAtribuido,
+  notifyEntregaConfirmada,
+  notifyEntregaRecusada,
 } from '../services/notifications.js';
 
 const round2 = (n) => Math.round(n * 100) / 100;
@@ -222,7 +224,14 @@ export const cancelOrder = asyncHandler(async (req, res) => {
     order.confirmadaEm &&
     Date.now() - order.confirmadaEm.getTime() <= CANCEL_WINDOW_MIN * 60 * 1000;
 
-  if (order.estado !== 'pendente' && !dentroDaJanela) {
+  // Também pode cancelar se a encomenda está presa à espera de um estafeta:
+  // preparada (ou confirmada), por estafeta e ainda sem ninguém a aceitá-la.
+  const aguardaEstafeta =
+    order.metodoEntrega === 'estafeta' &&
+    !order.estafeta &&
+    (order.estado === 'confirmada' || order.estado === 'em_preparacao');
+
+  if (order.estado !== 'pendente' && !dentroDaJanela && !aguardaEstafeta) {
     res.status(403);
     throw new Error('Já não é possível cancelar esta encomenda');
   }
@@ -268,13 +277,22 @@ export const listOrders = asyncHandler(async (req, res) => {
   res.json({ success: true, count: orders.length, orders });
 });
 
-// Transições válidas que a loja pode aplicar (sequenciais — sem saltar nem regredir)
-const TRANSICOES_LOJA = new Map([
-  ['pendente', ['confirmada']],
-  ['confirmada', ['em_preparacao']],
-  ['em_preparacao', ['em_entrega']],
-  ['em_entrega', ['entregue']],
-]);
+// Transições que a loja pode aplicar (sequenciais, sem saltar nem regredir).
+// A loja conduz o pedido até 'em_preparacao'. Daí em diante, numa entrega POR
+// ESTAFETA é o estafeta que regista a entrega (aceitar -> em_entrega; entregue),
+// pelo que a loja NÃO pode marcar 'em_entrega' nem 'entregue'. Nos métodos sem
+// estafeta (levantamento/transportadora) é a loja que conclui o ciclo.
+function transicoesLoja(order) {
+  const t = new Map([
+    ['pendente', ['confirmada']],
+    ['confirmada', ['em_preparacao']],
+  ]);
+  if (order.metodoEntrega !== 'estafeta') {
+    t.set('em_preparacao', ['em_entrega', 'entregue']);
+    t.set('em_entrega', ['entregue']);
+  }
+  return t;
+}
 
 /** PATCH /api/orders/:id/estado — a loja avança o estado. */
 export const updateStatus = asyncHandler(async (req, res) => {
@@ -288,12 +306,26 @@ export const updateStatus = asyncHandler(async (req, res) => {
     res.status(409);
     throw new Error('A encomenda já está fechada');
   }
+  // Entregas por estafeta: a entrega é registada pelo estafeta, não pela loja.
+  if (
+    order.metodoEntrega === 'estafeta' &&
+    (estado === 'em_entrega' || estado === 'entregue')
+  ) {
+    res.status(409);
+    throw new Error('Numa entrega por estafeta, é o estafeta que regista a entrega.');
+  }
   // Só permite avançar para o estado seguinte na sequência
-  if (!(TRANSICOES_LOJA.get(order.estado) ?? []).includes(estado)) {
+  if (!(transicoesLoja(order).get(order.estado) ?? []).includes(estado)) {
     res.status(409);
     throw new Error('Transição de estado inválida');
   }
   setEstado(order, estado);
+  if (estado === 'entregue') {
+    // Sem estafeta: a loja conclui e a entrega fica confirmada de imediato
+    // (não há passo de confirmação do cliente, como no levantamento em loja).
+    order.entregaConfirmada = true;
+    order.entregaConfirmadaEm = new Date();
+  }
   await order.save();
   notifyOrderStatus(order);
   res.json({ success: true, order });
@@ -426,7 +458,11 @@ export const acceptDelivery = asyncHandler(async (req, res) => {
   res.json({ success: true, order });
 });
 
-/** PATCH /api/orders/:id/entregue — estafeta marca como entregue. */
+/**
+ * PATCH /api/orders/:id/entregue — o estafeta REPORTA que entregou.
+ * A encomenda passa a 'entregue' mas fica a aguardar a confirmação do cliente
+ * (entregaConfirmada=false). Só com essa confirmação a avaliação desbloqueia.
+ */
 export const markDelivered = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id);
   if (
@@ -437,8 +473,59 @@ export const markDelivered = asyncHandler(async (req, res) => {
     throw new Error('Não tens esta entrega em curso');
   }
   setEstado(order, 'entregue');
+  order.entregaReportadaEm = new Date();
+  order.entregaConfirmada = false;
   await order.save();
-  notifyOrderStatus(order);
+  notifyOrderStatus(order); // cliente: entregue, confirma a receção
+  res.json({ success: true, order });
+});
+
+/**
+ * PATCH /api/orders/:id/confirmar — o CLIENTE confirma a receção da encomenda.
+ * Fecha o ciclo de entrega e é o que permite avaliar.
+ */
+export const confirmDelivery = asyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id);
+  if (!order || String(order.cliente) !== String(req.user._id)) {
+    res.status(404);
+    throw new Error('Encomenda não encontrada');
+  }
+  if (order.estado !== 'entregue') {
+    res.status(409);
+    throw new Error('Esta encomenda ainda não foi entregue');
+  }
+  if (order.entregaConfirmada) {
+    res.status(409);
+    throw new Error('Já confirmaste a receção desta encomenda');
+  }
+  order.entregaConfirmada = true;
+  order.entregaConfirmadaEm = new Date();
+  await order.save();
+  notifyEntregaConfirmada(order); // loja + estafeta
+  res.json({ success: true, order });
+});
+
+/**
+ * PATCH /api/orders/:id/recusar — o estafeta recusa uma entrega que tinha em
+ * curso (com motivo). A encomenda volta à pool (em_preparacao, sem estafeta)
+ * para a loja reatribuir; o motivo fica registado e a loja é notificada.
+ */
+export const refuseDelivery = asyncHandler(async (req, res) => {
+  const motivo = String(req.body.motivo ?? '').trim();
+  const order = await Order.findById(req.params.id);
+  if (
+    !order ||
+    String(order.estafeta) !== String(req.user._id) ||
+    order.estado !== 'em_entrega'
+  ) {
+    res.status(409);
+    throw new Error('Não tens esta entrega em curso');
+  }
+  order.ultimaRecusa = { estafeta: req.user._id, motivo, em: new Date() };
+  order.estafeta = null;
+  setEstado(order, 'em_preparacao'); // volta a ficar disponível para reatribuir
+  await order.save();
+  notifyEntregaRecusada(order, req.user.nome, motivo);
   res.json({ success: true, order });
 });
 
