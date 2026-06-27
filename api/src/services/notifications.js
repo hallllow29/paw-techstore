@@ -1,7 +1,7 @@
 import { User } from '../models/user.model.js';
 import { Notification } from '../models/notification.model.js';
 import { sendMail } from './mailer.js';
-import { emitToUser } from '../socket.js';
+import { emitToUser, emitOrderUpdate } from '../socket.js';
 import { env } from '../config/env.js';
 import { logger } from '../utils/logger.js';
 
@@ -42,6 +42,7 @@ export async function notify(
  * Fire-and-forget — nunca lança nem bloqueia o pedido.
  */
 export async function notifyOrderStatus(order) {
+  emitOrderUpdate(order); // tempo real: atualiza as vistas dos interessados
   try {
     const user = await User.findById(order.cliente);
     if (!user) return;
@@ -122,6 +123,7 @@ export async function notifyOrderCancelled(order) {
 
 /** Notifica a loja (e o estafeta) de que o cliente confirmou a receção. */
 export async function notifyEntregaConfirmada(order) {
+  emitOrderUpdate(order);
   try {
     const ref = ref6(order);
     await notifyLojas({
@@ -143,10 +145,12 @@ export async function notifyEntregaConfirmada(order) {
 
 /** Notifica a loja de que um estafeta recusou a entrega (para reatribuir). */
 export async function notifyEntregaRecusada(order, estafetaNome, motivo) {
+  emitOrderUpdate(order);
   try {
+    const detalhe = motivo ? `: ${motivo}` : '';
     await notifyLojas({
       titulo: `Entrega #${ref6(order)} recusada`,
-      mensagem: `${estafetaNome} recusou a entrega${motivo ? `: ${motivo}` : ''}. Escolhe outro estafeta.`,
+      mensagem: `${estafetaNome} recusou a entrega${detalhe}. Escolhe outro estafeta.`,
     });
   } catch (err) {
     logger.warn(`Notificação de recusa falhou: ${err.message}`);

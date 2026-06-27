@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -8,6 +8,7 @@ import { ReviewService } from '../../../core/services/review.service';
 import { PaymentService } from '../../../core/services/payment.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import {
   METHOD_LABELS,
   Order,
@@ -29,6 +30,16 @@ export class OrderDetail implements OnInit {
   private readonly payments = inject(PaymentService);
   private readonly toast = inject(ToastService);
   protected readonly auth = inject(AuthService);
+  private readonly notif = inject(NotificationService);
+
+  constructor() {
+    // Tempo real: recarrega o detalhe quando ESTA encomenda muda de estado.
+    effect(() => {
+      const u = this.notif.atualizacaoEncomenda();
+      const id = this.route.snapshot.paramMap.get('id');
+      if (u?.id === id) this.load();
+    });
+  }
 
   readonly stripeAtivo = signal(false);
   readonly paypalAtivo = signal(false);

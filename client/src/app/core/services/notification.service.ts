@@ -20,6 +20,8 @@ export class NotificationService {
 
   readonly notifications = signal<Notification[]>([]);
   readonly naoLidas = signal(0);
+  /** Última atualização de encomenda recebida em tempo real (id + estado). */
+  readonly atualizacaoEncomenda = signal<{ id: string; estado: string; em: number } | null>(null);
   /** Som ligado/desligado (persiste em localStorage). */
   readonly som = signal(this.lerSom());
 
@@ -50,6 +52,9 @@ export class NotificationService {
         auth: { token: localStorage.getItem(TOKEN_KEY) ?? '' },
       });
       this.socket.on('notificacao', (n: Notification) => this.receber(n));
+      this.socket.on('order:update', (p: { id: string; estado: string }) =>
+        this.atualizacaoEncomenda.set({ ...p, em: Date.now() }),
+      );
     } finally {
       this.aLigar = false;
     }

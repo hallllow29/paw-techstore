@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -6,6 +6,7 @@ import { OrderService } from '../../../core/services/order.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { TrackingService } from '../../../core/services/tracking.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import { Order, STATE_COLORS, STATE_LABELS } from '../../../core/models/order.model';
 import { DeliveryMap } from '../../../shared/delivery-map/delivery-map';
 
@@ -20,6 +21,14 @@ export class Deliveries implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly tracking = inject(TrackingService);
   private readonly http = inject(HttpClient);
+  private readonly notif = inject(NotificationService);
+
+  constructor() {
+    // Tempo real: recarrega disponíveis/minhas quando há mudanças de encomenda.
+    effect(() => {
+      if (this.notif.atualizacaoEncomenda() && !this.contaPendente()) this.load();
+    });
+  }
 
   readonly partilhando = signal<string | null>(null);
   private watchId?: number;

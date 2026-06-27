@@ -16,6 +16,22 @@ export function emitToUser(userId, event, payload) {
 }
 
 /**
+ * Notifica em tempo real as partes interessadas numa encomenda (o cliente, todas
+ * as lojas e os estafetas) de que esta mudou, para as vistas se atualizarem sem
+ * refresh. Envia só um sinal leve (id + estado); o cliente recarrega.
+ */
+export function emitOrderUpdate(order) {
+  if (!ioRef || !order) return;
+  const payload = { id: String(order._id), estado: order.estado };
+  ioRef.to('lojas').emit('order:update', payload);
+  ioRef.to('estafetas').emit('order:update', payload);
+  if (order.cliente)
+    ioRef.to(`user:${String(order.cliente)}`).emit('order:update', payload);
+  if (order.estafeta)
+    ioRef.to(`user:${String(order.estafeta)}`).emit('order:update', payload);
+}
+
+/**
  * Inicializa o Socket.IO para rastreio em tempo real do estafeta.
  * - Cada encomenda tem uma sala `order:<id>`.
  * - Cada utilizador autenticado entra na sua sala pessoal `user:<id>` para
@@ -45,6 +61,9 @@ export function initSocket(httpServer) {
   io.on('connection', (socket) => {
     // Sala pessoal: recebe notificações em tempo real (encomendas, estado, …)
     if (socket.user?.sub) socket.join(`user:${socket.user.sub}`);
+    // Salas por perfil: atualizações de encomendas em tempo real
+    if (socket.user?.role === 'loja') socket.join('lojas');
+    if (socket.user?.role === 'estafeta') socket.join('estafetas');
 
     // Entrar na sala de uma encomenda para receber atualizações de posição
     socket.on('join', (orderId) => {

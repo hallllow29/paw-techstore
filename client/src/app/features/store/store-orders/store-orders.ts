@@ -1,8 +1,9 @@
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { OrderService, Courier } from '../../../core/services/order.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import {
   METHOD_LABELS,
   Order,
@@ -19,6 +20,7 @@ import {
 export class StoreOrders implements OnInit, OnDestroy {
   private readonly orders = inject(OrderService);
   private readonly toast = inject(ToastService);
+  private readonly notif = inject(NotificationService);
 
   readonly items = signal<Order[]>([]);
   readonly couriers = signal<Courier[]>([]);
@@ -39,6 +41,13 @@ export class StoreOrders implements OnInit, OnDestroy {
 
   /** Atualiza periodicamente para refletir ações do estafeta/cliente sem F5. */
   private pollId?: ReturnType<typeof setInterval>;
+
+  constructor() {
+    // Tempo real: recarrega assim que uma encomenda muda de estado.
+    effect(() => {
+      if (this.notif.atualizacaoEncomenda()) this.load();
+    });
+  }
 
   ngOnInit(): void {
     this.load();
