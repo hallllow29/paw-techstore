@@ -8,12 +8,12 @@ import { Order } from '../models/order.model.js';
 import { env } from '../config/env.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
-/** GET /api/payments/config — indica que pagamentos online estão disponíveis. */
+/** GET /api/payments/config - indica que pagamentos online estão disponíveis. */
 export const paymentConfig = asyncHandler(async (_req, res) => {
   res.json({ success: true, enabled: Boolean(getStripe()), paypal: paypalAtivo() });
 });
 
-/** POST /api/payments/checkout/:orderId — cria uma sessão de Checkout Stripe. */
+/** POST /api/payments/checkout/:orderId - cria uma sessão de Checkout Stripe. */
 export const createCheckout = asyncHandler(async (req, res) => {
   const stripe = getStripe();
   if (!stripe) {
@@ -42,7 +42,7 @@ export const createCheckout = asyncHandler(async (req, res) => {
       {
         price_data: {
           currency: 'eur',
-          product_data: { name: `Encomenda #${ref} — ElSircários Tech Store` },
+          product_data: { name: `Encomenda #${ref} - ElSircários Tech Store` },
           unit_amount: Math.round(order.total * 100), // em cêntimos
         },
         quantity: 1,
@@ -57,7 +57,7 @@ export const createCheckout = asyncHandler(async (req, res) => {
   res.json({ success: true, url: session.url });
 });
 
-/** POST /api/payments/confirm — confirma o pagamento de uma sessão (no regresso). */
+/** POST /api/payments/confirm - confirma o pagamento de uma sessão (no regresso). */
 export const confirmPayment = asyncHandler(async (req, res) => {
   const stripe = getStripe();
   if (!stripe) {
@@ -107,7 +107,7 @@ async function ownOrder(req, res) {
   return order;
 }
 
-/** POST /api/payments/mbway/:orderId — pagamento MB WAY (simulado). */
+/** POST /api/payments/mbway/:orderId - pagamento MB WAY (simulado). */
 export const payMbway = asyncHandler(async (req, res) => {
   const order = await ownOrder(req, res);
   // Simulação: na vida real o cliente confirmaria no telemóvel.
@@ -117,7 +117,7 @@ export const payMbway = asyncHandler(async (req, res) => {
   res.json({ success: true, pago: true });
 });
 
-/** POST /api/payments/multibanco/:orderId/confirmar — confirma pagamento MB (simulado). */
+/** POST /api/payments/multibanco/:orderId/confirmar - confirma pagamento MB (simulado). */
 export const confirmMultibanco = asyncHandler(async (req, res) => {
   const order = await ownOrder(req, res);
   order.pago = true;
@@ -126,7 +126,7 @@ export const confirmMultibanco = asyncHandler(async (req, res) => {
 });
 
 /**
- * POST /api/payments/cartao/:orderId — pagamento por cartão (simulado).
+ * POST /api/payments/cartao/:orderId - pagamento por cartão (simulado).
  * Os dados do cartão chegam apenas para realismo do formulário e nunca são
  * guardados. Em produção isto seria delegado ao Stripe (ver createCheckout).
  */
@@ -139,7 +139,7 @@ export const payCartao = asyncHandler(async (req, res) => {
 });
 
 /**
- * POST /api/payments/paypal/:orderId — pagamento PayPal (simulado).
+ * POST /api/payments/paypal/:orderId - pagamento PayPal (simulado).
  * Usado quando o PayPal não está configurado (sem Client ID/Secret).
  */
 export const payPaypal = asyncHandler(async (req, res) => {
@@ -151,7 +151,7 @@ export const payPaypal = asyncHandler(async (req, res) => {
 });
 
 /**
- * POST /api/payments/paypal/:orderId/create — cria uma ordem PayPal real
+ * POST /api/payments/paypal/:orderId/create - cria uma ordem PayPal real
  * (sandbox) e devolve a URL de aprovação para onde redirecionar o cliente.
  */
 export const createPaypalCheckout = asyncHandler(async (req, res) => {
@@ -176,7 +176,7 @@ export const createPaypalCheckout = asyncHandler(async (req, res) => {
 });
 
 /**
- * POST /api/payments/paypal/confirm — captura a ordem PayPal no regresso.
+ * POST /api/payments/paypal/confirm - captura a ordem PayPal no regresso.
  * Pública: identificada pelo id da ordem PayPal (devolvido pelo PayPal no URL).
  * A captura é idempotente e só finaliza um pagamento já aprovado pelo comprador.
  */

@@ -2,7 +2,7 @@ import { Category } from '../models/category.model.js';
 import { Product } from '../models/product.model.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
-/** GET /api/categories — todas as categorias (público). */
+/** GET /api/categories - todas as categorias (público). */
 export const listCategories = asyncHandler(async (_req, res) => {
   const categories = await Category.find({ ativo: true })
     .populate('parent', 'nome slug')
@@ -10,14 +10,14 @@ export const listCategories = asyncHandler(async (_req, res) => {
   res.json({ success: true, count: categories.length, categories });
 });
 
-/** POST /api/categories — cria categoria (loja). */
+/** POST /api/categories - cria categoria (loja). */
 export const createCategory = asyncHandler(async (req, res) => {
   const { nome, parent } = req.body;
   const category = await Category.create({ nome, parent: parent || null });
   res.status(201).json({ success: true, category });
 });
 
-/** PUT /api/categories/:id — atualiza categoria (loja). */
+/** PUT /api/categories/:id - atualiza categoria (loja). */
 export const updateCategory = asyncHandler(async (req, res) => {
   const { nome, parent, ativo } = req.body;
   const category = await Category.findById(req.params.id);
@@ -32,7 +32,7 @@ export const updateCategory = asyncHandler(async (req, res) => {
   res.json({ success: true, category });
 });
 
-/** DELETE /api/categories/:id — remove categoria (loja). */
+/** DELETE /api/categories/:id - remove categoria (loja). */
 export const deleteCategory = asyncHandler(async (req, res) => {
   const { id } = req.params;
 

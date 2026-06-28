@@ -46,7 +46,7 @@ function formatar(r: NominatimResult): string {
 
 /**
  * Campo de morada com sugestões (OpenStreetMap / Nominatim, gratuito, sem chave).
- * Implementa ControlValueAccessor — funciona com formControlName e ngModel.
+ * Implementa ControlValueAccessor - funciona com formControlName e ngModel.
  */
 @Component({
   selector: 'app-address-input',

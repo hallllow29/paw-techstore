@@ -54,7 +54,7 @@ const userSchema = new mongoose.Schema(
     emailVerificado: { type: Boolean, default: false },
     emailTokenHash: { type: String, select: false },
     emailTokenExpiresAt: { type: Date, select: false },
-    // Login por código no email (OTP) — alternativa à password, só para clientes
+    // Login por código no email (OTP) - alternativa à password, só para clientes
     otpHash: { type: String, select: false },
     otpExpiresAt: { type: Date, select: false },
     otpAttempts: { type: Number, default: 0, select: false },

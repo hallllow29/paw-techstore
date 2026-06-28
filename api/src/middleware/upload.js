@@ -12,8 +12,7 @@ const storage = multer.diskStorage({
     cb(null, `${randomUUID()}${path.extname(file.originalname).toLowerCase()}`),
 });
 
-// Só aceita imagens rasterizadas seguras. SVG é recusado de propósito —
-// pode conter <script> e seria servido de /uploads (XSS armazenado).
+// Só aceita imagens rasterizadas seguras. SVG é recusado de propósito - // pode conter <script> e seria servido de /uploads (XSS armazenado).
 const TIPOS_PERMITIDOS = new Set([
   'image/jpeg',
   'image/png',

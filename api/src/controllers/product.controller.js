@@ -25,8 +25,7 @@ const SORT_MAP = {
 export const listProducts = asyncHandler(async (req, res) => {
   const filter = { ativo: true };
 
-  // Pesquisa por nome, EAN ou marca (input escapado e coagido a string —
-  // ?q=a&q=b chega como array e rebentaria em .trim())
+  // Pesquisa por nome, EAN ou marca (input escapado e coagido a string -   // ?q=a&q=b chega como array e rebentaria em .trim())
   const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
   if (q) {
     // eslint-disable-next-line security/detect-non-literal-regexp -- input escapado por escapeRegex
@@ -34,14 +33,14 @@ export const listProducts = asyncHandler(async (req, res) => {
     filter.$or = [{ nome: rx }, { ean: rx }, { marca: rx }];
   }
 
-  // Filtro por categoria (inclui descendentes) — só se for um ObjectId válido
+  // Filtro por categoria (inclui descendentes) - só se for um ObjectId válido
   const categoria = typeof req.query.categoria === 'string' ? req.query.categoria : '';
   if (categoria && mongoose.isValidObjectId(categoria)) {
     const ids = await Category.descendantIds(categoria);
     filter.categoria = { $in: ids };
   }
 
-  // Intervalo de preço (ignora valores não numéricos — evita CastError 500)
+  // Intervalo de preço (ignora valores não numéricos - evita CastError 500)
   const min = req.query.minPreco ? Number(req.query.minPreco) : Number.NaN;
   const max = req.query.maxPreco ? Number(req.query.maxPreco) : Number.NaN;
   if (Number.isFinite(min) || Number.isFinite(max)) {
@@ -80,7 +79,7 @@ export const listProducts = asyncHandler(async (req, res) => {
   });
 });
 
-/** GET /api/products/marcas — marcas distintas (para os filtros). */
+/** GET /api/products/marcas - marcas distintas (para os filtros). */
 export const listMarcas = asyncHandler(async (_req, res) => {
   const marcas = await Product.distinct('marca', { ativo: true });
   res.json({
@@ -89,7 +88,7 @@ export const listMarcas = asyncHandler(async (_req, res) => {
   });
 });
 
-/** GET /api/products/:idOrSlug — detalhe de um produto (público). */
+/** GET /api/products/:idOrSlug - detalhe de um produto (público). */
 export const getProduct = asyncHandler(async (req, res) => {
   const { idOrSlug } = req.params;
   const query = mongoose.isValidObjectId(idOrSlug)
@@ -152,7 +151,7 @@ export const compareProducts = asyncHandler(async (req, res) => {
   res.json({ success: true, products, attributeKeys });
 });
 
-/** POST /api/products — cria produto (loja). Multipart com imagens. */
+/** POST /api/products - cria produto (loja). Multipart com imagens. */
 export const createProduct = asyncHandler(async (req, res) => {
   const data = parseProductBody(req);
 
@@ -166,7 +165,7 @@ export const createProduct = asyncHandler(async (req, res) => {
   res.status(201).json({ success: true, product });
 });
 
-/** PUT /api/products/:id — atualiza produto (loja). */
+/** PUT /api/products/:id - atualiza produto (loja). */
 export const updateProduct = asyncHandler(async (req, res) => {
   const product = await Product.findById(req.params.id);
   if (!product) {
@@ -191,7 +190,7 @@ async function garantirCategoria(categoria, res) {
   }
 }
 
-/** DELETE /api/products/:id — remove produto (loja). */
+/** DELETE /api/products/:id - remove produto (loja). */
 export const deleteProduct = asyncHandler(async (req, res) => {
   const product = await Product.findByIdAndDelete(req.params.id);
   if (!product) {

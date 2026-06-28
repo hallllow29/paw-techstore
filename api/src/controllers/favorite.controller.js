@@ -1,7 +1,7 @@
 import { User } from '../models/user.model.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
-/** GET /api/favorites — produtos favoritos do utilizador. */
+/** GET /api/favorites - produtos favoritos do utilizador. */
 export const listFavorites = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id).populate({
     path: 'favoritos',
@@ -10,7 +10,7 @@ export const listFavorites = asyncHandler(async (req, res) => {
   res.json({ success: true, favoritos: user.favoritos });
 });
 
-/** POST /api/favorites/:productId — adiciona/remove dos favoritos (toggle). */
+/** POST /api/favorites/:productId - adiciona/remove dos favoritos (toggle). */
 export const toggleFavorite = asyncHandler(async (req, res) => {
   const { productId } = req.params;
   const user = await User.findById(req.user._id);

@@ -29,7 +29,7 @@ export class ThemeService {
     try {
       localStorage.setItem(THEME_KEY, t);
     } catch {
-      /* armazenamento indisponível — segue só em memória */
+      /* armazenamento indisponível - segue só em memória */
     }
     this.aplicar(t);
   }

@@ -4,7 +4,7 @@ import { Order } from '../models/order.model.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { toPublicPath } from '../middleware/upload.js';
 
-/** GET /api/store/estafetas — disponibilidade de estafetas (para o checkout). */
+/** GET /api/store/estafetas - disponibilidade de estafetas (para o checkout). */
 export const getCouriers = asyncHandler(async (_req, res) => {
   const ativos = await User.find({ role: 'estafeta', status: 'ativo' }, '_id');
   // Estafetas ocupados = com uma entrega em curso (1 de cada vez)
@@ -17,13 +17,13 @@ export const getCouriers = asyncHandler(async (_req, res) => {
   res.json({ success: true, total: ativos.length, livres });
 });
 
-/** GET /api/store — configuração da loja (público; o frontend usa o nome/logo). */
+/** GET /api/store - configuração da loja (público; o frontend usa o nome/logo). */
 export const getSettings = asyncHandler(async (_req, res) => {
   const settings = await StoreSettings.getSettings();
   res.json({ success: true, settings });
 });
 
-/** PUT /api/store — atualiza a configuração (loja). */
+/** PUT /api/store - atualiza a configuração (loja). */
 export const updateSettings = asyncHandler(async (req, res) => {
   const settings = await StoreSettings.getSettings();
   const { nome, horario, metodosEntrega } = req.body;

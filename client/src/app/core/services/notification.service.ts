@@ -39,7 +39,7 @@ export class NotificationService {
 
   /**
    * Liga o canal em tempo real (sala pessoal do utilizador). O socket.io-client
-   * é carregado dinamicamente para não pesar no bundle inicial — só após login.
+   * é carregado dinamicamente para não pesar no bundle inicial - só após login.
    */
   async conectar(): Promise<void> {
     if (this.socket || this.aLigar) return;
@@ -65,7 +65,7 @@ export class NotificationService {
     this.notifications.update((list) => [n, ...list.filter((x) => x._id !== n._id)].slice(0, 30));
     this.naoLidas.update((c) => c + 1);
     const novaEncomenda = n.tipo === 'encomenda';
-    this.toast.show(`${n.titulo} — ${n.mensagem}`, novaEncomenda ? 'success' : 'info', 6000);
+    this.toast.show(`${n.titulo} - ${n.mensagem}`, novaEncomenda ? 'success' : 'info', 6000);
     this.tocarSom(novaEncomenda);
   }
 
@@ -133,7 +133,7 @@ export class NotificationService {
         osc.stop(t0 + 0.36);
       }
     } catch {
-      /* áudio indisponível — ignora */
+      /* áudio indisponível - ignora */
     }
   }
 

@@ -6,7 +6,7 @@ import { logger } from './utils/logger.js';
 
 // Referência ao servidor Socket.IO, partilhada com os serviços que precisam
 // de empurrar eventos em tempo real (ex.: notificações). Fica null em testes,
-// onde o socket não arranca — e emitToUser passa a no-op.
+// onde o socket não arranca - e emitToUser passa a no-op.
 let ioRef = null;
 
 /** Empurra um evento para a sala pessoal de um utilizador (`user:<id>`). */
@@ -52,7 +52,7 @@ export function initSocket(httpServer) {
       try {
         socket.user = verifyToken(token);
       } catch {
-        // token inválido — liga na mesma, mas sem permissão para emitir
+        // token inválido - liga na mesma, mas sem permissão para emitir
       }
     }
     next();

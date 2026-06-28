@@ -22,7 +22,7 @@ async function start() {
 
     // Encerramento gracioso (importante em Docker)
     const shutdown = (signal) => {
-      logger.warn(`${signal} recebido — a encerrar...`);
+      logger.warn(`${signal} recebido - a encerrar...`);
       server.close(() => process.exit(0));
     };
     process.on('SIGTERM', () => shutdown('SIGTERM'));

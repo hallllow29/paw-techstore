@@ -1,7 +1,7 @@
 /**
  * Carrega e valida variáveis de ambiente.
  * Regra de ouro do projeto: NADA de connection strings ou segredos hardcoded.
- * Tudo vem do .env (ver .env.example). Isto garante portabilidade — a mesma
+ * Tudo vem do .env (ver .env.example). Isto garante portabilidade - a mesma
  * app corre contra Atlas (entrega) ou Docker/local (dev) só mudando o .env.
  */
 import dotenv from 'dotenv';
@@ -24,14 +24,14 @@ export const env = {
   nodeEnv: process.env.NODE_ENV ?? 'development',
   port: Number(process.env.PORT ?? 3000),
 
-  // BD — sempre via env (Atlas no zip, Docker/local em dev)
+  // BD - sempre via env (Atlas no zip, Docker/local em dev)
   mongoUri: required('MONGODB_URI', 'mongodb://127.0.0.1:27017/paw-techstore'),
 
   // Auth (usado a partir da Fase 1)
   jwtSecret: process.env.JWT_SECRET ?? 'dev-only-insecure-secret-change-me',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '1h',
 
-  // CORS — origem do cliente Angular
+  // CORS - origem do cliente Angular
   clientUrl: process.env.CLIENT_URL ?? 'http://localhost:4200',
 
   // Email (opcional). Sem SMTP configurado, usa-se uma conta de teste Ethereal.

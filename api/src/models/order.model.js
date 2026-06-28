@@ -62,8 +62,8 @@ const orderSchema = new mongoose.Schema(
     },
     confirmadaEm: { type: Date, default: null }, // marca o início da janela de cancelamento
     // Confirmação de entrega: o estafeta reporta (entregaReportadaEm) e o cliente
-    // confirma a receção (entregaConfirmada). A entrega só fica "oficial" — e a
-    // avaliação só desbloqueia — depois da confirmação do cliente.
+    // confirma a receção (entregaConfirmada). A entrega só fica "oficial" - e a
+    // avaliação só desbloqueia - depois da confirmação do cliente.
     entregaReportadaEm: { type: Date, default: null },
     entregaConfirmada: { type: Boolean, default: false },
     entregaConfirmadaEm: { type: Date, default: null },

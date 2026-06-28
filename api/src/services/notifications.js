@@ -39,7 +39,7 @@ export async function notify(
 /**
  * Notifica o cliente da mudança de estado da sua encomenda:
  * notificação in-app (sempre) + email (best-effort, saltado em testes).
- * Fire-and-forget — nunca lança nem bloqueia o pedido.
+ * Fire-and-forget - nunca lança nem bloqueia o pedido.
  */
 export async function notifyOrderStatus(order) {
   emitOrderUpdate(order); // tempo real: atualiza as vistas dos interessados
@@ -61,7 +61,7 @@ export async function notifyOrderStatus(order) {
     if (env.nodeEnv !== 'test' && user.email) {
       await sendMail({
         to: user.email,
-        subject: `Encomenda #${ref} — ${order.estado}`,
+        subject: `Encomenda #${ref} - ${order.estado}`,
         html: `
         <div style="font-family: system-ui, sans-serif; max-width: 480px">
           <h2 style="color:#2563eb">ElSircários Tech Store</h2>

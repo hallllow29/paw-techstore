@@ -27,7 +27,7 @@ export class AuthService {
     return readToken();
   }
 
-  /** Regista a conta. NÃO inicia sessão — exige confirmação de email primeiro. */
+  /** Regista a conta. NÃO inicia sessão - exige confirmação de email primeiro. */
   register(data: RegisterData): Observable<{ success: boolean; message: string; user: User }> {
     return this.http.post<{ success: boolean; message: string; user: User }>(
       `${API_URL}/auth/register`,

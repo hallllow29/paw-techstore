@@ -179,7 +179,7 @@ export class Checkout implements OnInit {
       this.router.navigate(['/encomendas', orderId]);
     };
     const falhaPagamento = () => {
-      this.toast.info('Encomenda criada — podes concluir o pagamento na página da encomenda');
+      this.toast.info('Encomenda criada - podes concluir o pagamento na página da encomenda');
       this.router.navigate(['/encomendas', orderId]);
     };
 
@@ -217,7 +217,7 @@ export class Checkout implements OnInit {
         }
         break;
       case 'multibanco':
-        irParaEncomenda('Encomenda criada — usa a referência Multibanco para pagar');
+        irParaEncomenda('Encomenda criada - usa a referência Multibanco para pagar');
         break;
       default:
         irParaEncomenda('Encomenda criada com sucesso!');

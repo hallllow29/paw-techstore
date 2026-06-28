@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { DELIVERY_METHODS } from '../utils/constants.js';
 
 /**
- * Configuração da loja (documento único — só há 1 loja/marca).
+ * Configuração da loja (documento único - só há 1 loja/marca).
  *
  * @openapi
  * components:

@@ -122,7 +122,7 @@ export class Dashboard implements OnInit {
           {
             icon: 'bi-star-fill',
             label: `Avaliação (${this.num('numAvaliacoes')})`,
-            valor: this.num('numAvaliacoes') > 0 ? this.num('avaliacaoMedia').toFixed(1) : '—',
+            valor: this.num('numAvaliacoes') > 0 ? this.num('avaliacaoMedia').toFixed(1) : '-',
             cor: 'warning',
           },
         ];

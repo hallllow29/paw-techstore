@@ -93,7 +93,7 @@ async function resolverCupao(codigoCupao, subtotal, res) {
 
 /**
  * Desconta o stock de forma ATÓMICA (condição stock >= qtd no próprio update),
- * com rollback se algum item entretanto ficar sem stock — evita overselling.
+ * com rollback se algum item entretanto ficar sem stock - evita overselling.
  */
 async function descontarStock(orderItens, res) {
   const descontados = [];
@@ -133,7 +133,7 @@ async function guardarNovaMorada(req, morada, guardar) {
 
 // ─────────────────────────── CLIENTE ───────────────────────────
 
-/** POST /api/orders — cria encomenda a partir do carrinho (cliente). */
+/** POST /api/orders - cria encomenda a partir do carrinho (cliente). */
 export const createOrder = asyncHandler(async (req, res) => {
   const {
     itens,
@@ -201,13 +201,13 @@ export const createOrder = asyncHandler(async (req, res) => {
   res.status(201).json({ success: true, order });
 });
 
-/** GET /api/orders/me — histórico de encomendas do cliente. */
+/** GET /api/orders/me - histórico de encomendas do cliente. */
 export const myOrders = asyncHandler(async (req, res) => {
   const orders = await Order.find({ cliente: req.user._id }).sort({ createdAt: -1 });
   res.json({ success: true, count: orders.length, orders });
 });
 
-/** PATCH /api/orders/:id/cancelar — cancela (regra dos 10 min). */
+/** PATCH /api/orders/:id/cancelar - cancela (regra dos 10 min). */
 export const cancelOrder = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id);
   if (!order) {
@@ -266,7 +266,7 @@ export const cancelOrder = asyncHandler(async (req, res) => {
 
 // ──────────────────────────── LOJA ─────────────────────────────
 
-/** GET /api/orders — todas as encomendas (loja). */
+/** GET /api/orders - todas as encomendas (loja). */
 export const listOrders = asyncHandler(async (req, res) => {
   const filter = {};
   if (req.query.estado) filter.estado = req.query.estado;
@@ -294,7 +294,7 @@ function transicoesLoja(order) {
   return t;
 }
 
-/** PATCH /api/orders/:id/estado — a loja avança o estado. */
+/** PATCH /api/orders/:id/estado - a loja avança o estado. */
 export const updateStatus = asyncHandler(async (req, res) => {
   const { estado } = req.body;
   const order = await Order.findById(req.params.id);
@@ -340,7 +340,7 @@ async function estafetasOcupados() {
   return new Set(ids.map(String));
 }
 
-/** GET /api/orders/entregas/estafetas — estafetas e disponibilidade (loja). */
+/** GET /api/orders/entregas/estafetas - estafetas e disponibilidade (loja). */
 export const listCouriers = asyncHandler(async (_req, res) => {
   const estafetas = await User.find({ role: 'estafeta', status: 'ativo' }).select(
     'nome disponivel'
@@ -359,7 +359,7 @@ export const listCouriers = asyncHandler(async (_req, res) => {
   res.json({ success: true, estafetas: lista });
 });
 
-/** PATCH /api/orders/:id/atribuir — a loja atribui a entrega a um estafeta. */
+/** PATCH /api/orders/:id/atribuir - a loja atribui a entrega a um estafeta. */
 export const assignDelivery = asyncHandler(async (req, res) => {
   const { estafetaId } = req.body;
   const estafeta = await User.findOne({
@@ -406,14 +406,14 @@ export const assignDelivery = asyncHandler(async (req, res) => {
 
 // ─────────────────────────── ESTAFETA ──────────────────────────
 
-/** PATCH /api/orders/entregas/disponibilidade — estafeta liga/desliga disponibilidade. */
+/** PATCH /api/orders/entregas/disponibilidade - estafeta liga/desliga disponibilidade. */
 export const setDisponibilidade = asyncHandler(async (req, res) => {
   const disponivel = Boolean(req.body.disponivel);
   await User.updateOne({ _id: req.user._id }, { $set: { disponivel } });
   res.json({ success: true, disponivel });
 });
 
-/** GET /api/orders/entregas/disponiveis — entregas por estafeta prontas (estafeta). */
+/** GET /api/orders/entregas/disponiveis - entregas por estafeta prontas (estafeta). */
 export const availableDeliveries = asyncHandler(async (_req, res) => {
   // Disponível assim que a loja confirma (ou põe em preparação) e ainda sem estafeta
   const orders = await Order.find({
@@ -426,7 +426,7 @@ export const availableDeliveries = asyncHandler(async (_req, res) => {
   res.json({ success: true, count: orders.length, orders });
 });
 
-/** PATCH /api/orders/:id/aceitar — estafeta aceita uma entrega (1 de cada vez). */
+/** PATCH /api/orders/:id/aceitar - estafeta aceita uma entrega (1 de cada vez). */
 export const acceptDelivery = asyncHandler(async (req, res) => {
   // Regra: um estafeta só pode ter uma entrega em curso
   const ativa = await Order.exists({ estafeta: req.user._id, estado: 'em_entrega' });
@@ -459,7 +459,7 @@ export const acceptDelivery = asyncHandler(async (req, res) => {
 });
 
 /**
- * PATCH /api/orders/:id/entregue — o estafeta REPORTA que entregou.
+ * PATCH /api/orders/:id/entregue - o estafeta REPORTA que entregou.
  * A encomenda passa a 'entregue' mas fica a aguardar a confirmação do cliente
  * (entregaConfirmada=false). Só com essa confirmação a avaliação desbloqueia.
  */
@@ -481,7 +481,7 @@ export const markDelivered = asyncHandler(async (req, res) => {
 });
 
 /**
- * PATCH /api/orders/:id/confirmar — o CLIENTE confirma a receção da encomenda.
+ * PATCH /api/orders/:id/confirmar - o CLIENTE confirma a receção da encomenda.
  * Fecha o ciclo de entrega e é o que permite avaliar.
  */
 export const confirmDelivery = asyncHandler(async (req, res) => {
@@ -506,7 +506,7 @@ export const confirmDelivery = asyncHandler(async (req, res) => {
 });
 
 /**
- * PATCH /api/orders/:id/recusar — o estafeta recusa uma entrega que tinha em
+ * PATCH /api/orders/:id/recusar - o estafeta recusa uma entrega que tinha em
  * curso (com motivo). A encomenda volta à pool (em_preparacao, sem estafeta)
  * para a loja reatribuir; o motivo fica registado e a loja é notificada.
  */
@@ -529,7 +529,7 @@ export const refuseDelivery = asyncHandler(async (req, res) => {
   res.json({ success: true, order });
 });
 
-/** GET /api/orders/entregas/minhas — histórico de entregas do estafeta. */
+/** GET /api/orders/entregas/minhas - histórico de entregas do estafeta. */
 export const myDeliveries = asyncHandler(async (req, res) => {
   const orders = await Order.find({ estafeta: req.user._id })
     .populate('cliente', 'nome morada')
@@ -539,7 +539,7 @@ export const myDeliveries = asyncHandler(async (req, res) => {
 
 // ──────────────────────── PARTILHADO ───────────────────────────
 
-/** GET /api/orders/:id — detalhe (dono, loja/admin ou estafeta atribuído). */
+/** GET /api/orders/:id - detalhe (dono, loja/admin ou estafeta atribuído). */
 export const getOrder = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id)
     .populate('cliente', 'nome email morada')

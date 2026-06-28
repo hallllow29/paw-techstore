@@ -5,7 +5,7 @@ import { logger } from '../utils/logger.js';
  * Envia um SMS.
  *
  * Sem provider configurado (SMS_PROVIDER vazio) corre em modo SIMULADO: regista
- * a mensagem no log e não envia nada real — tal como os pagamentos MB WAY /
+ * a mensagem no log e não envia nada real - tal como os pagamentos MB WAY /
  * Multibanco. Assim o projeto funciona em qualquer máquina, sem contas pagas.
  *
  * Ponto de extensão pronto para um provider real (Twilio, Vonage, ...) ativado

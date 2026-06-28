@@ -3,7 +3,7 @@ import { AuditLog } from '../models/auditLog.model.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { audit } from '../services/audit.js';
 
-/** GET /api/users — lista utilizadores (admin). Filtros: ?role= &status= */
+/** GET /api/users - lista utilizadores (admin). Filtros: ?role= &status= */
 export const listUsers = asyncHandler(async (req, res) => {
   const filter = {};
   if (req.query.role) filter.role = req.query.role;
@@ -13,7 +13,7 @@ export const listUsers = asyncHandler(async (req, res) => {
   res.json({ success: true, count: users.length, users });
 });
 
-/** GET /api/users/estafetas/pendentes — estafetas a aguardar aprovação (admin). */
+/** GET /api/users/estafetas/pendentes - estafetas a aguardar aprovação (admin). */
 export const listPendingEstafetas = asyncHandler(async (_req, res) => {
   const users = await User.find({ role: 'estafeta', status: 'pendente' }).sort({
     createdAt: -1,
@@ -21,14 +21,14 @@ export const listPendingEstafetas = asyncHandler(async (_req, res) => {
   res.json({ success: true, count: users.length, users });
 });
 
-/** PATCH /api/users/:id/aprovar — aprova um estafeta (admin). */
+/** PATCH /api/users/:id/aprovar - aprova um estafeta (admin). */
 export const aprovarEstafeta = asyncHandler(async (req, res) => {
   const user = await setEstafetaStatus(req.params.id, 'ativo', res);
   await audit(req, 'estafeta.aprovar', { alvo: user.email });
   res.json({ success: true, message: 'Estafeta aprovado', user });
 });
 
-/** PATCH /api/users/:id/rejeitar — rejeita um estafeta (admin). */
+/** PATCH /api/users/:id/rejeitar - rejeita um estafeta (admin). */
 export const rejeitarEstafeta = asyncHandler(async (req, res) => {
   const user = await setEstafetaStatus(req.params.id, 'rejeitado', res);
   await audit(req, 'estafeta.rejeitar', { alvo: user.email });
@@ -46,7 +46,7 @@ async function setEstafetaStatus(id, status, res) {
   return user;
 }
 
-/** PATCH /api/users/:id/banir — suspende uma conta (admin). */
+/** PATCH /api/users/:id/banir - suspende uma conta (admin). */
 export const banUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
   if (!user) {
@@ -70,7 +70,7 @@ export const banUser = asyncHandler(async (req, res) => {
   res.json({ success: true, message: 'Conta suspensa', user });
 });
 
-/** PATCH /api/users/:id/desbanir — reativa uma conta suspensa (admin). */
+/** PATCH /api/users/:id/desbanir - reativa uma conta suspensa (admin). */
 export const unbanUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
   if (!user) {
@@ -83,7 +83,7 @@ export const unbanUser = asyncHandler(async (req, res) => {
   res.json({ success: true, message: 'Conta reativada', user });
 });
 
-/** GET /api/users/audit — registo de auditoria de ações sensíveis (admin). */
+/** GET /api/users/audit - registo de auditoria de ações sensíveis (admin). */
 export const listAudit = asyncHandler(async (_req, res) => {
   const logs = await AuditLog.find().sort({ createdAt: -1 }).limit(200);
   res.json({ success: true, count: logs.length, logs });

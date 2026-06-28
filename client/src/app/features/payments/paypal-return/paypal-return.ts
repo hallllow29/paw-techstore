@@ -6,7 +6,7 @@ type Estado = 'a-confirmar' | 'ok' | 'erro';
 
 /**
  * Página pública de regresso do PayPal. Captura o pagamento a partir do id da
- * ordem (?token=...) — funciona mesmo que a sessão não tenha sobrevivido ao
+ * ordem (?token=...) - funciona mesmo que a sessão não tenha sobrevivido ao
  * redirect externo. Depois encaminha para a encomenda.
  */
 @Component({

@@ -17,7 +17,7 @@ async function getTransporter() {
     }
     // Sem SMTP: conta de teste Ethereal (emails ficam em preview, não saem).
     const test = await nodemailer.createTestAccount();
-    logger.info('Mailer em modo Ethereal (dev) — os emails geram um link de preview.');
+    logger.info('Mailer em modo Ethereal (dev) - os emails geram um link de preview.');
     return nodemailer.createTransport({
       host: 'smtp.ethereal.email',
       port: 587,
@@ -37,7 +37,7 @@ export async function sendMail({ to, subject, html }) {
     const transporter = await getTransporter();
     const info = await transporter.sendMail({ from: env.mailFrom, to, subject, html });
     const preview = nodemailer.getTestMessageUrl(info);
-    if (preview) logger.info(`Email para ${to} — preview: ${preview}`);
+    if (preview) logger.info(`Email para ${to} - preview: ${preview}`);
   } catch (err) {
     logger.warn(`Falha ao enviar email para ${to}: ${err.message}`);
   }

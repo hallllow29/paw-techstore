@@ -70,7 +70,7 @@ const authLimiter =
  *               telefone: { type: string }
  *               role: { type: string, enum: [cliente, estafeta] }
  *     responses:
- *       201: { description: "Conta criada (sem login — exige confirmação de email)" }
+ *       201: { description: "Conta criada (sem login - exige confirmação de email)" }
  *       409: { description: Email já registado }
  *       422: { description: Dados inválidos }
  */

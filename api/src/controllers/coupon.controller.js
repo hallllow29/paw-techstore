@@ -1,7 +1,7 @@
 import { Coupon } from '../models/coupon.model.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
-/** POST /api/coupons/validate — valida um código para um subtotal (cliente). */
+/** POST /api/coupons/validate - valida um código para um subtotal (cliente). */
 export const validateCoupon = asyncHandler(async (req, res) => {
   const { codigo, subtotal } = req.body;
   const coupon = await Coupon.findOne({
@@ -25,13 +25,13 @@ export const validateCoupon = asyncHandler(async (req, res) => {
   });
 });
 
-/** GET /api/coupons — lista cupões (loja). */
+/** GET /api/coupons - lista cupões (loja). */
 export const listCoupons = asyncHandler(async (_req, res) => {
   const coupons = await Coupon.find().sort({ createdAt: -1 });
   res.json({ success: true, count: coupons.length, coupons });
 });
 
-/** POST /api/coupons — cria cupão (loja). */
+/** POST /api/coupons - cria cupão (loja). */
 export const createCoupon = asyncHandler(async (req, res) => {
   const { codigo, tipo, valor, minSubtotal, validoAte, usosMax } = req.body;
   if (await Coupon.exists({ codigo: String(codigo).toUpperCase().trim() })) {
@@ -49,7 +49,7 @@ export const createCoupon = asyncHandler(async (req, res) => {
   res.status(201).json({ success: true, coupon });
 });
 
-/** PUT /api/coupons/:id — atualiza cupão (loja). */
+/** PUT /api/coupons/:id - atualiza cupão (loja). */
 export const updateCoupon = asyncHandler(async (req, res) => {
   const coupon = await Coupon.findById(req.params.id);
   if (!coupon) {
@@ -65,7 +65,7 @@ export const updateCoupon = asyncHandler(async (req, res) => {
   res.json({ success: true, coupon });
 });
 
-/** DELETE /api/coupons/:id — remove cupão (loja). */
+/** DELETE /api/coupons/:id - remove cupão (loja). */
 export const deleteCoupon = asyncHandler(async (req, res) => {
   const coupon = await Coupon.findByIdAndDelete(req.params.id);
   if (!coupon) {

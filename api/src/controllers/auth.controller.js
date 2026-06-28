@@ -32,7 +32,7 @@ async function registarFalhaLogin(req, user) {
 
 /**
  * Em dev/teste regista o código no log do servidor (nunca em produção e nunca
- * na resposta HTTP) — permite testar OTP/reposição mesmo sem entrega de email
+ * na resposta HTTP) - permite testar OTP/reposição mesmo sem entrega de email
  * configurada. Não é vetor de account-takeover (os logs não são expostos).
  */
 function logCodigoDev(rotulo, destino, codigo) {
@@ -75,7 +75,7 @@ async function enviarConfirmacaoEmail(user) {
   const link = `${env.clientUrl}/confirmar-email?token=${token}`;
   await sendMail({
     to: user.email,
-    subject: 'Confirma o teu email — ElSircários Tech Store',
+    subject: 'Confirma o teu email - ElSircários Tech Store',
     html: verifyEmailHtml(user.nome, link),
   });
   return token;
@@ -90,7 +90,7 @@ function otpEmailHtml(nome, codigo, acao = 'entrares na ElSircários Tech Store'
   </div>`;
 }
 
-/** POST /api/auth/register — auto-registo de cliente ou estafeta. */
+/** POST /api/auth/register - auto-registo de cliente ou estafeta. */
 export const register = asyncHandler(async (req, res) => {
   const { nome, email, password, morada, telefone, role } = req.body;
 
@@ -124,22 +124,21 @@ export const register = asyncHandler(async (req, res) => {
     throw err;
   }
 
-  // Envia o email de confirmação. A conta só fica validada após confirmar —
-  // não há auto-login (o utilizador tem de clicar no link primeiro).
+  // Envia o email de confirmação. A conta só fica validada após confirmar -   // não há auto-login (o utilizador tem de clicar no link primeiro).
   const emailToken = await enviarConfirmacaoEmail(user);
 
   const payload = {
     success: true,
     user,
     message:
-      'Conta criada! Enviámos um link para confirmares o teu email — confirma para poderes entrar.',
+      'Conta criada! Enviámos um link para confirmares o teu email - confirma para poderes entrar.',
   };
   // Só em testes devolvemos o token do email (em produção iria só por email).
   if (env.nodeEnv === 'test') payload.devEmailToken = emailToken;
   res.status(201).json(payload);
 });
 
-/** POST /api/auth/email/verify — confirma o email a partir do token do link. */
+/** POST /api/auth/email/verify - confirma o email a partir do token do link. */
 export const verifyEmail = asyncHandler(async (req, res) => {
   const { token } = req.body;
   const user = await User.findOne({
@@ -160,10 +159,10 @@ export const verifyEmail = asyncHandler(async (req, res) => {
   res.json({ success: true, message: 'Email confirmado com sucesso', user });
 });
 
-/** POST /api/auth/email/resend — reenvia o email de confirmação (público, por email). */
+/** POST /api/auth/email/resend - reenvia o email de confirmação (público, por email). */
 export const resendVerification = asyncHandler(async (req, res) => {
   const { email } = req.body;
-  // Resposta genérica — não revela se a conta existe nem o seu estado.
+  // Resposta genérica - não revela se a conta existe nem o seu estado.
   const generic = {
     success: true,
     message: 'Se existir uma conta por confirmar com esse email, reenviámos o link.',
@@ -179,7 +178,7 @@ export const resendVerification = asyncHandler(async (req, res) => {
   return res.json(generic);
 });
 
-/** POST /api/auth/login — autentica e devolve um JWT. */
+/** POST /api/auth/login - autentica e devolve um JWT. */
 export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
@@ -229,12 +228,12 @@ export const login = asyncHandler(async (req, res) => {
   res.json({ success: true, token, user });
 });
 
-/** GET /api/auth/me — perfil do utilizador autenticado. */
+/** GET /api/auth/me - perfil do utilizador autenticado. */
 export const me = asyncHandler(async (req, res) => {
   res.json({ success: true, user: req.user });
 });
 
-/** PATCH /api/auth/password — altera a própria password. */
+/** PATCH /api/auth/password - altera a própria password. */
 export const changePassword = asyncHandler(async (req, res) => {
   const { currentPassword, newPassword } = req.body;
 
@@ -254,7 +253,7 @@ export const changePassword = asyncHandler(async (req, res) => {
   res.json({ success: true, message: 'Password alterada com sucesso' });
 });
 
-/** PATCH /api/auth/me — atualiza os próprios dados (nome, morada, telefone). */
+/** PATCH /api/auth/me - atualiza os próprios dados (nome, morada, telefone). */
 export const updateProfile = asyncHandler(async (req, res) => {
   const { nome, morada, telefone } = req.body;
   const user = await User.findById(req.user._id);
@@ -269,7 +268,7 @@ export const updateProfile = asyncHandler(async (req, res) => {
   res.json({ success: true, user });
 });
 
-/** PATCH /api/auth/avatar — atualiza a foto de perfil (multipart, campo "avatar"). */
+/** PATCH /api/auth/avatar - atualiza a foto de perfil (multipart, campo "avatar"). */
 export const updateAvatar = asyncHandler(async (req, res) => {
   if (!req.file) {
     res.status(400);
@@ -285,7 +284,7 @@ export const updateAvatar = asyncHandler(async (req, res) => {
   res.json({ success: true, user });
 });
 
-/** POST /api/auth/otp/request — envia um código de acesso (email ou SMS, só clientes). */
+/** POST /api/auth/otp/request - envia um código de acesso (email ou SMS, só clientes). */
 export const requestOtp = asyncHandler(async (req, res) => {
   const { email, telefone, canal } = req.body;
   const porSms = canal === 'sms';
@@ -323,7 +322,7 @@ export const requestOtp = asyncHandler(async (req, res) => {
   } else {
     await sendMail({
       to: user.email,
-      subject: 'O teu código de acesso — ElSircários Tech Store',
+      subject: 'O teu código de acesso - ElSircários Tech Store',
       html: otpEmailHtml(user.nome, codigo),
     });
   }
@@ -334,7 +333,7 @@ export const requestOtp = asyncHandler(async (req, res) => {
   return res.json(generic);
 });
 
-/** POST /api/auth/otp/verify — valida o código e devolve um JWT. */
+/** POST /api/auth/otp/verify - valida o código e devolve um JWT. */
 export const verifyOtp = asyncHandler(async (req, res) => {
   const { email, telefone, code } = req.body;
   // Identifica a conta pelo telemóvel (SMS) ou pelo email, conforme o canal usado.
@@ -384,7 +383,7 @@ export const verifyOtp = asyncHandler(async (req, res) => {
   res.json({ success: true, token, user });
 });
 
-/** POST /api/auth/password/forgot — envia código para repor a password (qualquer papel). */
+/** POST /api/auth/password/forgot - envia código para repor a password (qualquer papel). */
 export const forgotPassword = asyncHandler(async (req, res) => {
   const { email, canal } = req.body;
   const porSms = canal === 'sms';
@@ -412,7 +411,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
   } else {
     await sendMail({
       to: user.email,
-      subject: 'Repor a password — ElSircários Tech Store',
+      subject: 'Repor a password - ElSircários Tech Store',
       html: otpEmailHtml(user.nome, codigo, 'repores a tua password'),
     });
   }
@@ -421,7 +420,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
   return res.json(generic);
 });
 
-/** POST /api/auth/password/reset — valida o código e define a nova password. */
+/** POST /api/auth/password/reset - valida o código e define a nova password. */
 export const resetPassword = asyncHandler(async (req, res) => {
   const { email, code, newPassword } = req.body;
   const user = await User.findOne({ email }).select(

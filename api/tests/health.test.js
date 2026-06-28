@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
 
-// Nota: createApp() não liga à BD nem abre porta — perfeito para testes.
+// Nota: createApp() não liga à BD nem abre porta - perfeito para testes.
 const app = createApp();
 
 test('GET /api/health responde 200 e status ok', async () => {

@@ -2,7 +2,7 @@
  * Origem da API (sem /api), também usada para /uploads e Socket.IO.
  * - Dev (ng serve em :4200): aponta direto para a API em :3000.
  * - Produção (servido pelo nginx noutra porta): usa a MESMA origem da página
- *   — o nginx faz proxy de /api, /uploads e /socket.io para a API. Assim não
+ *   - o nginx faz proxy de /api, /uploads e /socket.io para a API. Assim não
  *   há hosts hardcoded e o CSP pode ficar em 'self'.
  */
 const ehDevServe = globalThis.location?.port === '4200';

@@ -48,7 +48,7 @@ export class StoreAnalytics implements OnInit {
 
   readonly barrasEstado = computed<BarItem[]>(() =>
     (this.data()?.porEstado ?? []).map((d) => ({
-      label: ESTADO_LABEL[d._id ?? ''] ?? d._id ?? '—',
+      label: ESTADO_LABEL[d._id ?? ''] ?? d._id ?? '-',
       value: d.total,
       color: ESTADO_COR[d._id ?? ''],
     })),
@@ -58,7 +58,7 @@ export class StoreAnalytics implements OnInit {
   );
   readonly barrasPagamento = computed<BarItem[]>(() =>
     (this.data()?.porPagamento ?? []).map((d) => ({
-      label: PAGAMENTO_LABEL[d._id ?? ''] ?? d._id ?? '—',
+      label: PAGAMENTO_LABEL[d._id ?? ''] ?? d._id ?? '-',
       value: d.total,
     })),
   );

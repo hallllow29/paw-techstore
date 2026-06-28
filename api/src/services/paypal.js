@@ -42,7 +42,7 @@ export async function createPaypalOrder({ total, ref, returnUrl, cancelUrl }) {
       purchase_units: [
         {
           amount: { currency_code: 'EUR', value: total.toFixed(2) },
-          description: `Encomenda #${ref} — ElSircários Tech Store`,
+          description: `Encomenda #${ref} - ElSircários Tech Store`,
         },
       ],
       application_context: {

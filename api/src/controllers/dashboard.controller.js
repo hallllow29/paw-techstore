@@ -19,7 +19,7 @@ const topItens = (match, limit = 5) =>
     { $limit: limit },
   ]);
 
-/** GET /api/dashboard — estatísticas conforme o perfil do utilizador. */
+/** GET /api/dashboard - estatísticas conforme o perfil do utilizador. */
 export const getDashboard = asyncHandler(async (req, res) => {
   const u = req.user;
   const data = {};

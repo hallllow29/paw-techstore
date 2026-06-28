@@ -50,7 +50,7 @@ body {
 }
 
 /* ───────────────────────────────────────────────────────────
-   Sistema de design — refinamentos globais (elevam todas as páginas)
+   Sistema de design - refinamentos globais (elevam todas as páginas)
    ─────────────────────────────────────────────────────────── */
 h1,
 h2,
@@ -141,7 +141,7 @@ a {
   background-clip: content-box;
 }
 
-/* Skeleton loader — estados de carregamento premium (classe utilitária) */
+/* Skeleton loader - estados de carregamento premium (classe utilitária) */
 .skeleton {
   position: relative;
   overflow: hidden;
@@ -162,7 +162,7 @@ a {
   }
 }
 
-/* ─── Impressão (fatura) — esconde a "cromagem" da app ─── */
+/* ─── Impressão (fatura) - esconde a "cromagem" da app ─── */
 @media print {
   header.sticky-top,
   app-toasts,
@@ -630,7 +630,7 @@ body,
 }
 
 /* ───────────────────────────────────────────────────────────
-   Modo escuro — Bootstrap 5.3 (data-bs-theme="dark")
+   Modo escuro - Bootstrap 5.3 (data-bs-theme="dark")
    Mantemos a marca (azul + ciano); o header já é escuro.
    Aqui reescrevemos as superfícies claras para um navy coerente
    e corrigimos as utilidades de cor fixo (bg-white/bg-light/…).

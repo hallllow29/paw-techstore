@@ -60,19 +60,19 @@ export class AdminOverview implements OnInit {
 
   readonly barrasRole = computed<BarItem[]>(() =>
     (this.stats()?.porRole ?? []).map((d) => ({
-      label: ROLE_LABEL[d._id ?? ''] ?? d._id ?? '—',
+      label: ROLE_LABEL[d._id ?? ''] ?? d._id ?? '-',
       value: d.total,
     })),
   );
   readonly barrasStatus = computed<BarItem[]>(() =>
     (this.stats()?.porStatus ?? []).map((d) => ({
-      label: STATUS_LABEL[d._id ?? ''] ?? d._id ?? '—',
+      label: STATUS_LABEL[d._id ?? ''] ?? d._id ?? '-',
       value: d.total,
     })),
   );
   readonly barrasEstado = computed<BarItem[]>(() =>
     (this.stats()?.porEstado ?? []).map((d) => ({
-      label: ESTADO_LABEL[d._id ?? ''] ?? d._id ?? '—',
+      label: ESTADO_LABEL[d._id ?? ''] ?? d._id ?? '-',
       value: d.total,
       color: ESTADO_COR[d._id ?? ''],
     })),

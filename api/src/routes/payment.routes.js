@@ -19,12 +19,12 @@ const router = Router();
  * /api/payments/paypal/confirm:
  *   post:
  *     tags: [Pagamentos]
- *     summary: Captura a ordem PayPal no regresso (público — identificado pelo id da ordem)
+ *     summary: Captura a ordem PayPal no regresso (público - identificado pelo id da ordem)
  *     responses:
  *       200: { description: "{ pago: boolean, orderId: string }" }
  */
 // Pública (sem auth): a aprovação já foi feita pelo comprador no PayPal e a
-// captura é idempotente — só finaliza um pagamento já aprovado. Assim funciona
+// captura é idempotente - só finaliza um pagamento já aprovado. Assim funciona
 // mesmo que a sessão do cliente não sobreviva ao redirect externo.
 router.post('/paypal/confirm', confirmPaypal);
 

@@ -2,7 +2,7 @@ import { Review } from '../models/review.model.js';
 import { Order } from '../models/order.model.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
-/** POST /api/reviews — avalia uma encomenda entregue (cliente). */
+/** POST /api/reviews - avalia uma encomenda entregue (cliente). */
 export const createReview = asyncHandler(async (req, res) => {
   const { orderId, ratingEncomenda, ratingEstafeta, comentario } = req.body;
 
@@ -41,13 +41,13 @@ export const createReview = asyncHandler(async (req, res) => {
   res.status(201).json({ success: true, review });
 });
 
-/** GET /api/reviews/order/:orderId — avaliação de uma encomenda (ou null). */
+/** GET /api/reviews/order/:orderId - avaliação de uma encomenda (ou null). */
 export const getReviewByOrder = asyncHandler(async (req, res) => {
   const review = await Review.findOne({ order: req.params.orderId });
   res.json({ success: true, review });
 });
 
-/** GET /api/reviews — todas as avaliações (loja). */
+/** GET /api/reviews - todas as avaliações (loja). */
 export const listReviews = asyncHandler(async (_req, res) => {
   const reviews = await Review.find()
     .populate('cliente', 'nome')

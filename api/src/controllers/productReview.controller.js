@@ -26,7 +26,7 @@ function comprou(clienteId, produtoId) {
   });
 }
 
-/** GET /api/products/:idOrSlug/reviews — lista avaliações + resumo (público). */
+/** GET /api/products/:idOrSlug/reviews - lista avaliações + resumo (público). */
 export const listProductReviews = asyncHandler(async (req, res) => {
   const product = await loadProduct(req.params.idOrSlug, res);
   const reviews = await ProductReview.find({ produto: product._id }).sort({
@@ -41,7 +41,7 @@ export const listProductReviews = asyncHandler(async (req, res) => {
   });
 });
 
-/** GET /api/products/:idOrSlug/reviews/me — estado de avaliação do cliente atual. */
+/** GET /api/products/:idOrSlug/reviews/me - estado de avaliação do cliente atual. */
 export const myReviewStatus = asyncHandler(async (req, res) => {
   const product = await loadProduct(req.params.idOrSlug, res);
   const review = await ProductReview.findOne({
@@ -52,7 +52,7 @@ export const myReviewStatus = asyncHandler(async (req, res) => {
   res.json({ success: true, jaAvaliou: Boolean(review), podeAvaliar: elegivel, review });
 });
 
-/** POST /api/products/:idOrSlug/reviews — cria avaliação (cliente que comprou). */
+/** POST /api/products/:idOrSlug/reviews - cria avaliação (cliente que comprou). */
 export const createProductReview = asyncHandler(async (req, res) => {
   const product = await loadProduct(req.params.idOrSlug, res);
   const { rating, comentario } = req.body;

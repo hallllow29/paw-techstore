@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Testes E2E (Playwright) — correm num browser real contra a aplicação a
+ * Testes E2E (Playwright) - correm num browser real contra a aplicação a
  * funcionar: cliente em :4200 e API em :3000.
  *
  * - Arranca o cliente automaticamente se não estiver a correr (reutiliza o que

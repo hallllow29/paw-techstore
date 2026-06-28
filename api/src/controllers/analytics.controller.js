@@ -53,7 +53,7 @@ const porDia = (Model, match, somar) =>
     { $sort: { _id: 1 } },
   ]);
 
-/** GET /api/analytics/admin — observabilidade global da plataforma (admin). */
+/** GET /api/analytics/admin - observabilidade global da plataforma (admin). */
 export const adminStats = asyncHandler(async (_req, res) => {
   const desde = inicioHaDias(DIAS_TENDENCIA);
   const [
@@ -107,7 +107,7 @@ export const adminStats = asyncHandler(async (_req, res) => {
   });
 });
 
-/** GET /api/analytics/loja — observabilidade da loja (loja/admin). */
+/** GET /api/analytics/loja - observabilidade da loja (loja/admin). */
 export const lojaAnalytics = asyncHandler(async (_req, res) => {
   const desde = inicioHaDias(DIAS_TENDENCIA);
   const [

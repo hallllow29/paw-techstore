@@ -27,7 +27,7 @@ const cliente = {
   telefone: '910000000',
 };
 
-test('registo de cliente devolve 201 (sem login — exige confirmar email)', async () => {
+test('registo de cliente devolve 201 (sem login - exige confirmar email)', async () => {
   const res = await request(app).post('/api/auth/register').send(cliente);
   assert.equal(res.status, 201);
   assert.equal(res.body.token, undefined); // sem auto-login
