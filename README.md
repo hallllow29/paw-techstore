@@ -1,100 +1,63 @@
-# paw-techstore
+# ElSircários Tech Store
 
 [![CI](https://github.com/hallllow29/paw-techstore/actions/workflows/ci.yml/badge.svg)](https://github.com/hallllow29/paw-techstore/actions/workflows/ci.yml)
 [![Security](https://github.com/hallllow29/paw-techstore/actions/workflows/security.yml/badge.svg)](https://github.com/hallllow29/paw-techstore/actions/workflows/security.yml)
 
-Plataforma de e-commerce para uma loja de **material informático**.
-Trabalho prático de **Programação em Ambiente Web (PAW)** — Avaliação de Recurso.
+Loja online de material informático (computadores, periféricos e componentes),
+feita para a unidade curricular de Programação em Ambiente Web (PAW), época de
+recurso.
 
-Stack: **MongoDB · Express · Angular · Node (MEAN)** · JWT · Swagger.
-Produto: **ElSircários Tech Store**.
+Stack MEAN: MongoDB, Express, Angular e Node.js. A autenticação é por JWT, a API
+está documentada em Swagger e há comunicação em tempo real com Socket.IO.
 
-## Funcionalidades
+## O que faz
+
+A plataforma tem quatro perfis de utilizador, cada um com a sua área.
 
 ### Cliente
 
-- Registo com **confirmação de email obrigatória**; login por password **ou OTP** (código por email/SMS)
-- Catálogo com pesquisa, filtros (categoria, marca, preço, stock), autocomplete e comparador
-- Carrinho, checkout com moradas guardadas, cupões de desconto e favoritos
-- Pagamento: **PayPal** (sandbox real), cartão (Stripe opcional), MB WAY, Multibanco, à entrega
-- Acompanhamento da encomenda em tempo real (mapa do estafeta) e avaliações de produto/entrega
+- Conta com confirmação de email obrigatória. O login pode ser por password ou
+  por código OTP enviado por email ou SMS.
+- Catálogo com pesquisa, filtros (categoria, marca, preço, stock) e comparador
+  de produtos.
+- Carrinho, checkout com moradas guardadas, cupões e favoritos.
+- Pagamento por PayPal (sandbox real), cartão via Stripe (opcional), MB WAY,
+  Multibanco ou pagamento à entrega.
+- Acompanha a encomenda ao vivo, com o mapa do estafeta, e avalia depois de
+  confirmar que recebeu.
 
 ### Loja
 
-- Gestão de produtos (CRUD com imagens), categorias, cupões e definições da loja
-- Gestão de encomendas (máquina de estados) e **painel de análise** (receita, ticket médio, top produtos, alertas de stock)
+- CRUD de produtos com upload de imagens, gestão de categorias e de cupões, e as
+  definições da loja (logótipo, horário, métodos de entrega e custos).
+- Gestão das encomendas ao longo dos vários estados e um painel de análise com
+  receita, ticket médio, produtos mais vendidos e alertas de stock.
 
 ### Estafeta
 
-- Aceitar e concluir entregas; envio da posição em tempo real (Socket.IO)
+- Vê as entregas disponíveis e aceita uma de cada vez. Pode recusar uma entrega
+  indicando o motivo, e nesse caso a loja reatribui a outro estafeta.
+- Quando entrega, regista a entrega; a sua posição vai sendo enviada em tempo
+  real durante o percurso. A entrega só fecha quando o cliente confirma a receção.
 
-### Admin
+### Administrador
 
-- **Observabilidade** da plataforma (KPIs, tendências, distribuições, recentes)
-- Gestão de utilizadores: aprovar/rejeitar estafetas e **suspender/reativar** contas
+- Indicadores gerais da plataforma e gestão de utilizadores: aprovar ou rejeitar
+  estafetas e suspender ou reativar contas.
+- Registo de auditoria das ações sensíveis (aprovações, suspensões, bloqueios).
 
-### Transversal
+### Comum a todos
 
-- Tema **claro/escuro**, notificações em tempo real (com som), design responsivo
-- Segurança: JWT + bcrypt, rate-limiting, validação (express-validator), política de password forte, Swagger
-
-## Estrutura do monorepo
-
-```
-paw-techstore/
-├── api/                # API REST (Node + Express + Mongoose) — padrão MVC
-│   └── src/
-│       ├── config/     # env, ligação à BD, swagger
-│       ├── models/     # schemas Mongoose
-│       ├── controllers/# lógica das rotas
-│       ├── routes/      # definição de endpoints (+ anotações Swagger)
-│       ├── middleware/ # auth, erros, 404, uploads
-│       ├── services/   # regras de negócio
-│       └── seed/        # dados de demonstração
-├── client/             # SPA Angular
-├── devsecops/          # SonarQube + DefectDojo + relatórios
-├── .github/workflows/  # CI + Security (DevSecOps)
-└── docs/               # relatório, diagramas, mockups
-```
-
-## Pré-requisitos
-
-- **Node.js** ≥ 20 e **npm**
-- **Angular CLI** (`npm i -g @angular/cli`)
-- Uma base de dados **MongoDB** — uma das opções:
-  - **MongoDB Atlas** (cloud, sem instalar nada) — usado na entrega
-  - **Docker** (Mongo em container) — recomendado para desenvolvimento
-
-## Configuração
-
-A aplicação **nunca tem credenciais hardcoded** — tudo vem de variáveis de
-ambiente. Copia o exemplo e preenche:
-
-```bash
-cp api/.env.example api/.env
-```
-
-Define `MONGODB_URI` no `.env`:
-
-- Atlas: `mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/paw-techstore`
-- Docker/local: `mongodb://127.0.0.1:27017/paw-techstore`
-
-### Variáveis opcionais
-
-Tudo funciona em **modo simulado** sem configuração. Preenche o `.env` só para
-ativar integrações reais (ver `api/.env.example`):
-
-| Variável                                 | Para quê                                                            |
-| ---------------------------------------- | ------------------------------------------------------------------- |
-| `SMTP_HOST/PORT/USER/PASS`, `MAIL_FROM`  | Email real (ex.: Brevo, Gmail). Sem isto, preview Ethereal nos logs |
-| `PAYPAL_CLIENT_ID/SECRET`, `PAYPAL_MODE` | Checkout PayPal real (sandbox). Sem isto, PayPal fica simulado      |
-| `STRIPE_SECRET_KEY`                      | Cartão via Stripe. Sem isto, cartão fica simulado                   |
-| `SMS_PROVIDER`, `SMS_*`                  | SMS real. Sem isto, OTP por SMS fica simulado (código nos logs)     |
-| `JWT_SECRET`, `JWT_EXPIRES_IN`           | Segredo e validade do token JWT                                     |
+- Tema claro e escuro, notificações em tempo real e layout responsivo.
+- Quando uma encomenda muda de estado, os painéis do cliente, da loja e do
+  estafeta atualizam-se logo, sem ser preciso recarregar a página.
 
 ## Como correr
 
-### Opção A — Docker (tudo de uma vez, offline)
+Precisas de Node.js 20 ou superior e de uma base de dados MongoDB (Atlas na
+cloud, ou um container Docker para desenvolvimento).
+
+### Com Docker (sobe tudo de uma vez)
 
 ```bash
 docker compose up --build
@@ -103,27 +66,27 @@ docker compose up --build
 # Swagger:  http://localhost:3000/api/docs
 ```
 
-### Opção B — manual (dois terminais)
+### À mão (dois terminais)
 
 ```bash
-# Terminal 1 — API
+# Terminal 1: API
 cd api && npm install && npm run dev
 
-# Terminal 2 — Cliente
+# Terminal 2: cliente
 cd client && npm install && npm start   # http://localhost:4200
 ```
 
-### Popular a base de dados (dados de demonstração)
+### Dados de exemplo
 
 ```bash
 cd api && npm run seed
 ```
 
-### Contas de demonstração
+### Contas de teste
 
-Todas com a password **`demo1234`**:
+Todas com a password `demo1234`:
 
-| Papel    | Email              |
+| Perfil   | Email              |
 | -------- | ------------------ |
 | Admin    | `admin@paw.pt`     |
 | Loja     | `loja@paw.pt`      |
@@ -131,51 +94,79 @@ Todas com a password **`demo1234`**:
 | Cliente  | `ana@paw.pt`       |
 | Cliente  | `rui@paw.pt`       |
 
-> Os clientes também podem entrar por **código OTP**. Em desenvolvimento (sem
-> SMTP/SMS real) o código aparece nos **logs da API**.
+Os clientes também podem entrar por código OTP. Em desenvolvimento, como não há
+SMTP nem SMS configurados, o código aparece nos logs da API (nunca na resposta
+HTTP).
 
-## Scripts úteis (API)
+## Configuração
 
-| Comando                 | Faz                                 |
-| ----------------------- | ----------------------------------- |
-| `npm run dev`           | API com auto-reload                 |
-| `npm start`             | API em modo normal                  |
-| `npm test`              | Testes (node:test)                  |
-| `npm run test:coverage` | Testes + cobertura (lcov)           |
-| `npm run lint`          | ESLint (inclui regras de segurança) |
-| `npm run format`        | Prettier                            |
-| `npm run seed`          | Popula a BD                         |
+As credenciais não estão no código, vêm todas de variáveis de ambiente. Copia o
+ficheiro de exemplo e preenche o que precisares:
+
+```bash
+cp api/.env.example api/.env
+```
+
+A única variável obrigatória é a ligação à base de dados:
+
+- Atlas: `MONGODB_URI=mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/paw-techstore`
+- Local ou Docker: `MONGODB_URI=mongodb://127.0.0.1:27017/paw-techstore`
+
+O resto é opcional. Sem essas variáveis, o email, o PayPal, o Stripe e os SMS
+correm em modo simulado, o que chega para testar tudo.
+
+| Variável                                 | Para quê                                    |
+| ---------------------------------------- | ------------------------------------------- |
+| `SMTP_HOST/PORT/USER/PASS`, `MAIL_FROM`  | Envio real de email (ex.: Brevo, Gmail)     |
+| `PAYPAL_CLIENT_ID/SECRET`, `PAYPAL_MODE` | Checkout PayPal real (sandbox)              |
+| `STRIPE_SECRET_KEY`                      | Pagamento por cartão via Stripe             |
+| `SMS_PROVIDER`, `SMS_*`                  | Envio real de SMS para o OTP                |
+| `JWT_SECRET`, `JWT_EXPIRES_IN`           | Segredo e validade do token de autenticação |
 
 ## Testes
 
 ```bash
-cd api && npm test               # API — node:test + mongodb-memory-server (51 testes)
-cd api && npm run test:coverage  # API — cobertura (c8 / lcov)
-cd client && npm test            # Cliente — Vitest (serviços, guards, utils)
+cd api && npm test               # 67 testes (node:test, supertest, mongodb-memory-server)
+cd api && npm run test:coverage  # cobertura com c8; a build falha se descer dos limiares
+cd client && npm test            # 24 testes (Vitest)
+cd client && npm run e2e         # testes end-to-end no browser (Playwright)
 ```
 
-Cobrem autenticação (registo/login/OTP/confirmação de email), encomendas
-(stock atómico, estados, cancelamento), pagamentos, avaliações e notificações
-no backend; e sessão, carrinho, tema, força de password e guards no frontend.
+No backend cobrem a autenticação (registo, login, OTP, confirmação de email),
+as encomendas (stock atómico, transições de estado, cancelamento, recusa e
+confirmação de entrega), os pagamentos, as avaliações e as notificações. No
+frontend cobrem o carrinho, a sessão, os guards de rota e o tema.
 
-## Qualidade & Segurança (DevSecOps)
+## Segurança e qualidade
 
-CI/CD via **GitHub Actions** (`.github/workflows/`):
+Há dois workflows no GitHub Actions:
 
-- **`ci.yml`** — lint, formatação, testes + cobertura, build do cliente
-- **`security.yml`** — Gitleaks · TruffleHog · Semgrep · Trivy ·
-  OWASP Dependency-Check · OWASP ZAP · Syft (SBOM)
+- `ci.yml`: lint, formatação, testes com cobertura e build do cliente.
+- `security.yml`: Gitleaks, TruffleHog, Semgrep, Trivy, OWASP Dependency-Check,
+  OWASP ZAP e Syft (para o SBOM).
 
-Pre-commit (Husky) formata o código e procura segredos antes de cada commit.
-Agregação de vulnerabilidades em **DefectDojo** e qualidade em **SonarQube** —
-ver [`devsecops/README.md`](devsecops/README.md).
+Antes de cada commit, o Husky formata o código e procura segredos. As
+vulnerabilidades são agregadas no DefectDojo e a qualidade é medida no
+SonarQube (ver [`devsecops/README.md`](devsecops/README.md)).
 
-## Entrega
+Na própria aplicação: passwords com bcrypt, tokens JWT, rate limiting, bloqueio
+de conta ao fim de cinco tentativas de login falhadas, validação de input com
+express-validator e o tal registo de auditoria das ações de administração.
 
-```bash
-# Gera o zip de entrega (sem node_modules)
-git archive --format=zip -o PAW_<nr_aluno>.zip HEAD
+## Estrutura
+
+```text
+paw-techstore/
+├── api/          # API REST (Node, Express, Mongoose), em MVC
+│   └── src/      # config, models, controllers, routes, middleware, services, seed
+├── client/       # aplicação Angular (SPA)
+├── devsecops/    # SonarQube, DefectDojo e relatórios
+├── .github/      # workflows de CI e de segurança
+└── docs/         # relatório e diagramas
 ```
 
-> A pasta `node_modules` é sempre omitida (`.gitignore`). O professor só precisa
-> de `npm install` em `api/` e `client/`, e de um `MONGODB_URI` válido.
+## Notas de entrega
+
+A pasta `node_modules` está no `.gitignore` e não vai no zip. Para pôr a correr
+basta `npm install` em `api/` e em `client/`, definir a `MONGODB_URI` e correr o
+seed.
