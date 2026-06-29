@@ -61,6 +61,13 @@
               formControlName="telefone"
               autocomplete="tel"
             />
+            @if (form.controls.telefone.invalid && form.controls.telefone.touched) {
+              <div class="text-danger small mt-1">
+                Telemóvel inválido (9 dígitos, ex.: 912345678).
+              </div>
+            } @else {
+              <div class="form-text">9 dígitos (ex.: 912345678).</div>
+            }
           </div>
 
           <div class="col-md-6">

@@ -16,6 +16,7 @@ import {
   METHOD_LABELS,
   PaymentMethod,
 } from '../../../core/models/order.model';
+import { NIF_PATTERN, PHONE_PATTERN } from '../../../core/patterns';
 
 const NOVA_MORADA = '__nova__';
 
@@ -137,8 +138,12 @@ export class Checkout implements OnInit {
       this.error.set('Indica uma morada de entrega');
       return;
     }
-    if (this.pagamento() === 'mbway' && !this.telefoneMbway.trim()) {
-      this.error.set('Indica o número de telemóvel para o MB WAY');
+    if (this.nif.trim() && !NIF_PATTERN.test(this.nif.trim())) {
+      this.error.set('NIF inválido (deve ter 9 dígitos)');
+      return;
+    }
+    if (this.pagamento() === 'mbway' && !PHONE_PATTERN.test(this.telefoneMbway.trim())) {
+      this.error.set('Indica um telemóvel válido para o MB WAY (9 dígitos)');
       return;
     }
     if (this.pagamento() === 'cartao' && !this.stripeAtivo() && !this.cartaoNumero.trim()) {

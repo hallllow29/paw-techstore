@@ -4,6 +4,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { AddressInput } from '../../shared/address-input/address-input';
 import { imageUrl } from '../../core/config';
 import { PASSWORD_PATTERN } from '../../core/password-strength';
+import { PHONE_PATTERN } from '../../core/patterns';
 
 @Component({
   selector: 'app-profile',
@@ -26,7 +27,7 @@ export class Profile implements OnInit {
   readonly perfilForm = this.fb.nonNullable.group({
     nome: ['', Validators.required],
     morada: ['', Validators.required],
-    telefone: ['', Validators.required],
+    telefone: ['', [Validators.required, Validators.pattern(PHONE_PATTERN)]],
   });
 
   readonly passwordForm = this.fb.nonNullable.group({

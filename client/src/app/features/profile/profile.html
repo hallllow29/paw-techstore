@@ -52,6 +52,11 @@
         <div class="mb-3">
           <label class="form-label" for="telefone">Telefone</label>
           <input id="telefone" class="form-control" formControlName="telefone" />
+          @if (perfilForm.controls.telefone.invalid && perfilForm.controls.telefone.touched) {
+            <div class="text-danger small mt-1">
+              Telemóvel inválido (9 dígitos, ex.: 912345678).
+            </div>
+          }
         </div>
 
         <div class="d-flex align-items-center gap-3">

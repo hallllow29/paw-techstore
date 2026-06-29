@@ -6,6 +6,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { AddressInput } from '../../../shared/address-input/address-input';
 import { PASSWORD_PATTERN, forcaPassword, ForcaPassword } from '../../../core/password-strength';
+import { PHONE_PATTERN } from '../../../core/patterns';
 
 @Component({
   selector: 'app-register',
@@ -30,7 +31,7 @@ export class Register {
       [Validators.required, Validators.minLength(8), Validators.pattern(PASSWORD_PATTERN)],
     ],
     morada: ['', [Validators.required]],
-    telefone: ['', [Validators.required]],
+    telefone: ['', [Validators.required, Validators.pattern(PHONE_PATTERN)]],
     role: ['cliente' as 'cliente' | 'estafeta', [Validators.required]],
   });
 

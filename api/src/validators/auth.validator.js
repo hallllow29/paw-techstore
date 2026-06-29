@@ -10,12 +10,20 @@ const passwordForte = (campo) =>
     .matches(/\d/)
     .withMessage('A password deve conter pelo menos um número');
 
+// Telemóvel português: 9 dígitos a começar por 9 (com +351 opcional).
+const TELEFONE_REGEX = /^(\+351\s?)?9\d{8}$/;
+
 export const registerRules = [
   body('nome').trim().notEmpty().withMessage('Nome obrigatório'),
   body('email').isEmail().withMessage('Email inválido').normalizeEmail(),
   passwordForte('password'),
   body('morada').trim().notEmpty().withMessage('Morada obrigatória'),
-  body('telefone').trim().notEmpty().withMessage('Telefone obrigatório'),
+  body('telefone')
+    .trim()
+    .notEmpty()
+    .withMessage('Telefone obrigatório')
+    .matches(TELEFONE_REGEX)
+    .withMessage('Telemóvel inválido (9 dígitos, ex.: 912345678)'),
   // Auto-registo só permite cliente ou estafeta (loja/admin são criados por seed)
   body('role')
     .optional()
@@ -95,5 +103,7 @@ export const profileRules = [
     .optional()
     .trim()
     .notEmpty()
-    .withMessage('Telefone não pode ficar vazio'),
+    .withMessage('Telefone não pode ficar vazio')
+    .matches(TELEFONE_REGEX)
+    .withMessage('Telemóvel inválido (9 dígitos, ex.: 912345678)'),
 ];

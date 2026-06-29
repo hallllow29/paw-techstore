@@ -54,6 +54,13 @@ test('registo com dados inválidos devolve 422', async () => {
   assert.equal(res.status, 422);
 });
 
+test('registo com telemóvel inválido devolve 422', async () => {
+  const res = await request(app)
+    .post('/api/auth/register')
+    .send({ ...cliente, email: 'tel@example.com', telefone: '123' });
+  assert.equal(res.status, 422);
+});
+
 test('estafeta regista-se com estado pendente', async () => {
   const res = await request(app)
     .post('/api/auth/register')
