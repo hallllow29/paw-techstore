@@ -11,7 +11,7 @@ const passwordForte = (campo) =>
     .withMessage('A password deve conter pelo menos um número');
 
 // Telemóvel português: 9 dígitos a começar por 9 (com +351 opcional).
-const TELEFONE_REGEX = /^(\+351\s?)?9\d{8}$/;
+const TELEFONE_REGEX = /^(\+351)?\s?9\d{8}$/;
 
 export const registerRules = [
   body('nome').trim().notEmpty().withMessage('Nome obrigatório'),
