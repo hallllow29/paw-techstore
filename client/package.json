@@ -33,8 +33,8 @@
     "@playwright/test": "^1.61.1",
     "@types/leaflet": "^1.9.21",
     "jsdom": "^28.0.0",
-    "prettier": "^3.8.1",
+    "prettier": "^3.9.4",
     "typescript": "~5.9.2",
-    "vitest": "^4.0.8"
+    "vitest": "^4.1.9"
   }
 }
