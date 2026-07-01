@@ -23,12 +23,12 @@ jobs:
     runs-on: ubuntu-latest
     if: github.actor != 'dependabot[bot]' # token read-only nos PRs do bot
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0 # histórico completo para varrer commits antigos
 
       - name: Gitleaks
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         continue-on-error: true
         env:
           GITLEAKS_ENABLE_UPLOAD_ARTIFACT: true
@@ -47,14 +47,14 @@ jobs:
     container:
       image: semgrep/semgrep
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Semgrep scan
         run: semgrep scan --config auto --sarif --output semgrep.sarif
         continue-on-error: true
       # NOTA: o upload para o separador Security (codeql-action/upload-sarif)
       # exige "Code scanning" ativado (repo público ou GitHub Advanced Security).
       # Como o repo não o tem, ficamos só pelo artefacto descarregável.
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: semgrep-report
@@ -66,7 +66,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.actor != 'dependabot[bot]'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Trivy (filesystem)
         uses: aquasecurity/trivy-action@master
@@ -88,7 +88,7 @@ jobs:
           args: >-
             --enableExperimental
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: sca-reports
@@ -102,7 +102,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.actor != 'dependabot[bot]'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Gerar SBOM
         uses: anchore/sbom-action@v0
         continue-on-error: true
@@ -110,7 +110,7 @@ jobs:
           path: .
           format: cyclonedx-json
           output-file: sbom.cyclonedx.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: sbom
@@ -122,7 +122,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.actor != 'dependabot[bot]'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Subir a stack (mongo + api + client)
         continue-on-error: true
         run: docker compose up -d --build
@@ -146,7 +146,7 @@ jobs:
             -J zap_report.json -r zap_report.html || true
       - name: Upload relatório ZAP
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: zap-report
           path: zap-out/
